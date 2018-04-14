@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <% include head %>
+  <body>
+      <% include menu %>
+      <div class="content-wrapper">
+        <div class="header">
+            <h2>Join <%= project.title %></h2>
+        </div>
+        <% if (project.status === 'open') { %>
+            <p>You will be notified by email when you are accepted into the project.</p>
+            <form action="/project/<%= project.slug %>/add" method="POST">
+            <fieldset>
+                <button type="submit">Join this project</button>
+            </fieldset>
+            </form>
+        <% } else { %>
+            <p>This project is not currently open.</p>
+            <p><a href="/project/<%= project.slug %>">Return to project page</a></p>
+        <% } %>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+
+            </div>
+            <div class="content pure-g">
+            <% include project-menu %>
+            <main class="pure-u-1 pure-u-md-3-5">
+                    <h2><%- review ? 'Review ' : '' %>Data: Survey <%= survey.id %></h2>
+                    <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observation/new">Add observation</a><br>
+                    <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/surveys">Return to surveys for <%= survey.Cycle.title  %></a>
+            <form action="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review" method="POST"  class="pure-form pure-form-aligned">
+            <% if(review) { %>
+                <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
+            <% } %>
+            <table class="pure-table pure-table-horizontal">
+                <thead>
+                    <tr><th>Row</th><th>Value</th><%- review ? '<th>Correct?</th>' : '' %></tr>
+                </thead>
+                <tbody>
+                <%
+                    const data = JSON.parse(survey.data);
+                    Object.keys(data).forEach(key => {
+                %>
+                    <tr>
+                        <td><%= key %></td>
+                        <td><%= (data[key] || '[no data]') %></td>
+                        <% if (review) { %>
+                            <td>
+                                <input type="checkbox" required>
+                            </td>
+                        <% } %>
+                    </tr>
+                <% }); %>
+                    <tr>
+                        <td>observations</td>
+                        <td><a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observations">Show all <%= survey.get('observationCount') %> observations</a></td>
+                    </tr>
+                <%
+                    //
+                %>
+              </tbody>
+            </table>
+            <%- review ? '<!--textarea name="comments" placeholder="You may leave review comments"></textarea-->' : '' %>
+            <%- review ? '<button type="submit">Pass review</button>' : '' %>
+            </form>
+            <% if (review) { %>
+            <form action="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review" method="POST" class="pure-form pure-form-aligned">
+                <input type="hidden" value="1" name="invalidate">
+                <button type="submit">Invalidate and resubmit data</button>
+            </form>
+            <% } %>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

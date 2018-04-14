@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                
+            </div>
+            <div class="content pure-g">
+            <% include project-menu %>
+
+            <main class="pure-u-1 pure-u-md-4-5">
+
+                <h2>Map: <%= map.name %></h2>
+
+            <% if(map.project.memberRole === 'none') { %>
+                <% if(map.project.status === 'open') { %>
+                    You're not part of this project, and do not have permission to see this map.
+                    <a href="/project/<%= map.project.slug %>/join">Apply to join this project</a>
+                <% } else { %>
+                    Only members of this project can view this map.
+                <% } %>
+            <% } else { %>
+                <aside>
+                    <% if(map.project.memberRole === 'administrator' || map.project.memberRole === 'owner') { %>
+                        <a href='/project/<%= map.project.slug %>/map/<%= map.id %>/edit'>Edit map</a><br>
+                    <% } %>
+                    <br>URL: <%= map.url %><br>
+                    <br>KML: <%= map.kml %><br>
+                </aside>
+            <% } %>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

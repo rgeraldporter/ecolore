@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                <h2>Public Projects</h2>
+            </div>
+            <div class="content">
+                    <aside>
+                            <a href='/project/create'>Start a new Project</a><br>
+                        </aside>
+                        <aside>
+                                <a href='/my-projects'>List My Projects</a><br>
+                            </aside>
+            <table class="pure-table pure-table-horizontal">
+                <caption>Public Projects</caption>
+                <thead>
+                    <tr><th>Project Title</th><th>Type</th><th>Location</th>
+                    <th>Status</th></tr>
+                </thead>
+                <tbody>
+                <% projects.forEach(function(project) {
+                    const models = {
+                        bbs: 'Breeding Bird Survey',
+                        'turtle-watch': 'Turtle Watch',
+                        cbc: 'Christmas Bird Count',
+                        'iba-survey': 'IBA Survey'
+                    };
+                    const statuses = {
+                        open: 'Open to contributors',
+                        closed: 'Closed to contributors',
+                        archived: 'Archived'
+                    };
+                    %>
+                    <tr>
+                        <td><a href="/project/<%= project.slug %>"><%= project.title %></a></td>
+                        <td><%= models[project.model] %></td>
+                        <td><%= project.location %></td>
+                        <td><%= statuses[project.status] %></td>
+                    </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            </div>
+    </div>
+</body>
+
+</html>

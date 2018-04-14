@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+            </div>
+            <div class="content pure-g">
+            <% include project-menu %>
+            <main class="pure-u-1 pure-u-md-3-5">
+                    <h2>Data: Observations for Survey Record <%= surveyId %></h2>
+                    <a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= surveyId %>/observation/new">Add observation</a><br>
+                    <a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= surveyId %>">Return to survey #<%= surveyId %></a>
+            <table class="pure-table pure-table-horizontal">
+                    <thead>
+                        <tr>
+                            <th>View</th>
+                            <th>Review</th>
+                            <th>Incident</th>
+                            <th>Species</th>
+                            <th>Photos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                <%
+                    observations.forEach(observation => {
+                        const data = JSON.parse(observation.data);
+                        const photosUrl = `/project/${project.slug}/cycle/${cycle.id}/survey/${surveyId}/observation/${observation.id}/files`;
+                %>
+
+                    <tr>
+                        <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>">View data</a></td>
+                        <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>/review">Review data</a></td>
+                        <td><%= data.incident_line %></td>
+                        <td><%= data.name_of_species %></td>
+                        <td>
+                            <% if (observation.get('fileCount')) { %>
+                                <a href="<%= photosUrl %>"><%= observation.get('fileCount') %> photos</a>
+                            <% } %>
+                        </td>
+                    </tr>
+                <%
+                    });
+                %>
+              </tbody>
+            </table>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

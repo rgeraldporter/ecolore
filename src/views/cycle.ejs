@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                <h2><%= cycle.title %></h2>
+            </div>
+            <div class="content">
+            <aside>
+                <a href='/project/<%= cycle.Project.slug %>/cycle/<%= cycle.id %>/survey/new'>Submit survey</a><br>
+            </aside>
+            <aside>
+                <a href='/project/<%= cycle.Project.slug %>/cycle/<%= cycle.id %>/edit'>Edit cycle</a><br>
+                <br>Start: <%= cycle.start %><br>
+                <br>End: <%= cycle.end %><br>
+            </aside>
+            <h3>Description:</h3>
+            <section>
+                <%= cycle.description %>
+            </section>
+            <a href="/project/<%= cycle.Project.slug %>/cycle/<%= cycle.id %>/surveys">List surveys for this cycle</a>
+            <a href="/project/<%= cycle.Project.slug %>/cycles">List cycles</a>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<%
+const projectTypes = {
+    bbs: 'Breeding Bird Survey (BBS)',
+    cbc: 'Christmas Bird Count (CBC)',
+    'turtle-watch': 'Turtle Watch',
+    'iba-survey': 'Important Bird Area (IBA) Survey',
+    'generic': 'Generic Project'
+};
+const roleTypes = {
+    pending: 'Your membership is pending approval by a project administrator',
+    owner: 'You are the project owner',
+    observer: 'You are a project observer',
+    contributor: 'You are a project contributor',
+    reporter: 'You are a project reporter',
+    administrator: 'You are a project administrator'
+};
+
+const projectLocation = () =>
+    project.location
+    ? `<a target="_blank" href="https://www.google.com/maps/search/?api=1&amp;query=${project.location}">${project.location}</a>`
+    : '';
+
+const projectTypeLink = `<a href="/project-types/${project.model}">${projectTypes[project.model]}</a>`;
+%>
+
+<nav class="pure-u-1 pure-u-md-1-5 project-sidebar">
+
+    <h3><%= project.title %></h3>
+
+    <div><%= project.public ? '🌐 Public project' : '🔒 Private project' %></div>
+    <div>ℹ️ <u><%- projectTypeLink %></u> in <u><%- projectLocation() %></u></div>
+
+    <div>&nbsp;</div>
+
+    <% if(project.memberRole !== 'none') { %>
+    <div><a href="/project/<%= project.slug %>/">About this project</a></div>
+    <div><a href="/project/<%= project.slug %>/submit">Submit data</a></div>
+    <div><a href="/project/<%= project.slug %>/cycles">Cycles</a></div>
+    <div><a href="/project/<%= project.slug %>/zones">Zones</div>
+    <div><a href="/project/<%= project.slug %>/maps">Maps</a></div>
+    <% } %>
+
+    <% if(project.memberRole === 'administrator' || project.memberRole === 'owner') { %>
+        <div>Admin</div>
+        <div><a href="/project/<%= project.slug %>/members">🔐 Members</a></div>
+        <div><a href='/project/<%= project.slug %>/edit'>🔐 Edit</a></div>
+    <% } %>
+
+    <% if(!project.memberRole || project.memberRole === 'none') { %>
+        <% if(project.status === 'open') { %>
+            <div><a href="/project/<%= project.slug %>/join">Join this project</a></div>
+        <% } %>
+    <% } %>
+
+</nav>

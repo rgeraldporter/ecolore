@@ -1,0 +1,32 @@
+<div class="header">
+    <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
+        <a class="pure-menu-heading" href="/"><img src="/assets/logo.png" style="height: 1.25em;padding:0;"></a>
+        <%
+        const menuSelected = rootString =>
+            section === rootString
+            ? 'pure-menu-selected menu-item-divided'
+            : '';
+    %>
+
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item <%= menuSelected('project') %>">
+                    <a href="/projects" class="pure-menu-link">Projects</a>
+                </li>
+
+                <li class="pure-menu-item <%= menuSelected('index') %>">
+                        <a href="/about" class="pure-menu-link">About</a>
+                </li>
+
+                <% if (!user) { %>
+                <li class="pure-menu-item <%= menuSelected('contact') %>">
+                    <a href="/login" class="pure-menu-link">Log in</a>
+                </li>
+                <% } else { %>
+                <li class="pure-menu-item <%= menuSelected('contact') %>">
+                    <a href="/profile" class="pure-menu-link">👤 <%= user.firstName %> <%= user.lastName %></a>
+                </li>
+                <% } %>
+            </ul>
+    </div>
+</div>

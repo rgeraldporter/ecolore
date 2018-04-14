@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include head %>
+
+  <body>
+
+      <% include menu %>
+      <div class="content-wrapper">
+        <div class="header">
+          <h2>Registration</h2>
+          <p>In order to continue, you will need to provide at least a first and last name.</p>
+        </div>
+        <div class="content">
+          <form action="/user/<%= user.id %>" method="POST" enctype="application/x-www-form-urlencoded" class="pure-form pure-form-aligned">
+            <fieldset>
+              <div class="pure-control-group">
+                <label for="form-email">Email:</label>
+                <input type="email" name="email" id="form-email" value="<%= user.email %>" class="pure-input-1-4">
+              </div>
+
+              <div class="pure-control-group">
+                <label for="form-first-name">First name:</label>
+                <input type="text" name="firstName" id="form-first-name" value="<%= user.firstName %>" placeholder="First name">
+              </div>
+
+              <div class="pure-control-group">
+                <label for="form-last-name">Last name:</label>
+                <input type="text" name="lastName" id="form-last-name" value="<%= user.lastName %>" placeholder="Last name">
+              </div>
+
+              <div class="pure-control-group">
+                <label for="form-bio">Bio:</label>
+                <textarea cols="35" rows="5" name="bio" id="form-bio" placeholder="Enter something about yourself"><%= user.bio %></textarea>
+              </div>
+
+              <div class="pure-control-group">
+                <label for="form-submit"></label>
+                <button type="submit" id="form-submit" class="pure-button pure-button-primary">Complete registration</button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+    </div>
+  </body>
+
+</html>

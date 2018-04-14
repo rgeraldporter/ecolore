@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../head %>
+
+<body>
+        <% include ../menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                <h2>Dundas Turtle Watch Tally Sheet</h2>
+            </div>
+            <div class="content">
+                <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
+                    <fieldset>
+                        <div class="pure-control-group">
+                            <label for="form-route">Route:</label>
+                            <select name="route" id="form-route" required>
+                                <option value="">Select one...</option>
+                                <option value="King/Olympic">King/Olympic (Route #1)</option>
+                                <option value="Cootes Drive">Cootes Drive (Route #2)</option>
+                                <option value="Spencer Creek/Cootes">Spencer Creek/Cootes (Route #3)</option>
+                            </select>
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="form-date">Date:</label>
+                            <input type="date" name="date" id="form-date" required>
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="form-names">Names:</label>
+                            <input type="text" name="names" id="form-names" placeholder="Enter names here" required>
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="form-start-time">Start time:</label>
+                            <input type="time" name="start_time" id="form-start-time" required>
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="form-end-time">End time:</label>
+                            <input type="time" name="end_time" id="form-end-time" required>
+                        </div>
+
+
+                        <!-- note for rob: make sure zero does not convert to null -->
+                        <div class="pure-control-group">
+                            <label for="form-temperature">Temperature</label>
+                            <input type="number" name="temperature" id="form-temperature" required> °C
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Check any that may apply:</legend>
+
+                        <div class="pure-controls">
+                            <label class="pure-checkbox" for="form-weather-conditions-sunny">
+                                <input type="checkbox" name="weather_conditions_sunny" id="form-weather-conditions-sunny" value="true"> ☀️ Sunny</label>
+
+                            <label class="pure-checkbox" for="form-weather-conditions-part-sun">
+                                <input type="checkbox" name="weather_conditions_part_sun" id="form-weather-conditions-part-sun" value="true"> ⛅️ Part sun</label>
+
+                            <label class="pure-checkbox" for="form-weather-conditions-cloudy">
+                                <input type="checkbox" name="weather_conditions_cloudy" id="form-weather-conditions-cloudy" value="true"> ☁️ Cloudy</label>
+
+                            <label class="pure-checkbox" for="form-weather-conditions-light-rain">
+                                <input type="checkbox" name="weather_conditions_light_rain" id="form-weather-conditions-light-rain" value="true"> 🌧 Light rain</label>
+
+                            <label class="pure-checkbox" for="form-weather-conditions-heavy-rain">
+                                <input type="checkbox" name="weather_conditions_heavy_rain" id="form-weather-conditions-heavy-rain" value="true"> 🌧🌧️️ Heavy rain</label>
+
+                            <label class="pure-checkbox" for="form-weather-conditions-rain-24h">
+                                <input type="checkbox" name="weather_conditions_rain_24h" id="form-weather-conditions-rain-24h" value="true"> 🌧🕞 Rain in last 24 hours</label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Extra notes on sheet</legend>
+                        <div class="pure-control-group">
+                            <label for="form-extra-notes"></label>
+                            <textarea cols="35" rows="5" name="extra_notes" id="form-extra-notes" placeholder="Enter any extra notes written on the sheet that do no fit within the established fields above."></textarea>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Data entry notes</legend>
+                        <div class="pure-control-group">
+                            <label for="form-data-entry-notes"></label>
+                            <textarea cols="35" rows="5" name="data_entry_notes" id="form-data-entry-notes" placeholder="Additional notes related to data entry: e.g. unreadable parts, questions, follow-up notes."></textarea>
+                        </div>
+                    </fieldset>
+
+                    <% if ( ! locals.resubmit ) { %>
+                        <fieldset>
+                            <legend>Incidents</legend>
+
+                            <div class="pure-control-group">
+                                <label for="form-tally-sheets">Number of sheets</label>
+                                <input type="number" name="tally_sheets" id="form-tally-sheets" value="1" max="20" required>
+                            </div>
+
+                            <div class="pure-controls">
+                                <label for="form-incident-note"></label>
+                                <div id="form-incident-note" class="pure-form-message-inline">If you have incidents to report on, you will be taken to the incident report page next.</div>
+                            </div>
+
+                            <div class="pure-controls">
+                                <input type="checkbox" name="skip_observations" value="true" id="form-no-incidents">
+                                <label for="form-no-incidents">There were no recorded incidents in this report.</label>
+                            </div>
+                        </fieldset>
+                    <% } else { %>
+                        <input type="hidden" name="resubmit" value="<%= resubmit.id %>">
+                        <fieldset>
+                                <legend>Incidents</legend>
+                                <div class="pure-control-group">
+                                    <label for="form-tally-sheets">Number of sheets</label>
+                                    <input type="number" name="tally_sheets" id="form-tally-sheets" value="1" max="20" required>
+                                </div>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Resubmit</legend>
+                            <div class="pure-controls">
+                                    <label></label>
+                                    <p>This is a resubmit of <b>Survey #<%= resubmit.id %></b>. Please review the data carefully so you need not re-enter again!</p>
+                            </div>
+                        </fieldset>
+                    <% } %>
+                    <fieldset>
+                        <input type="hidden" name="cycle" value="<%= cycle.id %>">
+                        <div class="pure-control-group">
+                            <label for="form-submit"></label>
+                            <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+    </div>
+</body>
+
+</html>

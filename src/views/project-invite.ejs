@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                <h2>Invite others to join
+                    <%= project.title %>
+                </h2>
+            </div>
+            <div class="content">
+                
+                <form action="/project/<%= project.slug %>/invite" method="POST" class="pure-form pure-form-aligned">
+                    <fieldset>
+                            <legend>Enter a list of email addresses, seperated by comma</legend>
+                        <div class="pure-control-group">
+                            <label for="form-invitees">Invitees:</label>
+                            <textarea rows="6" cols="35" name="invitees" placeholder="janet.smith@example.com, jonah.jones@example.com"></textarea>
+                        </div>
+
+                        <div class="pure-control-group">
+                                <label for="form-role">Invite new members as role:</label>
+                                <select name="role" id="form-role">
+                                    <option value="administrator">Administrator: Everything below plus can invite new members, edit project details</option>
+                                    <option value="reporter">Reporter: Can write reports for project, see and contribute data</option>
+                                    <option value="contributor" selected>Contributor: Can see and contribute to project data</option>
+                                    <option value="observer">Observer: Can only see project data</option>
+                                </select>
+                        </div>
+
+
+                    </fieldset>
+                    <fieldset>
+                            <legend>Email text will include:</legend>
+                            <div>
+                                    <%= user.firstName %>
+                                        <%= user.lastName %> would like to invite you to join "
+                                            <%= project.title %>" on EcoLore!</div>
+                    </fieldset>
+                    
+
+
+                    <fieldset>
+                        <legend></legend>
+                            <div class="pure-control-group">
+                                <label for="form-invitation">Additional text</label>
+                                        <textarea  rows="6" cols="35" name="invitation" id="form-invitation" placeholder="Add an additional message here (optional)"></textarea>
+                                
+                            </div>
+                            
+                    </fieldset>
+                    <fieldset>
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                        <button type="submit" class="pure-button" id="form-submit">Invite to this project</button>
+                        </div>
+                    </fieldset>
+                </form>
+        </div>
+    </div>
+</body>
+
+</html>

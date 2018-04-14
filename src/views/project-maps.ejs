@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+            </div>
+            <div class="content pure-g">
+            
+            <% include project-menu %>
+
+            <main class="pure-u-1 pure-u-md-4-5">
+                <h2>Maps</h2>
+                <aside>
+                    <a href='/project/<%= project.slug %>/map/add'>Add a new Map</a><br>
+                </aside>
+                <table class="pure-table pure-table-horizontal">
+                    <thead>
+                        <tr><th>Map Name</th><th>Last Updated</th></tr>
+                    </thead>
+                    <tbody>
+                    <% if (!maps.length) { %>
+                        <tr><td colspan="3">There are no maps yet.</td></tr>
+                    
+                    <% } %>
+                    <% maps.forEach(function(map) {
+                        %>
+                        <tr>
+                            <td><a href="/project/<%= project.slug %>/map/<%= map.id %>"><%= map.name %></a></td>
+                            <td><%= map.updatedAt %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+                </table>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

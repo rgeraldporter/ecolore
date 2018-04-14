@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<% include head %>
+
+    <body>
+        <% include menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <h2 class="content-head is-center">Log in or sign up</h2>
+                </div>
+                <div class="content">
+                    <form action="/sendtoken" method="POST" class="pure-form pure-form-aligned">
+                        <fieldset>
+                            <div class="pure-control-group">
+                                <label for="form-login">Email:</label>
+                                <input name="user" type="email" id="form-login" class="pure-input-1-3" placeholder="Enter your email address">
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button type="submit" id="form-submit" class="pure-button pure-button-primary">Continue</button>
+                            </div>
+
+
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>

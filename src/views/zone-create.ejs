@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%
+const zoneValue = prop =>
+  zone[prop] ? ` value="${zone[prop]}"` : '';
+%>
+
+<% include head %>
+
+<body>
+    <% include menu %>
+    <div class="content-wrapper">
+      <div class="header">
+        <h2>
+          <%= zone && zone.id ? 'Update' : 'Add' %> Zone for
+            <%= project.title %>
+        </h2>
+      </div>
+      <div class="content">
+        <form action="/project/<%= project.slug %>/zone/<%= zone && zone.id ? zone.id : 'new' %>" method="POST" enctype="application/x-www-form-urlencoded"
+          class="pure-form pure-form-aligned">
+          <fieldset>
+            <div class="pure-control-group">
+                <label for="form-zone-code">Zone code:</label>
+                <input type="text" name="code" id="form-zone-code" placeholder="e.g. &quot;1&quot;, or &quot;3a&quot;"<%= zoneValue('code') %> class="pure-input-1-4">
+            </div>
+            <div class="pure-control-group">
+              <label for="form-name">Zone name:</label>
+              <input type="text" name="name" id="form-name" placeholder="Zone name, e.g. &quot;West Harbour&quot;"<%= zoneValue('name') %> class="pure-input-1-2" required>
+            </div>
+
+            <div class="pure-control-group">
+              <label for="form-description">Description:</label>
+              <textarea rows="5" cols="35" id="form-description" name="description" placeholder="Notes about this zone"><%= zone.description %></textarea>
+            </div>
+
+          </fieldset>
+          <input type="hidden" name="project" value="<%= project.id %>">
+          <fieldset>
+            <div class="pure-control-group">
+              <label for="form-submit"></label>
+              <button type="submit" id="form-submit" class="pure-button">
+                <%= zone.id ? 'Update this zone' : 'Add new zone' %>
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+  </div>
+</body>
+
+</html>

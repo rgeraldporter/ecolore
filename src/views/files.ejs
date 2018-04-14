@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+            </div>
+            <div class="content pure-g">
+            <% include project-menu %>
+            <main class="pure-u-1 pure-u-md-3-5">
+                    <h2>Data: Photos for Observation Record <%= observation.id %></h2>
+                    <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/upload">Add photo</a><br>
+                    <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>">Return to observation record #<%= observation.id %></a>
+            <table class="pure-table pure-table-horizontal">
+                    <thead>
+                            <tr><th>URL</th>
+                            <th>Label</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                <%
+                    files.forEach(file => {
+                        //const data = JSON.parse(observation.data);
+                %>
+
+                    <tr>
+                        <td><a href="<%= file.url %>" target="_blank">View file</a></td>
+                        <td><%= file.label %></td>
+                    </tr>
+                <%
+                    });
+                %>
+              </tbody>
+            </table>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

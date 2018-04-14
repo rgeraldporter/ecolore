@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include head %>
+
+    <body>
+            <% include menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <h2>Profile for
+                        <%= user.firstName %>
+                            <%= user.lastName %>
+                    </h2>
+                </div>
+                <div class="content">
+                    <aside>
+                        <br>Email:
+                        <%= user.email %>
+                            <br>
+                            <br>ID:
+                            <%= user.id %>
+                                <br>
+                                <a href='/profile/edit'>Edit user</a>
+                                <br>
+                                <a href='/logout'>Logout</a>
+                    </aside>
+                    <h3>Biography:</h3>
+                    <section>
+                        <%= user.bio %>
+                    </section>
+                </div>
+        </div>
+    </body>
+
+</html>

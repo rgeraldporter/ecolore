@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+
+        <% include menu %>
+
+        <div class="content-wrapper">
+            <div class="header">
+                <!--h2><%= project.title %></h2-->
+            </div>
+            <div class="content pure-g">
+
+            <% include project-menu %>
+
+            <main class="pure-u-1 pure-u-md-4-5">
+
+                    <h2>About</h2>
+                    <section>
+                        <%- md.render(project.description) %>
+                    </section>
+            </main>
+
+            <!--aside class="pure-u-1 pure-u-md-1-5">
+                    <form method="POST" action="/project/browse-cycle" class="pure-form pure-form-stacked">
+                        <fieldset>
+                            <legend>Browse data</legend>
+                            <select name="cycle"
+                                oninvalid="this.setCustomValidity('You must select a cycle first.')"
+                                onvalid="this.setCustomValidity('')"
+                                required>
+                                <option value="">Select a cycle...</option>
+                                <% project.Cycles.forEach(cycle => { %>
+                                    <option value="<%= cycle.id %>"><%= cycle.title %></option>
+                                <% }); %>
+                            </select>
+                            <input type="hidden" value="<%= project.slug %>" name="project_slug">
+                            <button class="pure-button" id="form-submit" type="submit" value="cycle" name="submit">View Cycle</button>
+                        </fieldset>
+                            
+                    </form>
+            </aside-->
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include head %>
+
+<body>
+    <% include menu %>
+    <div class="content-wrapper">
+        <div class="header">
+        </div>
+        <div class="content pure-g">
+
+        <% include project-menu %>
+        <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
+
+        <main class="pure-u-1 pure-u-md-4-5">
+            <h2>Cycles</h2>
+            <% if(isAdmin) { %>
+            <aside>
+                <a href='/project/<%= project.slug %>/cycle/create'>Start a new Cycle</a><br>
+            </aside>
+            <% } %>
+
+            <table class="pure-table pure-table-horizontal">
+                <thead>
+                    <tr>
+                        <th>Cycle Name</th><th></th><th></th><th></th><th>Start</th><th>End</th>
+                        <% if (isAdmin) { %><th></th><% } %>
+                    </tr>
+                </thead>
+                <tbody>
+                <% if (!cycles.length) { %>
+                    <tr><td colspan="3">There are no cycles yet.</td></tr>
+                <% } %>
+                <% cycles.forEach(function(cycle) {
+                    %>
+                    <tr>
+                        <td><%= cycle.title %></td>
+                        <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/new'>Submit survey</a></td>
+                        <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/surveys">View surveys</a></td>
+                        <td><a href="/data/csv/cycle/<%= cycle.id %>">Download Data</a></td>
+                        <td><%= moment(cycle.start).format('LL'); %></td>
+                        <td><%= moment(cycle.end).format('LL'); %></td>
+                        <% if (isAdmin) { %>
+                        <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/edit'>Edit cycle</a></td>
+                        <% } %>
+                    </tr>
+                <% }); %>
+                </tbody>
+            </table>
+        </main>
+    </div>
+</body>
+
+</html>

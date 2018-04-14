@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <% include head %>
+
+<body>
+    <% include menu %>
+    <div class="content-wrapper">
+      <div class="header">
+        <h2>
+          <%= map && map.id ? 'Update' : 'Add' %> Map for
+            <%= map.Project.title %>
+        </h2>
+        <p>Please fill in information about the map you are looking to add.</p>
+      </div>
+      <div class="content">
+        <form action="/project/<%= map.Project.slug %>/map/<%= map && map.id ? map.id : 'new' %>" method="POST" enctype="application/x-www-form-urlencoded"
+          class="pure-form pure-form-aligned">
+          <fieldset>
+            <div class="pure-control-group">
+              <label for="form-name">Map name:</label>
+              <input type="text" name="name" id="form-name" placeholder="Map Name" value="<%= map.name %>"  class="pure-input-1-3" required>
+            </div>
+            <div class="pure-control-group">
+              <label for="form-url">Map URL:</label>
+              <input type="url" name="url" id="form-url" placeholder="Map Link URL" value="<%= map.url %>"  class="pure-input-1-2">
+            </div>
+            <div class="pure-control-group">
+              <label for="form-kml">KML:</label>
+              <input type="url" name="kml" id="form-kml" placeholder="KML URL" value="<%= map.kml %>"  class="pure-input-1-2">
+            </div>
+            <div class="pure-control-group">
+              <label for="form-embedCode">HTML embed code:</label>
+              <textarea rows="5" cols="35" id="form-embedCode" name="embedCode" placeholder="Paste in HTML embed code here"><%= map.embedCode %></textarea>
+            </div>
+
+
+
+          </fieldset>
+          <input type="hidden" name="project" value="<%= map.Project.id %>">
+          <fieldset>
+            <div class="pure-control-group">
+              <label for="form-submit"></label>
+              <button type="submit" id="form-submit" class="pure-button">
+                <%= map.id ? 'Update this map' : 'Add new map' %>
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+
+            </div>
+            <div class="content pure-g">
+
+            <% include project-menu %>
+
+            <main class="pure-u-1 pure-u-md-3-5">
+            <h2><%- review ? 'Review ' : '' %>Data: Observation <%= observation.id %></h2>
+            <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/upload">Add photo</a><br>
+            <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observations">Return to observations for survey #<%= observation.Survey.id %></a>
+            <form action="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review" method="POST" class="pure-form pure-form-aligned">
+            <% if(review) { %>
+                <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
+            <% } %>
+            <table class="pure-table pure-table-horizontal">
+                <thead>
+                    <tr><th>Row</th><th>Value</th><%- review ? '<th>Correct?</th>' : '' %></tr>
+                </thead>
+                <tbody>
+                <%
+                    const data = JSON.parse(observation.data);
+                    Object.keys(data).forEach(key => {
+                %>
+                    <tr>
+                        <td><%= key %></td>
+                        <td><%= (data[key] || '[no data]') %></td>
+                        <% if (review) { %>
+                        <td>
+                            <input type="checkbox" required>
+                        </td>
+                        <% } %>
+                    </tr>
+                <% }); %>
+                    <tr>
+                        <td>photos</td>
+                        <td><a <%= review ? 'target="_blank" ' : '' %> href="/project/<%= project.slug %>/cycle/<%=observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/files">Show all <%= observation.get('fileCount') %> photos <%= review ? '(opens new window)' : '' %></a></td>
+                        <% if (review) { %>
+                            <td>
+                                <input type="checkbox" required>
+                            </td>
+                        <% } %>
+                    </tr>
+                <%
+                    //
+                %>
+              </tbody>
+            </table>
+            <%- review ? '<button type="submit">Pass review</button>' : '' %>
+            </form>
+            <% if (review) { %>
+            <form action="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review" method="POST" class="pure-form pure-form-aligned">
+                <input type="hidden" value="1" name="invalidate">
+                <button type="submit">Invalidate and resubmit data</button>
+            </form>
+            <% } %>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                <h2><%= zone.name %> (<%= zone.code %>)</h2>
+            </div>
+            <div class="content">
+            <aside>
+                <a href='/project/<%= project.slug %>/zone/<%= zone.id %>/edit'>Edit zone</a><br>
+            </aside>
+            <h3>Description:</h3>
+            <section>
+                <%= zone.description %>
+            </section>
+        </div>
+    </div>
+</body>
+
+</html>

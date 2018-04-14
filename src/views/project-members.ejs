@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <% const permission = members.length; %>
+            <div class="header">
+            </div>
+            <div class="content pure-g">
+            <% include project-menu %>
+            <main class="pure-u-1 pure-u-md-4-5">
+        <% if (permission) { %>
+            <aside>
+                <a href='/project/<%= project.slug %>/invite'>Invite new members</a><br>
+            </aside>
+        <% } %>
+            <table class="pure-table pure-table-horizontal">
+                <thead>
+                    <tr><th>Member Name</th><th>Role</th><th></th></tr>
+                </thead>
+                <tbody>
+                <% if (!permission) { %>
+                    <tr><td colspan="3">You do not have permission to see the membership list.</td></tr>
+                <% } %>
+                <% members.forEach(function(member) {
+                    %>
+                    <tr>
+                        <td><%= member.firstName %> <%= member.lastName %></td>
+                        <td><%= member.role %>
+                            <% if (member.role === 'pending') { %>
+                                [<a href="/project/<%= project.slug %>/membership/<%= member.id %>">approve</a>]
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if ( member.id !== user.id ) { %>
+                            [
+                                <a href="/project/<%= project.slug %>/membership/<%= member.id %>">Edit role</a>
+                            ]</td>
+                            <% } else { %>
+                                [ cannot edit own role ]
+                            <% } %>
+                    </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

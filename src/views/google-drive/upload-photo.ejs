@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../head %>
+
+    <body>
+        <% include ../menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                <h2>File uploaded</h2>
+            </div>
+            <div class="content">
+                <section>
+                    <p>You may view your photo at
+                        <a target="_blank" href="<%= url %>">
+                                <%= url %>
+                        </a>.</p>
+                    <p>
+                        <a href="/project/<%= projectSlug %>/cycle/<%= cycleId %>/survey/<%= surveyId %>/observation/<%= observationId %>/upload">Add another photo to your observation.</a>
+                    </p>
+                    <p>
+                        <a href="/project/<%= projectSlug %>/cycle/<%= cycleId %>/survey/<%= surveyId %>/observation/<%= observationId %>">View this observation's data.</a>
+                    </p>
+                </section>
+            </div>
+        </div>
+    </body>
+
+</html>

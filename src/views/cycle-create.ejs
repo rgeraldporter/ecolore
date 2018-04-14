@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <% include head %>
+  <body>
+
+      <% include menu %>
+      <div class="content-wrapper">
+        <div class="header">
+            <h2><%= cycle && cycle.id ? 'Update' : 'Create' %> Cycle for <%= cycle.Project.title %></h2>
+            <p>Please fill out information about this cycle. Typically a "cycle" would be season, year, or count period.</p>
+        </div>
+        <div class="content">
+            <form action="/project/<%= cycle.Project.slug %>/cycle/<%= cycle && cycle.id ? cycle.id : 'new' %>" method="POST" enctype="application/x-www-form-urlencoded" class="pure-form pure-form-aligned">
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="form-name">Cycle name:</label>
+                        <input type="text" name="title" id="form-name" placeholder="e.g. Summer &quot;2019&quot;" value="<%= cycle.title %>" required>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="form-start">Start date:</label>
+                        <input type="date" name="start" id="form-start" value="<%= cycle.start ? moment(cycle.start).format('YYYY-MM-DD') : '' %>" required>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="form-end">End date:</label>
+                        <input type="date" name="end" id="form-end" value="<%= cycle.end ? moment(cycle.end).format('YYYY-MM-DD') : '' %>" required>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="form-description">Description:</label>
+                        <textarea name="description" id="form-description" placeholder="Enter a short description"><%= cycle.description %></textarea>
+                    </div>
+                    <input type="hidden" name="project" value="<%= cycle.Project.id %>">
+                </fieldset>
+
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="form-submit"></label>
+                        <button type="submit" id="form-submit"><%= cycle.id ? 'Update cycle' : 'Create new cycle' %></button>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+      </div>
+  </body>
+</html>

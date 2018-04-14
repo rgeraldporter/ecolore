@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+        <% include head %>
+
+<body>
+        <% include menu %>
+        <div class="content-wrapper">
+            <div class="header">
+                <h2>Edit Membership for
+                    <%= project.title %>
+                </h2>
+            </div>
+            <p>User:
+                <%= firstName %>
+                    <%= lastName %>
+            </p>
+            <form action="/project/<%= project.slug %>/membership/<%= id %>" method="POST">
+                <fieldset>
+                    <select name="role">
+                        <option value="owner" <%= membership.role === 'owner' ? 'selected' : '' %>>Owner</option>
+                        <option value="administrator" <%= membership.role === 'administrator' ? 'selected' : '' %>>Administrator</option>
+                        <option value="reporter" <%= membership.role === 'reporter' ? 'selected' : '' %>>Reporter</option>
+                        <option value="contributor" <%= membership.role === 'contributor' ? 'selected' : '' %>>Contributor</option>
+                        <option value="observer" <%= membership.role === 'observer' ? 'selected' : '' %>>Observer</option>
+                        <option value="pending" <%= membership.role === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="suspended" <%= membership.role === 'suspended' ? 'selected' : '' %>>Suspended</option>
+                    </select>
+                </fieldset>
+                <fieldset>
+                    <button type="submit">Update</button>
+                </fieldset>
+            </form>
+    </div>
+</body>
+
+</html>

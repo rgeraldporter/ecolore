@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <% include head %>
+  <body>
+
+      <% include menu %>
+      <div class="content-wrapper">
+        <div class="header">
+            <h2>Photo upload for Observation <%= observation.id %></h2>
+        </div>
+        <form action="/file/upload" enctype="multipart/form-data"  method="POST">
+
+
+            <fieldset>
+                <legend>Photos</legend>
+                <div class="pure-control-group">
+                    <label for="form-add-photo">Select photo</label>
+                    <input type="file" name="photo" required>
+                </div>
+                <div class="pure-control-group">
+                    <label for="form-photo-label">Photo label</label>
+                    <input type="text" name="label" id="form-photo-label">
+                </div>
+            </fieldset>
+              <input type="hidden" name="observation" value="<%= observation.id %>">
+              <input type="hidden" name="survey" value="<%= surveyId %>">
+              <input type="hidden" name="cycle" value="<%= cycleId %>">
+              <input type="hidden" name="project" value="<%= projectSlug %>">
+              <button type="submit">Upload photo</button>
+        </form>
+      </div>
+  </body>
+</html>
