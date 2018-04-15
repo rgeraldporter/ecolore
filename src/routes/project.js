@@ -6,6 +6,7 @@ const R = require('ramda');
 const moment = require('moment');
 const randomToken = require('random-token');
 const Op = db.Sequelize.Op;
+const Future = require('fluture');
 
 const rolePath = R.lensPath(['Memberships', 0, 'role']);
 const sincePath = R.lensPath(['Memberships', 0, 'createdAt']);
@@ -89,6 +90,21 @@ const findProjectByIdAndOwner = ([projectId, user]) =>
         ]
     });
 
+const findProjectBySlugAndOwnerF = ([slug, user]) =>
+    findOneProject({
+        where: { slug },
+        include: [
+            {
+                model: db.Membership,
+                where: {
+                    userId: user.get('id'),
+                    [Op.or]: [{ role: 'owner' }, { role: 'administrator' }]
+                }
+            },
+            { model: db.Cycle, order: [['start', 'DESC']] }
+        ]
+    });
+
 const findProjectBySlugAndOwner = ([slug, user]) =>
     db.Project.findOne({
         where: { slug },
@@ -118,6 +134,18 @@ const findProjectsByUserMember = user =>
 const findUserAsMemberOfProject = ([email, project, required = true]) =>
     db.User.findOne({
         where: { email },
+        include: [
+            {
+                model: db.Membership,
+                where: { projectId: project.id },
+                required
+            }
+        ]
+    });
+
+const findUserAsMemberOfProjectByIdF = ([userId, project, required = true]) =>
+    findOneUser({
+        where: { id: userId },
         include: [
             {
                 model: db.Membership,
@@ -168,6 +196,44 @@ const findMemberBySlug = ([slug, userEmail]) =>
             })
         )
     );
+
+const findOneUser = Future.encaseP(a => db.User.findOne(a));
+const findAllUser = Future.encaseP(a => db.User.findAll(a));
+const findOneProject = Future.encaseP(a => db.Project.findOne(a));
+const findAllMaps = Future.encaseP(a => db.Map.findAll(a));
+const findAllCycle = Future.encaseP(a => db.Cycle.findAll(a));
+
+const findUserAsMemberOfProjectF = ([email, project, required = true]) =>
+    findOneUser({
+        where: { email },
+        include: [
+            {
+                model: db.Membership,
+                where: { projectId: project.id },
+                required
+            }
+        ]
+    });
+
+const findProjectBySlugF = slug =>
+    findOneProject({
+        where: { slug },
+        include: [{ model: db.Cycle, order: [['start', 'DESC']] }]
+    });
+
+const findMemberBySlugF = ([slug, userEmail]) =>
+    findProjectBySlugF(slug)
+        .chain(project =>
+            Future.both(
+                Future.of(project),
+                findUserAsMemberOfProjectF([userEmail, project, false])
+            )
+        )
+        .map(([project, user]) =>
+            Object.assign(project, {
+                membership: parseMembership(user)
+            })
+        );
 
 const findMemberById = ([projectId, userEmail]) =>
     findProjectById(projectId).then(project =>
@@ -264,13 +330,19 @@ module.exports = function(router) {
         }
     );
 
-    router.get('/project/create', passwordless.restricted(), (req, res) => {
-        return renderProjectPage(res, 'project-registration', { project: {} });
-    });
+    router.get('/project/create', passwordless.restricted(), (req, res) =>
+        renderProjectPage(res, 'project-registration', { project: {} })
+    );
 
     router.get('/project/:slug', passwordless.restricted(), (req, res) =>
-        findMemberBySlug([req.params.slug, req.user]).then(project =>
-            renderProjectPage(res, 'project', renderProjectTemplate(project))
+        findMemberBySlugF([req.params.slug, req.user]).fork(
+            console.error,
+            project =>
+                renderProjectPage(
+                    res,
+                    'project',
+                    renderProjectTemplate(project)
+                )
         )
     );
 
@@ -278,7 +350,7 @@ module.exports = function(router) {
         '/project/:slug/submit',
         passwordless.restricted(),
         (req, res) => {
-            findProjectBySlug(req.params.slug).then(project =>
+            findProjectBySlugF(req.params.slug).fork(console.error, project =>
                 res.redirect(
                     '/project/' +
                     req.params.slug +
@@ -291,7 +363,7 @@ module.exports = function(router) {
     );
 
     router.get('/project/:slug/join', passwordless.restricted(), (req, res) =>
-        findProjectBySlug(req.params.slug).then(project =>
+        findProjectBySlugF(req.params.slug).fork(console.error, project =>
             renderProjectPage(
                 res,
                 'project-join',
@@ -301,36 +373,53 @@ module.exports = function(router) {
     );
 
     router.get('/project/:slug/maps', passwordless.restricted(), (req, res) =>
-        findMemberBySlug([req.params.slug, req.user]).then(project =>
-            db.Map.findAll({
-                where: { projectId: project.id },
-                order: [['name', 'ASC']]
-            }).then(
-                maps =>
-                    isMemberOfProject(project)
-                        ? renderProjectPage(
-                              res,
-                              'project-maps',
-                              Object.assign(
-                                  { maps },
-                                  renderProjectTemplate(project)
-                              )
-                          )
-                        : res.redirect(`/project/${req.params.slug}/join`)
+        findMemberBySlugF([req.params.slug, req.user])
+            .chain(project =>
+                Future.both(
+                    Future.of(project),
+                    findAllMaps({
+                        where: { projectId: project.id },
+                        order: [['name', 'ASC']]
+                    })
+                )
             )
-        )
+            .chain(
+                ([project, maps]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, maps])
+                        : Future.reject('Not a member')
+            )
+            .fork(
+                _ => res.redirect(`/project/${req.params.slug}/join`),
+                ([project, maps]) =>
+                    renderProjectPage(
+                        res,
+                        'project-maps',
+                        Object.assign({ maps }, renderProjectTemplate(project))
+                    )
+            )
     );
 
     router.get(
         '/project/:slug/membership/:id',
         passwordless.restricted(),
         (req, res) =>
-            findProjectBySlugAndOwner([req.params.slug, res.locals.user]).then(
-                project =>
-                    findUserAsMemberOfProjectById([
-                        req.params.id,
-                        project
-                    ]).then(membership =>
+            findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findUserAsMemberOfProjectByIdF([req.params.id, project])
+                    )
+                )
+                .chain(
+                    ([project, membership]) =>
+                        membership.get('id') == res.locals.user.id
+                            ? Future.reject('Cannot edit own membership')
+                            : Future.of([project, membership])
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, membership]) =>
                         renderProjectPage(
                             res,
                             'project-membership',
@@ -339,57 +428,70 @@ module.exports = function(router) {
                                 renderProjectTemplate(project)
                             )
                         )
-                    )
-            )
+                )
     );
 
     router.get(
         '/project/:slug/members',
         passwordless.restricted(),
         (req, res) =>
-            findProjectBySlugAndOwner([req.params.slug, res.locals.user])
-                .then(project =>
-                    findUserAsMemberOfProject([req.user, project, false]).then(
-                        user =>
-                            Object.assign(project, {
-                                membership: parseMembership(user)
-                            })
+            findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findUserAsMemberOfProjectF([req.user, project, false])
                     )
                 )
-                .then(project =>
-                    db.User.findAll({
-                        include: [
-                            {
-                                model: db.Membership,
-                                where: {
-                                    projectId: project ? project.get('id') : 0
+                .chain(
+                    ([project, user]) =>
+                        project.get('id')
+                            ? Future.of([project, user])
+                            : Future.reject('You are not a project owner')
+                )
+                .map(([project, user]) =>
+                    Object.assign(project, {
+                        membership: parseMembership(user)
+                    })
+                )
+                .chain(membershipProject =>
+                    Future.both(
+                        Future.of(membershipProject),
+                        findAllUser({
+                            include: [
+                                {
+                                    model: db.Membership,
+                                    where: {
+                                        projectId: membershipProject.get('id')
+                                    }
                                 }
-                            }
-                        ]
-                    }).then(members =>
+                            ]
+                        })
+                    )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([membershipProject, members]) =>
                         renderProjectPage(
                             res,
                             'project-members',
                             Object.assign(
                                 { members: parseMemberships(members) },
-                                renderProjectTemplate(project)
+                                renderProjectTemplate(membershipProject)
                             )
                         )
-                    )
                 )
-                .catch(() => res.redirect(`/project/${req.params.slug}`))
     );
 
     router.get('/project/:slug/invite', passwordless.restricted(), (req, res) =>
-        findProjectBySlugAndOwner([req.params.slug, res.locals.user])
-            .then(project => {
-                return renderProjectPage(
+        findProjectBySlugAndOwnerF([req.params.slug, res.locals.user]).fork(
+            _ => res.redirect(`/project/${req.params.slug}`),
+            project =>
+                renderProjectPage(
                     res,
                     'project-invite',
                     Object.assign({ project: parseProject(project) })
-                );
-            })
-            .catch(() => res.redirect(`/project/${req.params.slug}`))
+                )
+        )
     );
     /*
     Invitation table:
@@ -400,18 +502,34 @@ module.exports = function(router) {
     */
 
     router.get('/project/:slug/cycles', passwordless.restricted(), (req, res) =>
-        findMemberBySlug([req.params.slug, req.user]).then(project =>
-            db.Cycle.findAll({
-                where: { projectId: project.id },
-                order: [['start', 'DESC']]
-            }).then(cycles =>
-                renderProjectPage(
-                    res,
-                    'project-cycles',
-                    Object.assign({ cycles }, renderProjectTemplate(project))
+        findMemberBySlugF([req.params.slug, req.user])
+            .chain(
+                project =>
+                    project.get('id')
+                        ? Future.of(project)
+                        : Future.reject('You are not a member of this project')
+            )
+            .chain(project =>
+                Future.both(
+                    Future.of(project),
+                    findAllCycle({
+                        where: { projectId: project.id },
+                        order: [['start', 'DESC']]
+                    })
                 )
             )
-        )
+            .fork(
+                _ => res.redirect(`/project/${req.params.slug}`),
+                ([project, cycles]) =>
+                    renderProjectPage(
+                        res,
+                        'project-cycles',
+                        Object.assign(
+                            { cycles },
+                            renderProjectTemplate(project)
+                        )
+                    )
+            )
     );
 
     router.get('/project/:slug/zones', passwordless.restricted(), (req, res) =>
@@ -1736,7 +1854,9 @@ module.exports = function(router) {
                                         {
                                             __metadata: {
                                                 original_id: surveyId,
-                                                original_cycle_id: survey.get('cycleId'),
+                                                original_cycle_id: survey.get(
+                                                    'cycleId'
+                                                ),
                                                 invalidated_by_user:
                                                     res.locals.user.id
                                             }
@@ -1784,10 +1904,7 @@ module.exports = function(router) {
                     .then(observation =>
                         db.Observation.create(
                             Object.assign(
-                                R.pick(
-                                    ['review'],
-                                    observation.dataValues
-                                ),
+                                R.pick(['review'], observation.dataValues),
                                 {
                                     invalid: true,
                                     data: Object.assign(
@@ -1795,7 +1912,9 @@ module.exports = function(router) {
                                         {
                                             __metadata: {
                                                 original_id: observationId,
-                                                original_survey_id: observation.get('surveyId'),
+                                                original_survey_id: observation.get(
+                                                    'surveyId'
+                                                ),
                                                 invalidated_by_user:
                                                     res.locals.user.id
                                             }
