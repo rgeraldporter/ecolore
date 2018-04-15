@@ -53,6 +53,7 @@ const {
     Page,
     Survey,
     Observation,
+    Review,
     Google_Drive_OAuth2_Token,
     Google_Drive_Project_State
 } = db;
@@ -91,6 +92,9 @@ Observation.hasMany(File);
 Survey.hasMany(Observation);
 Google_Drive_OAuth2_Token.belongsTo(Project);
 Google_Drive_Project_State.belongsTo(Project);
+Review.belongsTo(User, { as: 'reviewer' });
+Observation.hasMany(Review);
+Survey.hasMany(Review);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

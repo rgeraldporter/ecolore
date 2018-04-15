@@ -551,6 +551,54 @@ module.exports = {
                 })
             )
             .then(() =>
+                queryInterface.createTable('reviews', {
+                    id: {
+                        allowNull: false,
+                        autoIncrement: true,
+                        primaryKey: true,
+                        type: Sequelize.INTEGER
+                    },
+                    comments: {
+                        type: Sequelize.TEXT
+                    },
+                    pass: {
+                        type: Sequelize.BOOLEAN
+                    },
+                    reviewerId: {
+                        type: Sequelize.INTEGER,
+                        references: {
+                            type: Sequelize.INTEGER,
+                            model: 'users',
+                            key: 'id'
+                        }
+                    },
+                    surveyId: {
+                        type: Sequelize.INTEGER,
+                        references: {
+                            type: Sequelize.INTEGER,
+                            model: 'surveys',
+                            key: 'id'
+                        }
+                    },
+                    observationId: {
+                        type: Sequelize.INTEGER,
+                        references: {
+                            type: Sequelize.INTEGER,
+                            model: 'observations',
+                            key: 'id'
+                        }
+                    },
+                    createdAt: {
+                        allowNull: false,
+                        type: Sequelize.DATE
+                    },
+                    updatedAt: {
+                        allowNull: false,
+                        type: Sequelize.DATE
+                    }
+                })
+            )
+            .then(() =>
                 queryInterface.createTable('google_drive_oauth2_tokens', {
                     id: {
                         allowNull: false,
@@ -695,4 +743,5 @@ module.exports = {
             .then(() => queryInterface.dropTable('pages'))
             .then(() => queryInterface.dropTable('surveys'))
             .then(() => queryInterface.dropTable('observations'))
+            .then(() => queryInterface.dropTable('reviews'))
 };

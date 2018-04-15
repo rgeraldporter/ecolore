@@ -1077,9 +1077,7 @@ module.exports = function(router) {
                                     projectSlug: req.params.slug,
                                     observation
                                 },
-                                renderProjectTemplate(
-                                    project
-                                ),
+                                renderProjectTemplate(project),
                                 { review: true }
                             )
                         )
@@ -1090,49 +1088,55 @@ module.exports = function(router) {
         '/project/:slug/cycle/:id/survey/new',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user])
-                .then(
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(
                     project =>
                         isMemberOfProject(project)
-                            ? renderProjectPage(
-                                  res,
-                                  'forms/turtle-watch-survey.ejs',
-                                  Object.assign(
-                                      renderProjectTemplate(project),
-                                      {
-                                          cycle: { id: req.params.id }
-                                      }
-                                  )
+                            ? Future.of(project)
+                            : Future.reject(
+                                  'You are not a member of this project'
                               )
-                            : res.redirect(`/project/${req.params.slug}`)
                 )
-                .catch(() => res.redirect(`/project/${req.params.slug}`))
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    project =>
+                        renderProjectPage(
+                            res,
+                            'forms/turtle-watch-survey.ejs',
+                            Object.assign(renderProjectTemplate(project), {
+                                cycle: { id: req.params.id }
+                            })
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/resubmit',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user])
-                .then(
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(
                     project =>
                         isMemberOfProject(project)
-                            ? renderProjectPage(
-                                  res,
-                                  'forms/turtle-watch-survey.ejs',
-                                  Object.assign(
-                                      renderProjectTemplate(project),
-                                      {
-                                          cycle: { id: req.params.id },
-                                          resubmit: {
-                                              id: req.params.surveyId
-                                          }
-                                      }
-                                  )
+                            ? Future.of(project)
+                            : Future.reject(
+                                  'You are not a member of this project'
                               )
-                            : res.redirect(`/project/${req.params.slug}`)
                 )
-                .catch(() => res.redirect(`/project/${req.params.slug}`))
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    project =>
+                        renderProjectPage(
+                            res,
+                            'forms/turtle-watch-survey.ejs',
+                            Object.assign(renderProjectTemplate(project), {
+                                cycle: { id: req.params.id },
+                                resubmit: {
+                                    id: req.params.surveyId
+                                }
+                            })
+                        )
+                )
     );
 
     router.get(
