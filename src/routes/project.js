@@ -216,8 +216,28 @@ const findAllSurvey = Future.encaseP(a => db.Survey.findAll(a));
 const findOneSurvey = Future.encaseP(a => db.Survey.findOne(a));
 const findAllObservation = Future.encaseP(a => db.Observation.findAll(a));
 const findOneObservation = Future.encaseP(a => db.Observation.findOne(a));
+const findAllFile = Future.encaseP(a => db.File.findAll(a));
 
 const findObservationBySurveyAndId = ([surveyId, id]) =>
+    findOneObservation({
+        where: {
+            surveyId,
+            id
+        },
+        include: [
+            {
+                model: db.Survey,
+                include: [
+                    {
+                        model: db.Cycle,
+                        include: [db.Project]
+                    }
+                ]
+            }
+        ]
+    });
+
+const findObservationBySurveyAndIdWithFiles = ([surveyId, id]) =>
     findOneObservation({
         where: {
             surveyId,
@@ -907,7 +927,7 @@ module.exports = function(router) {
                 .chain(project =>
                     Future.both(
                         Future.of(project),
-                        findObservationBySurveyAndId([
+                        findObservationBySurveyAndIdWithFiles([
                             req.params.surveyId,
                             req.params.observationId
                         ])
@@ -931,9 +951,7 @@ module.exports = function(router) {
                                     projectSlug: req.params.slug,
                                     observation
                                 },
-                                renderProjectTemplate(
-                                    project
-                                ),
+                                renderProjectTemplate(project),
                                 { review: false }
                             )
                         )
@@ -944,136 +962,128 @@ module.exports = function(router) {
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/files',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                db.Observation.findOne({
-                    where: {
-                        surveyId: req.params.surveyId,
-                        id: req.params.observationId
-                    },
-                    include: [
-                        {
-                            model: db.Survey,
-                            include: [
-                                {
-                                    model: db.Cycle,
-                                    include: [db.Project]
-                                }
-                            ]
-                        }
-                    ]
-                }).then(observation =>
-                    db.File.findAll({
-                        where: {
-                            observationId: observation.id
-                        }
-                    }).then(
-                        files =>
-                            isMemberOfProject(project)
-                                ? renderProjectPage(
-                                      res,
-                                      'files',
-                                      Object.assign(
-                                          {
-                                              observation,
-                                              files
-                                          },
-                                          renderProjectTemplate(
-                                              observation.Survey.Cycle.Project
-                                          )
-                                      )
-                                  )
-                                : res.redirect(`/project/${req.params.slug}`)
-                    )
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.parallel(3, [
+                        Future.of(project),
+                        findObservationBySurveyAndId([
+                            req.params.surveyId,
+                            req.params.observationId
+                        ]),
+                        findAllFile({
+                            where: {
+                                observationId: req.params.observationId
+                            }
+                        })
+                    ])
                 )
-            )
+                .chain(
+                    ([project, observation, files]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, observation, files])
+                            : Future.reject(
+                                  'You are not a part of this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, observation, files]) =>
+                        renderProjectPage(
+                            res,
+                            'files',
+                            Object.assign(
+                                {
+                                    observation,
+                                    files
+                                },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/upload',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                db.Observation.findOne({
-                    where: {
-                        surveyId: req.params.surveyId,
-                        id: req.params.observationId
-                    },
-                    include: [
-                        {
-                            model: db.Survey,
-                            include: [
-                                {
-                                    model: db.Cycle,
-                                    include: [db.Project]
-                                }
-                            ]
-                        }
-                    ]
-                }).then(
-                    observation =>
-                        isMemberOfProject(project)
-                            ? renderProjectPage(
-                                  res,
-                                  'photo-upload',
-                                  Object.assign(
-                                      {
-                                          observation,
-                                          surveyId: req.params.surveyId,
-                                          projectSlug: req.params.slug,
-                                          cycleId: req.params.id
-                                      },
-                                      renderProjectTemplate(
-                                          observation.Survey.Cycle.Project
-                                      )
-                                  )
-                              )
-                            : res.redirect(`/project/${req.params.slug}`)
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findObservationBySurveyAndId([
+                            req.params.surveyId,
+                            req.params.observationId
+                        ])
+                    )
                 )
-            )
+                .chain(
+                    ([project, observation]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, observation])
+                            : Future.reject(
+                                  'You are not a member of this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, observation]) =>
+                        renderProjectPage(
+                            res,
+                            'photo-upload',
+                            Object.assign(
+                                {
+                                    observation,
+                                    surveyId: req.params.surveyId,
+                                    projectSlug: req.params.slug,
+                                    cycleId: req.params.id
+                                },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/review',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                db.Observation.findOne({
-                    where: {
-                        surveyId: req.params.surveyId,
-                        id: req.params.observationId
-                    },
-                    include: [
-                        {
-                            model: db.Survey,
-                            include: [
-                                {
-                                    model: db.Cycle,
-                                    include: [db.Project]
-                                }
-                            ]
-                        }
-                    ]
-                }).then(
-                    observation =>
-                        isMemberOfProject(project)
-                            ? renderProjectPage(
-                                  res,
-                                  'observation',
-                                  Object.assign(
-                                      {
-                                          cycleId: req.params.id,
-                                          projectSlug: req.params.slug,
-                                          observation
-                                      },
-                                      renderProjectTemplate(
-                                          observation.Survey.Cycle.Project
-                                      ),
-                                      { review: true }
-                                  )
-                              )
-                            : res.redirect(`/project/${req.params.slug}`)
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findObservationBySurveyAndId([
+                            req.params.surveyId,
+                            req.params.observationId
+                        ])
+                    )
                 )
-            )
+                .chain(
+                    ([project, observation]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, observation])
+                            : Future.reject(
+                                  'You are not a member of this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, observation]) =>
+                        renderProjectPage(
+                            res,
+                            'observation',
+                            Object.assign(
+                                {
+                                    cycleId: req.params.id,
+                                    projectSlug: req.params.slug,
+                                    observation
+                                },
+                                renderProjectTemplate(
+                                    project
+                                ),
+                                { review: true }
+                            )
+                        )
+                )
     );
 
     router.get(
