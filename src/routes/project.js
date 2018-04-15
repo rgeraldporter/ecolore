@@ -179,6 +179,14 @@ const findCycleById = id =>
         include: [db.Project]
     });
 
+const findOneCycle = Future.encaseP(a => db.Cycle.findOne(a));
+
+const findCycleByIdF = id =>
+    findOneCycle({
+        where: { id },
+        include: [db.Project]
+    });
+
 const renderProjectPage = (res, name, values = {}) =>
     res.render(
         name,
@@ -204,6 +212,88 @@ const findAllMaps = Future.encaseP(a => db.Map.findAll(a));
 const findAllCycle = Future.encaseP(a => db.Cycle.findAll(a));
 const findAllZone = Future.encaseP(a => db.Zone.findAll(a));
 const findZone = Future.encaseP(a => db.Zone.find(a));
+const findAllSurvey = Future.encaseP(a => db.Survey.findAll(a));
+const findOneSurvey = Future.encaseP(a => db.Survey.findOne(a));
+const findAllObservation = Future.encaseP(a => db.Observation.findAll(a));
+const findOneObservation = Future.encaseP(a => db.Observation.findOne(a));
+
+const findObservationBySurveyAndId = ([surveyId, id]) =>
+    findOneObservation({
+        where: {
+            surveyId,
+            id
+        },
+        attributes: {
+            include: [
+                [
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('files.id')),
+                    'fileCount'
+                ]
+            ]
+        },
+        include: [
+            {
+                model: db.Survey,
+                include: [
+                    {
+                        model: db.Cycle,
+                        include: [db.Project]
+                    }
+                ]
+            },
+            db.File
+        ]
+    });
+
+const findObservationsBySurveyCycle = ([surveyId, cycleId]) =>
+    findAllObservation({
+        where: { surveyId, invalid: null },
+        attributes: {
+            include: [
+                [
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('files.id')),
+                    'fileCount'
+                ]
+            ]
+        },
+        include: [
+            {
+                model: db.Survey,
+                where: { cycleId },
+                required: true
+            },
+            db.File
+        ],
+        group: ['Observation.id']
+    });
+
+const findSurveysByCycle = cycle =>
+    findAllSurvey({
+        attributes: {
+            include: [
+                [
+                    db.Sequelize.fn(
+                        'COUNT',
+                        db.Sequelize.col('observations.id')
+                    ),
+                    'observationCount'
+                ]
+            ]
+        },
+        include: [
+            db.Observation,
+            {
+                model: db.User,
+                as: 'author'
+            }
+        ],
+        where: {
+            cycleId: cycle,
+            invalid: null
+        },
+        order: [['start', 'DESC']],
+        group: ['Survey.id']
+    });
 
 const findUserAsMemberOfProjectF = ([email, project, required = true]) =>
     findOneUser({
@@ -666,221 +756,188 @@ module.exports = function(router) {
         '/project/:slug/cycle/:id/surveys',
         passwordless.restricted(),
         (req, res) =>
-            findProjectBySlug(req.params.slug)
-                .then(project =>
-                    findUserAsMemberOfProject([req.user, project])
-                        .then(user =>
-                            Object.assign(project, {
-                                membership: parseMembership(user)
-                            })
-                        )
-                        .then(user =>
-                            findCycleById(req.params.id).then(cycle =>
-                                db.Survey.findAll({
-                                    attributes: {
-                                        include: [
-                                            [
-                                                db.Sequelize.fn(
-                                                    'COUNT',
-                                                    db.Sequelize.col(
-                                                        'observations.id'
-                                                    )
-                                                ),
-                                                'observationCount'
-                                            ]
-                                        ]
-                                    },
-                                    include: [
-                                        db.Observation,
-                                        {
-                                            model: db.User,
-                                            as: 'author'
-                                        }
-                                    ],
-                                    where: {
-                                        cycleId: req.params.id,
-                                        invalid: null
-                                    },
-                                    order: [['start', 'DESC']],
-                                    group: ['Survey.id']
-                                }).then(
-                                    surveys =>
-                                        isMemberOfProject(project)
-                                            ? renderProjectPage(
-                                                  res,
-                                                  'surveys',
-                                                  Object.assign(
-                                                      {
-                                                          projectSlug:
-                                                              req.params.slug
-                                                      },
-                                                      renderProjectTemplate(
-                                                          cycle.Project
-                                                      ),
-                                                      { cycle: cycle },
-                                                      { surveys }
-                                                  )
-                                              )
-                                            : res.redirect(
-                                                  `/project/${req.params.slug}`
-                                              )
-                                )
+            findProjectBySlugF(req.params.slug)
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findUserAsMemberOfProjectF([req.user, project])
+                    )
+                )
+                .map(([project, user]) =>
+                    Object.assign(project, {
+                        membership: parseMembership(user)
+                    })
+                )
+                .chain(
+                    project =>
+                        isMemberOfProject(project)
+                            ? Future.of(project)
+                            : Future.reject('Not a member of this project')
+                )
+                .chain(project =>
+                    Future.parallel(3, [
+                        Future.of(project),
+                        findCycleByIdF(req.params.id),
+                        findSurveysByCycle(req.params.id)
+                    ])
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, cycle, surveys]) =>
+                        renderProjectPage(
+                            res,
+                            'surveys',
+                            Object.assign(
+                                {
+                                    projectSlug: req.params.slug
+                                },
+                                renderProjectTemplate(cycle.Project),
+                                { cycle: cycle },
+                                { surveys }
                             )
                         )
                 )
-                .catch(err => res.redirect(`/project/${req.params.slug}`))
     );
 
     router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observations',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                findCycleById(req.params.cycleId).then(cycle =>
-                    db.Observation.findAll({
-                        where: { surveyId: req.params.surveyId, invalid: null },
-                        attributes: {
-                            include: [
-                                [
-                                    db.Sequelize.fn(
-                                        'COUNT',
-                                        db.Sequelize.col('files.id')
-                                    ),
-                                    'fileCount'
-                                ]
-                            ]
-                        },
-                        include: [
-                            {
-                                model: db.Survey,
-                                where: { cycleId: req.params.cycleId },
-                                required: true
-                            },
-                            db.File
-                        ],
-                        group: ['Observation.id']
-                    }).then(
-                        observations =>
-                            isMemberOfProject(project)
-                                ? renderProjectPage(
-                                      res,
-                                      'observations',
-                                      Object.assign(
-                                          { cycle },
-                                          { observations },
-                                          { surveyId: req.params.surveyId },
-                                          renderProjectTemplate(cycle.Project)
-                                      )
-                                  )
-                                : res.redirect(`/project/${req.params.slug}`)
-                    )
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.parallel(3, [
+                        Future.of(project),
+                        findCycleByIdF(req.params.cycleId),
+                        findObservationsBySurveyCycle([
+                            req.params.surveyId,
+                            req.params.cycleId
+                        ])
+                    ])
                 )
-            )
+                .chain(
+                    ([project, cycle, observations]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, cycle, observations])
+                            : Future.reject('Not a member of this project')
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, cycle, observations]) =>
+                        renderProjectPage(
+                            res,
+                            'observations',
+                            Object.assign(
+                                { cycle },
+                                { observations },
+                                { surveyId: req.params.surveyId },
+                                renderProjectTemplate(cycle.Project)
+                            )
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observation/new',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                db.Survey.findOne({
-                    where: {
-                        cycleId: req.params.cycleId,
-                        id: req.params.surveyId
-                    }
-                }).then(survey =>
-                    renderProjectPage(
-                        res,
-                        'forms/turtle-watch-incident.ejs',
-                        Object.assign(renderProjectTemplate(project), {
-                            cycle: { id: req.params.cycleId },
-                            survey
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findObservationsBySurveyCycle({
+                            where: {
+                                cycleId: req.params.cycleId,
+                                id: req.params.surveyId
+                            }
                         })
                     )
                 )
-            )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, survey]) =>
+                        renderProjectPage(
+                            res,
+                            'forms/turtle-watch-incident.ejs',
+                            Object.assign(renderProjectTemplate(project), {
+                                cycle: { id: req.params.cycleId },
+                                survey
+                            })
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observation/:observationId/resubmit',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                db.Survey.findOne({
-                    where: {
-                        cycleId: req.params.cycleId,
-                        id: req.params.surveyId
-                    }
-                }).then(survey =>
-                    renderProjectPage(
-                        res,
-                        'forms/turtle-watch-incident.ejs',
-                        Object.assign(renderProjectTemplate(project), {
-                            cycle: { id: req.params.cycleId },
-                            survey,
-                            resubmit: {
-                                id: req.params.observationId
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findOneSurvey({
+                            where: {
+                                cycleId: req.params.cycleId,
+                                id: req.params.surveyId
                             }
                         })
                     )
                 )
-            )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, survey]) =>
+                        renderProjectPage(
+                            res,
+                            'forms/turtle-watch-incident.ejs',
+                            Object.assign(renderProjectTemplate(project), {
+                                cycle: { id: req.params.cycleId },
+                                survey,
+                                resubmit: {
+                                    id: req.params.observationId
+                                }
+                            })
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                db.Observation.findOne({
-                    where: {
-                        surveyId: req.params.surveyId,
-                        id: req.params.observationId
-                    },
-                    attributes: {
-                        include: [
-                            [
-                                db.Sequelize.fn(
-                                    'COUNT',
-                                    db.Sequelize.col('files.id')
-                                ),
-                                'fileCount'
-                            ]
-                        ]
-                    },
-                    include: [
-                        {
-                            model: db.Survey,
-                            include: [
-                                {
-                                    model: db.Cycle,
-                                    include: [db.Project]
-                                }
-                            ]
-                        },
-                        db.File
-                    ]
-                }).then(
-                    observation =>
-                        isMemberOfProject(project)
-                            ? renderProjectPage(
-                                  res,
-                                  'observation',
-                                  Object.assign(
-                                      {
-                                          cycleId: req.params.id,
-                                          projectSlug: req.params.slug,
-                                          observation
-                                      },
-                                      renderProjectTemplate(
-                                          observation.Survey.Cycle.Project
-                                      ),
-                                      { review: false }
-                                  )
-                              )
-                            : res.redirect(`/project/${req.params.slug}`)
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findObservationBySurveyAndId([
+                            req.params.surveyId,
+                            req.params.observationId
+                        ])
+                    )
                 )
-            )
+                .chain(
+                    ([project, observation]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, observation])
+                            : Future.reject('Not a member of this project')
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, observation]) =>
+                        renderProjectPage(
+                            res,
+                            'observation',
+                            Object.assign(
+                                {
+                                    cycleId: req.params.id,
+                                    projectSlug: req.params.slug,
+                                    observation
+                                },
+                                renderProjectTemplate(
+                                    project
+                                ),
+                                { review: false }
+                            )
+                        )
+                )
     );
 
     router.get(
