@@ -23,11 +23,11 @@ const zoneValue = prop =>
           <fieldset>
             <div class="pure-control-group">
                 <label for="form-zone-code">Zone code:</label>
-                <input type="text" name="code" id="form-zone-code" placeholder="e.g. &quot;1&quot;, or &quot;3a&quot;"<%= zoneValue('code') %> class="pure-input-1-4">
+                <input type="text" name="code" id="form-zone-code" placeholder="e.g. &quot;1&quot;, or &quot;3a&quot;"<%- zoneValue('code') %> class="pure-input-1-4">
             </div>
             <div class="pure-control-group">
               <label for="form-name">Zone name:</label>
-              <input type="text" name="name" id="form-name" placeholder="Zone name, e.g. &quot;West Harbour&quot;"<%= zoneValue('name') %> class="pure-input-1-2" required>
+              <input type="text" name="name" id="form-name" placeholder="Zone name, e.g. &quot;West Harbour&quot;"<%- zoneValue('name') %> class="pure-input-1-2" required>
             </div>
 
             <div class="pure-control-group">

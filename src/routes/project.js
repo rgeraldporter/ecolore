@@ -202,6 +202,8 @@ const findAllUser = Future.encaseP(a => db.User.findAll(a));
 const findOneProject = Future.encaseP(a => db.Project.findOne(a));
 const findAllMaps = Future.encaseP(a => db.Map.findAll(a));
 const findAllCycle = Future.encaseP(a => db.Cycle.findAll(a));
+const findAllZone = Future.encaseP(a => db.Zone.findAll(a));
+const findZone = Future.encaseP(a => db.Zone.find(a));
 
 const findUserAsMemberOfProjectF = ([email, project, required = true]) =>
     findOneUser({
@@ -533,96 +535,131 @@ module.exports = function(router) {
     );
 
     router.get('/project/:slug/zones', passwordless.restricted(), (req, res) =>
-        findMemberBySlug([req.params.slug, req.user]).then(project =>
-            db.Zone.findAll({
-                where: { projectId: project.id },
-                order: [['code', 'ASC']]
-            }).then(
-                zones =>
-                    isMemberOfProject(project)
-                        ? renderProjectPage(
-                              res,
-                              'zones',
-                              Object.assign(
-                                  { zones },
-                                  renderProjectTemplate(project)
-                              )
-                          )
-                        : res.redirect(`/project/${req.params.slug}`)
+        findMemberBySlugF([req.params.slug, req.user])
+            .chain(project =>
+                Future.both(
+                    Future.of(project),
+                    findAllZone({
+                        where: { projectId: project.id },
+                        order: [['code', 'ASC']]
+                    })
+                )
             )
-        )
+            .chain(
+                ([project, zones]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, zones])
+                        : Future.reject('You are not a member of this project')
+            )
+            .fork(
+                _ => res.redirect(`/project/${req.params.slug}`),
+                ([project, zones]) =>
+                    renderProjectPage(
+                        res,
+                        'zones',
+                        Object.assign({ zones }, renderProjectTemplate(project))
+                    )
+            )
     );
 
     router.get(
         '/project/:slug/zone/new',
         passwordless.restricted(),
         (req, res) =>
-            findProjectBySlugAndOwner([req.params.slug, res.locals.user])
-                .then(project =>
-                    findUserAsMemberOfProject([req.user, project]).then(user =>
-                        Object.assign(project, {
-                            membership: parseMembership(user)
-                        })
+            findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findUserAsMemberOfProjectF([req.user, project])
                     )
                 )
-                .then(
-                    project =>
-                        isMemberOfProject(project)
-                            ? renderProjectPage(
-                                  res,
-                                  'zone-create',
-                                  Object.assign(
-                                      renderProjectTemplate(project),
-                                      {
-                                          zone: {}
-                                      }
-                                  )
-                              )
-                            : res.redirect(`/project/${req.params.slug}`)
+                .map(([project, user]) =>
+                    Object.assign(project, {
+                        membership: parseMembership(user)
+                    })
                 )
-                .catch(() => res.redirect(`/project/${req.params.slug}`))
+                .chain(
+                    membershipProject =>
+                        isMemberOfProject(membershipProject)
+                            ? Future.of(membershipProject)
+                            : Future.reject('Not a member of the project')
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    membershipProject =>
+                        renderProjectPage(
+                            res,
+                            'zone-create',
+                            Object.assign(
+                                renderProjectTemplate(membershipProject),
+                                {
+                                    zone: {}
+                                }
+                            )
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/zone/:zoneId',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user]).then(project =>
-                db.Zone.find({
-                    where: { id: req.params.zoneId }
-                }).then(zone =>
-                    renderProjectPage(
-                        res,
-                        'zone',
-                        Object.assign({ zone }, renderProjectTemplate(project))
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findZone({
+                            where: { id: req.params.zoneId }
+                        })
                     )
                 )
-            )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, zone]) =>
+                        renderProjectPage(
+                            res,
+                            'zone',
+                            Object.assign(
+                                { zone },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/zone/:zoneId/edit',
         passwordless.restricted(),
         (req, res) =>
-            findMemberBySlug([req.params.slug, req.user])
-                .then(project =>
-                    db.Zone.find({
-                        where: { id: req.params.zoneId }
-                    }).then(
-                        zone =>
-                            isMemberOfProject(project)
-                                ? renderProjectPage(
-                                      res,
-                                      'zone-create',
-                                      Object.assign(
-                                          { zone },
-                                          renderProjectTemplate(project)
-                                      )
-                                  )
-                                : res.redirect(`/project/${req.params.slug}`)
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findZone({
+                            where: { id: req.params.zoneId }
+                        })
                     )
                 )
-                .catch(err => res.redirect(`/project/${req.params.slug}`))
+                .chain(
+                    ([project, zone]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, zone])
+                            : Future.reject(
+                                  'You are not a member of this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, zone]) =>
+                        renderProjectPage(
+                            res,
+                            'zone-create',
+                            Object.assign(
+                                { zone },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
     );
 
     router.get(
