@@ -2048,7 +2048,7 @@ module.exports = function(router) {
 
     router.post(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/review',
-        [passwordless.restricted(), check('invalidate').optional()],
+        [passwordless.restricted(), check('invalidate').optional(), check('comments').optional()],
         (req, res) => {
             const invalidateObservation = observationId =>
                 db.Observation.findOne({
@@ -2089,6 +2089,14 @@ module.exports = function(router) {
                         )
                     );
 
+            const addReview = data =>
+                    db.Review.create({
+                        comments: data.comments,
+                        reviewerId: res.locals.user.id,
+                        observationId: req.params.observationId,
+                        pass: true
+                    });
+
             const processReview = data =>
                 data.invalidate
                     ? invalidateObservation(req.params.observationId)
@@ -2100,8 +2108,9 @@ module.exports = function(router) {
                     project =>
                         isMemberOfProject(project)
                             ? processReview(data)
-                            : res.redirect(`/project/${req.params.slug}`)
+                            : project
                 )
+                .then(_ => res.redirect(`/project/${req.params.slug}`))
                 .catch(err => console.error(err));
         }
     );
