@@ -1121,14 +1121,24 @@ module.exports = function(router) {
                                   'You are not a member of this project'
                               )
                 )
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findAllZone({
+                            where: { projectId: project.id },
+                            order: [['code', 'ASC']]
+                        })
+                    )
+                )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
-                    project =>
+                    ([project, zones]) =>
                         renderProjectPage(
                             res,
                             surveyTemplate(project),
                             Object.assign(renderProjectTemplate(project), {
-                                cycle: { id: req.params.id }
+                                cycle: { id: req.params.id },
+                                zones
                             })
                         )
                 )

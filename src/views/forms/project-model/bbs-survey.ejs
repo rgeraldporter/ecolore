@@ -1,0 +1,91 @@
+<!--
+
+@todo, add:
+OBSERVATION:
+- Select species
+- Select breeding code
+- Enter location of territory or nest
+
+FILES:
+- Nest photos
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../../head %>
+
+    <body>
+        <% include ../../menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <h2>IBA Survey Form</h2>
+                </div>
+                <div class="content">
+
+                    <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
+
+                        <fieldset>
+                            <div class="pure-control-group">
+                                <label for="form-x-ebird-checklist-url">eBird Checklist URL</label>
+                                <input type="url" name="ebird_checklist_url" id="form-x-ebird-checklist-url" placeholder="e.g. https://ebird.org/view/checklist/S20216033" class="pure-input-1-3" required>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+
+                            <legend>Off-leash pets</legend>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-off-leash">Number observed</label>
+                                <input type="number" name="off_leash" id="form-x-off-leash">
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-off-leash-extra-notes">Notes</label>
+                                <textarea cols="35" rows="5" name="extra_notes" id="form-x-off-leash-extra-notes" placeholder="Any notes about off-least pet observations."></textarea>
+                            </div>
+
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Habitat threats observed</legend>
+                            <div class="pure-control-group">
+                                <label for="form-x-habitat-threats"></label>
+                                <textarea cols="35" rows="5" name="habitat_threats" id="form-x-habitat-threats" placeholder="If any potential or emergent threats have been identified, please detail here, even if you are uncertain about the severity of the threat(s)."></textarea>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Other notes</legend>
+                            <div class="pure-control-group">
+                                <label for="form-x-other-notes"></label>
+                                <textarea cols="35" rows="5" name="other_notes" id="form-x-other-notes" placeholder="Any additional notes."></textarea>
+                            </div>
+                        </fieldset>
+
+                        <% if (locals.resubmit) { %>
+                        <input type="hidden" name="resubmit" value="<%= resubmit.id %>">
+                        <fieldset>
+                            <legend>Resubmit</legend>
+                            <div class="pure-controls">
+                                    <label></label>
+                                    <p>This is a resubmit of <b>Survey #<%= resubmit.id %></b>. Please review the data carefully so you need not re-enter again!</p>
+                            </div>
+                        </fieldset>
+                        <% } %>
+
+                        <fieldset>
+                            <input type="hidden" name="cycle" value="<%= cycle.id %>">
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>
+                            </div>
+                        </fieldset>
+
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>

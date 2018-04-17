@@ -16,9 +16,13 @@
                             <label for="form-route">Route:</label>
                             <select name="route" id="form-route" required>
                                 <option value="">Select one...</option>
-                                <option value="King/Olympic">King/Olympic (Route #1)</option>
-                                <option value="Cootes Drive">Cootes Drive (Route #2)</option>
-                                <option value="Spencer Creek/Cootes">Spencer Creek/Cootes (Route #3)</option>
+                                <%
+                                    zones.forEach(zone => {
+                                %>
+                                <option value="<%= zone.id %>"><%= zone.name %> (<%= zone.code %>)</option>
+                                <%
+                                    });
+                                %>
                             </select>
                         </div>
 
@@ -94,7 +98,7 @@
                             <legend>Incidents</legend>
 
                             <div class="pure-control-group">
-                                <label for="form-tally-sheets">Number of sheets</label>
+                                <label for="form-tally-sheets">Number of tally sheets</label>
                                 <input type="number" name="tally_sheets" id="form-tally-sheets" value="1" max="20" required>
                             </div>
 
