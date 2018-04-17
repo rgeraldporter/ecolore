@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../../head %>
+
+    <body>
+        <% include ../../menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <h2>Dundas Turtle Watch Incident Form</h2>
+                </div>
+                <div class="content">
+
+                    <form action="/project/<%= project.slug %>/observation" method="POST" class="pure-form pure-form-aligned">
+
+                        <fieldset>
+                            <div class="pure-control-group">
+                                <label for="form-x-incident-line">Incident line</label>
+                                <input type="text" name="incident_line" id="form-x-incident-line" placeholder="e.g. &quot;A&quot;" required>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-how-many">How many?</label>
+                                <input type="number" name="how_many" id="form-x-how-many" required>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-name-of-species">Name of species</label>
+                                <input type="text" name="name_of_species" id="form-x-name-of-species" required>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-adult-size">Adult size</label>
+                                <input type="number" name="adult_size" id="form-x-adult-size" placeholder="N/A"> cm
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-immature-size"> Imm/hatchling size</label>
+                                <input type="number" name="immature_size" id="form-x-immature-size" placeholder="N/A"> cm
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Direction it was travelling</legend>
+                            <div class="pure-controls">
+                                <label class="pure-radio" for="form-x-direction-of-travel-n">
+                                    <input type="radio" name="direction_of_travel" id="form-x-direction-of-travel-n" value="N"> North
+                                </label>
+
+                                <label class="pure-radio" for="form-x-direction-of-travel-S">
+                                    <input type="radio" name="direction_of_travel" id="form-x-direction-of-travel-s" value="S"> South
+                                </label>
+
+                                <label class="pure-radio" for="form-x-direction-of-travel-e">
+                                    <input type="radio" name="direction_of_travel" id="form-x-direction-of-travel-e" value="E"> East
+                                </label>
+
+                                <label class="pure-radio" for="form-x-direction-of-travel-w">
+                                    <input type="radio" name="direction_of_travel" id="form-x-direction-of-travel-w" value="W"> West
+                                </label>
+
+                                <label class="pure-radio" for="form-x-direction-of-travel-na">
+                                    <input type="radio" name="direction_of_travel" id="form-x-direction-of-travel-na" value="N/A"> N/A
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Check any applicable</legend>
+                            <div class="pure-controls">
+                                <label class="pure-checkbox" for="form-x-status-alive">
+                                    <input type="checkbox" name="status_alive" value="Alive" id="form-x-status-alive"> Alive
+                                </label>
+
+                                <label class="pure-checkbox" for="form-x-status-dead">
+                                    <input type="checkbox" name="status_dead" value="Dead" id="form-x-status-dead"> Dead
+                                </label>
+
+                                <label class="pure-checkbox" for="form-x-status-nesting">
+                                    <input type="checkbox" name="status_nesting" value="Nesting" id="form-x-status-nesting"> Nesting
+                                </label>
+
+                                <label class="pure-checkbox" for="form-x-status-nest-protection-installed">
+                                    <input type="checkbox" name="status_nest_protection_installed" value="Installed nest protection" id="form-x-status-nest-protection-installed"> Installed nest protection</label>
+
+                                <label class="pure-checkbox" for="form-x-status-predated">
+                                    <input type="checkbox" name="status_predated" value="Predated" id="form-x-status-predated"> Predated
+                                </label>
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <legend></legend>
+                            <div class="pure-control-group">
+                                <label for="form-x-road">Road:</label>
+                                <select name="road" id="form-x-road" required>
+                                    <option value="" selected>Select one...</option>
+                                    <option value="Olympic">Olympic (OL)</option>
+                                    <option value="Cootes">Cootes (CO)</option>
+                                    <option value="King">King (KI)</option>
+                                    <option value="Spencer Creek Trail">Spencer Creek Trail (SP)</option>
+                                </select>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-broken-eggs">Number of broken eggs</label>
+                                <input type="number" name="broken_eggs" id="form-x-broken-eggs">
+
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Location</legend>
+                            <div class="pure-control-group">
+                                <label for="form-x-pole-a">Pole A</label>
+                                <input type="text" name="pole_a" id="form-x-pole-a" placeholder="e.g. 51086">
+                            </div>
+                            <div class="pure-control-group">
+                                <label for="form-x-pole-b">Pole B</label>
+                                <input type="text" name="pole_b" id="form-x-pole-b" placeholder="e.g. 51110">
+                            </div>
+
+                        </fieldset>
+
+                        <div class="pure-control-group">
+                            <label for="form-x-gps">GPS coordinates</label>
+                            <input type="text" name="gps" id="form-x-gps" placeholder="e.g. 43.2663 -79.9408">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="form-x-location-notes">Notes</label>
+                            <textarea cols="35" rows="5" name="location_notes" id="form-x-location-notes" placeholder="Enter any additional notes about this location, e.g. &quot;Found under culvert&quot;"></textarea>
+                        </div>
+
+                        <fieldset>
+                            <legend>Nest pile/area</legend>
+                            <div class="pure-controls">
+                                <label class="pure-checkbox" for="form-x-location-garden-pile-one">
+                                    <input type="checkbox" name="location_garden_pile_one" value="Garden Pile 1" id="form-x-location-garden-pile-one"> Garden Pile 1</label>
+
+                                <label class="pure-checkbox" for="form-x-location-garden-pile-two">
+                                    <input type="checkbox" name="location_garden_pile_two" value="Garden Pile 2" id="form-x-location-garden-pile-two"> Garden Pile 2</label>
+
+                                <label class="pure-checkbox" for="form-x-hydro-fence-line">
+                                    <input type="checkbox" name="location_hydro_fence_line" value="Hydro Fence Line" id="form-x-hydro-fence-line"> Hydro Fence Line</label>
+
+                                <label class="pure-checkbox" for="form-x-location-hydro-pile-one">
+                                    <input type="checkbox" name="location_hydro_pile_one" value="Hydro Pile 1" id="form-x-location-hydro-pile-one"> Hydro Pile 1</label>
+
+                                <label class="pure-checkbox" for="form-x-location-hydro-pile-two">
+                                    <input type="checkbox" name="location_hydro_pile_two" value="Hydro Pile 2" id="form-x-location-hydro-pile-two"> Hydro Pile 2</label>
+
+                                <label class="pure-checkbox" for="form-x-location-olympic-pile">
+                                    <input type="checkbox" name="location_olympic_pile" value="Olympic Pile" id="form-x-location-olympic-pile"> Olympic Pile</label>
+
+                                <label class="pure-checkbox" for="form-x-location-other">
+                                    <input type="checkbox" name="location_other" value="Other" id="form-x-location-other"> Other
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Extra notes on incident line</legend>
+                            <div class="pure-control-group">
+                                <label for="form-x-extra-notes"></label>
+                                <textarea cols="35" rows="5" name="extra_notes" id="form-x-extra-notes" placeholder="Enter any extra notes written on the sheet that do no fit within the established fields above."></textarea>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Incident data entry notes</legend>
+                            <div class="pure-control-group">
+                                <label for="form-x-data-entry-notes"></label>
+                                <textarea cols="35" rows="5" name="data_entry_notes" id="form-x-data-entry-notes" placeholder="Additional notes related to data entry: e.g. unreadable data, questions, follow-up notes."></textarea>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <div class="pure-controls">
+                                <input type="checkbox" name="more_observations" value="true" id="form-more-observations" checked>
+                                <label for="form-more-observations">There are more incident lines to be added</label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <div class="pure-controls">
+                                <p>Photos can be added after this is submitted.</p>
+                            </div>
+                        </fieldset>
+
+                        <input type="hidden" name="survey" value="<%= survey.id %>">
+                        <input type="hidden" name="cycle" value="<%= cycle.id %>">
+
+                        <% if (locals.resubmit) { %>
+                        <input type="hidden" name="resubmit" value="<%= resubmit.id %>">
+                        <fieldset>
+                            <legend>Resubmit</legend>
+                            <div class="pure-controls">
+                                    <label></label>
+                                    <p>This is a resubmit of <b>Observation #<%= resubmit.id %></b>. Please review the data carefully so you need not re-enter again!</p>
+                            </div>
+                        </fieldset>
+                        <% } %>
+
+                        <fieldset>
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>
+                            </div>
+                        </fieldset>
+
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>

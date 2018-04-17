@@ -1,6 +1,6 @@
 {
     "name": "ecolore",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "EcoLore",
     "main": "src/app.js",
     "scripts": {
@@ -24,6 +24,7 @@
         "express-session": "^1.15.6",
         "express-validator": "^4.3.0",
         "fluture": "8.0.2",
+        "fs-extra": "5.0.0",
         "googleapis": "27.0.0",
         "mailgun-js": "^0.14.1",
         "markdown-it": "8.4.1",

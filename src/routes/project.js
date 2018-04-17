@@ -7,6 +7,18 @@ const moment = require('moment');
 const randomToken = require('random-token');
 const Op = db.Sequelize.Op;
 const Future = require('fluture');
+const fs = require('fs-extra');
+const isFile = path => fs.existsSync(__dirname + '/../views/' + path);
+
+const observationTemplate = project =>
+    isFile(`forms/custom/${project.get('slug')}-observation.ejs`)
+        ? `forms/custom/${project.get('slug')}-observation.ejs`
+        : `forms/project-model/${project.get('model')}-observation.ejs`;
+
+const surveyTemplate = project =>
+    isFile(`forms/custom/${project.get('slug')}-survey.ejs`)
+        ? `forms/custom/${project.get('slug')}-survey.ejs`
+        : `forms/project-model/${project.get('model')}-survey.ejs`;
 
 const rolePath = R.lensPath(['Memberships', 0, 'role']);
 const sincePath = R.lensPath(['Memberships', 0, 'createdAt']);
@@ -481,7 +493,7 @@ module.exports = function(router) {
                     '/project/' +
                     req.params.slug +
                     '/cycle/' +
-                    project.Cycles[0].id + // most recent cycle
+                    project.Cycles[0].id + // @todo account for project without cycles
                         '/survey/new'
                 )
             );
@@ -878,12 +890,10 @@ module.exports = function(router) {
                 .chain(project =>
                     Future.both(
                         Future.of(project),
-                        findObservationsBySurveyCycle({
-                            where: {
-                                cycleId: req.params.cycleId,
-                                id: req.params.surveyId
-                            }
-                        })
+                        findSurveyByCycleAndId([
+                            req.params.cycleId,
+                            req.params.surveyId
+                        ])
                     )
                 )
                 .fork(
@@ -891,7 +901,7 @@ module.exports = function(router) {
                     ([project, survey]) =>
                         renderProjectPage(
                             res,
-                            'forms/turtle-watch-incident.ejs',
+                            observationTemplate(project),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.cycleId },
                                 survey
@@ -921,7 +931,7 @@ module.exports = function(router) {
                     ([project, survey]) =>
                         renderProjectPage(
                             res,
-                            'forms/turtle-watch-incident.ejs',
+                            observationTemplate(project),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.cycleId },
                                 survey,
@@ -1116,7 +1126,7 @@ module.exports = function(router) {
                     project =>
                         renderProjectPage(
                             res,
-                            'forms/turtle-watch-survey.ejs',
+                            surveyTemplate(project),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.id }
                             })
@@ -1142,7 +1152,7 @@ module.exports = function(router) {
                     project =>
                         renderProjectPage(
                             res,
-                            'forms/turtle-watch-survey.ejs',
+                            surveyTemplate(project),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.id },
                                 resubmit: {
@@ -1263,7 +1273,7 @@ module.exports = function(router) {
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user]).fork(
                 _ => res.redirect(`/project/${req.params.slug}`),
                 project =>
-                    srenderProjectPage(res, 'cycle-create', {
+                    renderProjectPage(res, 'cycle-create', {
                         cycle: {
                             Project: {
                                 id: project.get('id'),
@@ -2048,7 +2058,11 @@ module.exports = function(router) {
 
     router.post(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/review',
-        [passwordless.restricted(), check('invalidate').optional(), check('comments').optional()],
+        [
+            passwordless.restricted(),
+            check('invalidate').optional(),
+            check('comments').optional()
+        ],
         (req, res) => {
             const invalidateObservation = observationId =>
                 db.Observation.findOne({
@@ -2090,12 +2104,12 @@ module.exports = function(router) {
                     );
 
             const addReview = data =>
-                    db.Review.create({
-                        comments: data.comments,
-                        reviewerId: res.locals.user.id,
-                        observationId: req.params.observationId,
-                        pass: true
-                    });
+                db.Review.create({
+                    comments: data.comments,
+                    reviewerId: res.locals.user.id,
+                    observationId: req.params.observationId,
+                    pass: true
+                });
 
             const processReview = data =>
                 data.invalidate

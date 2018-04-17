@@ -2,7 +2,7 @@
 module.exports = {
     up: (queryInterface, Sequelize) =>
         queryInterface
-            .createTable('users', {
+            .createTable('Users', {
                 id: {
                     allowNull: false,
                     autoIncrement: true,
@@ -41,7 +41,7 @@ module.exports = {
                 }
             })
             .then(() =>
-                queryInterface.createTable('projects', {
+                queryInterface.createTable('Projects', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -97,7 +97,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('cycles', {
+                queryInterface.createTable('Cycles', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -146,7 +146,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('memberships', {
+                queryInterface.createTable('Memberships', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -196,7 +196,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('profiles', {
+                queryInterface.createTable('Profiles', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -234,7 +234,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('reports', {
+                queryInterface.createTable('Reports', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -280,7 +280,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('maps', {
+                queryInterface.createTable('Maps', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -340,7 +340,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('zones', {
+                queryInterface.createTable('Zones', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -391,7 +391,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('pages', {
+                queryInterface.createTable('Pages', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -449,7 +449,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('surveys', {
+                queryInterface.createTable('Surveys', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -512,7 +512,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('observations', {
+                queryInterface.createTable('Observations', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -551,7 +551,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('reviews', {
+                queryInterface.createTable('Reviews', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -599,7 +599,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('google_drive_oauth2_tokens', {
+                queryInterface.createTable('Google_Drive_Oauth2_Tokens', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -631,7 +631,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('google_drive_project_states', {
+                queryInterface.createTable('Google_Drive_Project_States', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -660,7 +660,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('files', {
+                queryInterface.createTable('Files', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
@@ -732,16 +732,16 @@ module.exports = {
     down: (queryInterface, Sequelize) =>
         queryInterface
             .dropTable('users')
-            .then(() => queryInterface.dropTable('projects'))
-            .then(() => queryInterface.dropTable('cycles'))
-            .then(() => queryInterface.dropTable('memberships'))
-            .then(() => queryInterface.dropTable('profiles'))
-            .then(() => queryInterface.dropTable('reports'))
-            .then(() => queryInterface.dropTable('files'))
-            .then(() => queryInterface.dropTable('maps'))
-            .then(() => queryInterface.dropTable('zones'))
-            .then(() => queryInterface.dropTable('pages'))
-            .then(() => queryInterface.dropTable('surveys'))
-            .then(() => queryInterface.dropTable('observations'))
-            .then(() => queryInterface.dropTable('reviews'))
+            .then(() => queryInterface.dropTable('Projects'))
+            .then(() => queryInterface.dropTable('Cycles'))
+            .then(() => queryInterface.dropTable('Memberships'))
+            .then(() => queryInterface.dropTable('Profiles'))
+            .then(() => queryInterface.dropTable('Reports'))
+            .then(() => queryInterface.dropTable('Files'))
+            .then(() => queryInterface.dropTable('Maps'))
+            .then(() => queryInterface.dropTable('Zones'))
+            .then(() => queryInterface.dropTable('Pages'))
+            .then(() => queryInterface.dropTable('Surveys'))
+            .then(() => queryInterface.dropTable('Observations'))
+            .then(() => queryInterface.dropTable('Reviews'))
 };
