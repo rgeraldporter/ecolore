@@ -76,7 +76,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -123,7 +123,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -131,7 +131,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -173,7 +173,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -181,7 +181,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -219,7 +219,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -257,7 +257,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -265,7 +265,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'cycles',
+                            model: 'Cycles',
                             key: 'id'
                         }
                     },
@@ -309,7 +309,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -317,7 +317,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -325,7 +325,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'cycles',
+                            model: 'Cycles',
                             key: 'id'
                         }
                     },
@@ -360,7 +360,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -368,7 +368,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'cycles',
+                            model: 'Cycles',
                             key: 'id'
                         }
                     },
@@ -376,7 +376,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'maps',
+                            model: 'Maps',
                             key: 'id'
                         }
                     },
@@ -418,7 +418,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -426,7 +426,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -434,7 +434,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'cycles',
+                            model: 'Cycles',
                             key: 'id'
                         }
                     },
@@ -478,7 +478,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'zones',
+                            model: 'Zones',
                             key: 'id'
                         }
                     },
@@ -486,7 +486,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'cycles',
+                            model: 'Cycles',
                             key: 'id'
                         }
                     },
@@ -494,7 +494,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -533,7 +533,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'surveys',
+                            model: 'Surveys',
                             key: 'id'
                         }
                     },
@@ -568,7 +568,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -576,7 +576,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'surveys',
+                            model: 'Surveys',
                             key: 'id'
                         }
                     },
@@ -584,7 +584,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'observations',
+                            model: 'Observations',
                             key: 'id'
                         }
                     },
@@ -616,7 +616,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -645,7 +645,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -683,7 +683,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'users',
+                            model: 'Users',
                             key: 'id'
                         }
                     },
@@ -691,7 +691,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'projects',
+                            model: 'Projects',
                             key: 'id'
                         }
                     },
@@ -699,7 +699,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'cycles',
+                            model: 'Cycles',
                             key: 'id'
                         }
                     },
@@ -707,7 +707,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'reports',
+                            model: 'Reports',
                             key: 'id'
                         }
                     },
@@ -715,7 +715,7 @@ module.exports = {
                         type: Sequelize.INTEGER,
                         references: {
                             type: Sequelize.INTEGER,
-                            model: 'observations',
+                            model: 'Observations',
                             key: 'id'
                         }
                     },
