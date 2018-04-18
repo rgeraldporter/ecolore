@@ -39,6 +39,7 @@
         "ramda": "^0.25.0",
         "random-token": "0.0.8",
         "sequelize": "4.37.6",
+        "simple-maybe": "0.1.2",
         "write-csv": "1.0.0"
     },
     "devDependencies": {

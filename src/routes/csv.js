@@ -5,6 +5,7 @@ const db = require('../models/index');
 const R = require('ramda');
 const moment = require('moment');
 const csv = require('csv-express');
+const {Maybe} = require('simple-maybe');
 
 const findUserAsMemberOfProject = ([id, projectId, required = true]) =>
     db.User.findOne({
@@ -46,7 +47,7 @@ module.exports = function(router) {
             )
             .then(observations => {
                 const csvData = observations.map(observation => {
-                    const row = {
+                    const meta = {
                         'Start Time': observation.Survey.start,
                         'End Time': observation.Survey.end,
                         'Survey ID': observation.surveyId,
@@ -54,19 +55,19 @@ module.exports = function(router) {
                     };
                     const observationData = JSON.parse(observation.data);
                     const surveyData = JSON.parse(observation.Survey.data);
-                    const observationDataAppend = Object.keys(
-                        observationData
-                    ).map(key => ({ [key]: observationData[key] }));
-                    const surveyDataAppend = Object.keys(surveyData).map(
-                        key => ({ [key]: surveyData[key] })
-                    );
 
-                    // mut
-                    surveyDataAppend.forEach(item => Object.assign(row, item));
-                    observationDataAppend.forEach(item =>
-                        Object.assign(row, item)
-                    );
-                    return row;
+                    const assembleRow = metaCols => obsCols => surveyCols =>
+                        Object.assign(
+                            meta,
+                            obsCols,
+                            surveyCols
+                        )
+
+                    return Maybe.of(assembleRow)
+                        .ap(Maybe.of(meta))
+                        .ap(Maybe.of(observationData))
+                        .ap(Maybe.of(surveyData))
+                        .fork(console.error, a => a);
                 });
                 res.csv(csvData, true, {
                     'Content-disposition': 'attachment; filename=data.csv',
