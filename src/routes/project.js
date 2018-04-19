@@ -8,15 +8,18 @@ const randomToken = require('random-token');
 const Op = db.Sequelize.Op;
 const Future = require('fluture');
 const fs = require('fs-extra');
-const isFile = path => fs.existsSync(__dirname + '/../views/' + path);
+const isViewFile = path => fs.existsSync(__dirname + '/../views/' + path);
+const isValidationFile = path =>
+    fs.existsSync(__dirname + '/../validations/' + path);
+const validationPath = __dirname + '/../validations/';
 
 const observationTemplate = project =>
-    isFile(`forms/custom/${project.get('slug')}-observation.ejs`)
+    isViewFile(`forms/custom/${project.get('slug')}-observation.ejs`)
         ? `forms/custom/${project.get('slug')}-observation.ejs`
         : `forms/project-model/${project.get('model')}-observation.ejs`;
 
 const surveyTemplate = project =>
-    isFile(`forms/custom/${project.get('slug')}-survey.ejs`)
+    isViewFile(`forms/custom/${project.get('slug')}-survey.ejs`)
         ? `forms/custom/${project.get('slug')}-survey.ejs`
         : `forms/project-model/${project.get('model')}-survey.ejs`;
 
@@ -1807,41 +1810,50 @@ module.exports = function(router) {
         }
     );
 
+    const getObservationsValidations = project =>
+        isValidationFile(`custom/${project.get('slug')}.js`)
+            ? require(`${validationPath}custom/${project.get('slug')}.js`)
+                  .observations
+            : require(`${validationPath}${project.get('model')}.js`)
+                  .observations;
+
+    const checkRequirements = ([validations, req, res, next]) =>
+        check(validations.exists).exists()(req, res, next);
+
+    const checkOptionals = ([validations, req, res, next]) =>
+        check(validations.optional).optional()(req, res, next);
+
+    const validateObservationData = (req, res, next) =>
+        findProjectBySlugF(req.params.slug)
+            .map(getObservationsValidations)
+            .chain(validations =>
+                Future.do(function*() {
+                    const encasedCheckRequires = Future.encaseP(
+                        checkRequirements
+                    );
+                    const encasedCheckOptionals = Future.encaseP(
+                        checkOptionals
+                    );
+                    yield encasedCheckRequires([
+                        validations,
+                        req,
+                        res,
+                        () => true
+                    ]);
+                    yield encasedCheckOptionals([
+                        validations,
+                        req,
+                        res,
+                        () => true
+                    ]);
+                    return;
+                })
+            )
+            .fork(console.error, next);
+
     router.post(
         '/project/:slug/observation',
-        [
-            passwordless.restricted(),
-            check('survey').exists(),
-            check('cycle').exists(),
-            check('incident_line').exists(),
-            check('how_many').exists(),
-            check('name_of_species').exists(),
-            check('adult_size').optional(),
-            check('immature_size').optional(),
-            check('direction_of_travel').optional(),
-            check('status_alive').optional(),
-            check('status_dead').optional(),
-            check('status_nesting').optional(),
-            check('status_nest_protection_installed').optional(),
-            check('status_predated').optional(),
-            check('road').exists(),
-            check('broken_eggs').optional(),
-            check('pole_a').optional(),
-            check('pole_b').optional(),
-            check('gps').optional(),
-            check('location_notes').optional(),
-            check('location_garden_pile_one').optional(),
-            check('location_garden_pile_two').optional(),
-            check('location_hydro_fence_line').optional(),
-            check('location_hydro_pile_one').optional(),
-            check('location_hydro_pile_two').optional(),
-            check('location_olympic_pile').optional(),
-            check('location_other').optional(),
-            check('extra_notes').optional(),
-            check('data_entry_notes').optional(),
-            check('more_observations').optional(),
-            check('resubmit').optional()
-        ],
+        [passwordless.restricted(), validateObservationData],
         (req, res, next) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -1869,7 +1881,7 @@ module.exports = function(router) {
                         observation.surveyId +
                         '/observation/new'
                 );
-            const redirectToObservations = survey =>
+            const redirectToObservations = slug => survey =>
                 res.redirect(
                     '/project/' +
                         req.params.slug +
@@ -1896,7 +1908,9 @@ module.exports = function(router) {
                                       [resubmit, redirectToObservations],
                                       [
                                           moreObservations,
-                                          redirectToNewObservation
+                                          redirectToNewObservation(
+                                              req.params.slug
+                                          )
                                       ],
                                       [R.T, redirectToObservations]
                                   ])
@@ -1907,28 +1921,47 @@ module.exports = function(router) {
         }
     );
 
+
+    const getSurveyValidations = project =>
+        isValidationFile(`custom/${project.get('slug')}.js`)
+            ? require(`${validationPath}custom/${project.get('slug')}.js`)
+                  .surveys
+            : require(`${validationPath}${project.get('model')}.js`)
+                  .surveys;
+
+    const validateSurveyData = (req, res, next) =>
+        findProjectBySlugF(req.params.slug)
+            .map(getSurveyValidations)
+            .chain(validations =>
+                Future.do(function*() {
+                    const encasedCheckRequires = Future.encaseP(
+                        checkRequirements
+                    );
+                    const encasedCheckOptionals = Future.encaseP(
+                        checkOptionals
+                    );
+                    yield encasedCheckRequires([
+                        validations,
+                        req,
+                        res,
+                        () => true
+                    ]);
+                    yield encasedCheckOptionals([
+                        validations,
+                        req,
+                        res,
+                        () => true
+                    ]);
+                    return;
+                })
+            )
+            .fork(console.error, next);
+
     router.post(
         '/project/:slug/survey',
         [
             passwordless.restricted(),
-            check('cycle').exists(),
-            check('route').exists(),
-            check('date').exists(),
-            check('names').exists(),
-            check('start_time').exists(),
-            check('end_time').exists(),
-            check('temperature').exists(),
-            check('weather_conditions_sunny').optional(),
-            check('weather_conditions_part_sun').optional(),
-            check('weather_conditions_cloudy').optional(),
-            check('weather_conditions_light_rain').optional(),
-            check('weather_conditions_heavy_rain').optional(),
-            check('weather_conditions_rain_24h').optional(),
-            check('extra_notes').exists(),
-            check('data_entry_notes').exists(),
-            check('tally_sheets').exists(),
-            check('skip_observations').optional(),
-            check('resubmit').optional()
+            validateSurveyData
         ],
         (req, res, next) => {
             const errors = validationResult(req);
@@ -1942,8 +1975,8 @@ module.exports = function(router) {
                 authorId: res.locals.user.id,
                 data: R.omit(['cycle', 'resubmit', 'skip_observations'], data),
                 cycleId: Number(cycle),
-                start: moment(data.date + ' ' + data.start_time).format(),
-                end: moment(data.date + ' ' + data.end_time).format()
+                start: data.date ? moment(data.date + ' ' + data.start_time).format() : null,
+                end: data.date ? moment(data.date + ' ' + data.end_time).format() : null
             };
 
             const skipObservations = () => R.prop('skip_observations', data);

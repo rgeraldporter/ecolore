@@ -2,11 +2,9 @@
 module.exports = (sequelize, DataTypes) =>
     sequelize.define('Survey', {
         start: {
-            allowNull: false,
             type: DataTypes.DATE
         },
         end: {
-            allowNull: false,
             type: DataTypes.DATE
         },
         data: {

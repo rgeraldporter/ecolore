@@ -43,7 +43,7 @@ FILES:
 
                             <div class="pure-control-group">
                                 <label for="form-x-off-leash-extra-notes">Notes</label>
-                                <textarea cols="35" rows="5" name="extra_notes" id="form-x-off-leash-extra-notes" placeholder="Any notes about off-least pet observations."></textarea>
+                                <textarea cols="35" rows="5" name="off_leash_extra_notes" id="form-x-off-leash-extra-notes" placeholder="Any notes about off-least pet observations."></textarea>
                             </div>
 
                         </fieldset>
@@ -77,6 +77,7 @@ FILES:
 
                         <fieldset>
                             <input type="hidden" name="cycle" value="<%= cycle.id %>">
+                            <input type="hidden" name="skip_observations" value="1">
                             <div class="pure-control-group">
                                 <label for="form-submit"></label>
                                 <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>
