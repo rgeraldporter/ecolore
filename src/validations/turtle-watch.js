@@ -49,7 +49,8 @@ const surveys = {
         'data_entry_notes',
         'tally_sheets',
         'skip_observations',
-        'resubmit'
+        'resubmit',
+        'form'
     ]
 };
 

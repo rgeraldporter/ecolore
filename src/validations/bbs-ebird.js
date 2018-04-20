@@ -7,12 +7,12 @@
 
 
 const observations = {
-    exists: ['species_name', 'breeding_code', 'cycle', 'survey'],
-    optional: ['notes', 'more_observations']
+    exists: [],
+    optional: []
 };
 
 const surveys = {
-    exists: ['date', 'start_time', 'end_time', 'names', 'cycle', 'skip_observations'],
+    exists: ['ebird_checklist_url', 'cycle', 'skip_observations'],
     optional: [
         'off_leash',
         'off_leash_extra_notes',

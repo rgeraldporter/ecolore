@@ -4,6 +4,11 @@
   <body>
 
       <% include menu %>
+      <%
+        const listTaxa = taxa => {
+            return locals.R.defaultTo([], JSON.parse(taxa)).reduce((acc, cur) => acc.concat(cur).concat('\r\n'), '');
+        }
+      %>
       <div class="content-wrapper">
         <div class="header">
             <h2><%= cycle && cycle.id ? 'Update' : 'Create' %> Cycle for <%= cycle.Project.title %></h2>
@@ -26,8 +31,16 @@
                     </div>
                     <div class="pure-control-group">
                         <label for="form-description">Description:</label>
-                        <textarea name="description" id="form-description" placeholder="Enter a short description"><%= cycle.description %></textarea>
+                        <textarea rows="4" cols="40" name="description" id="form-description" placeholder="Enter a short description"><%= cycle.description %></textarea>
                     </div>
+                </fieldset>
+                <fieldset>
+                    <legend>Taxa</legend>
+                    <p>List species that will be listed as possible observable species, one per line.</p>
+                    <div class="pure-control-group">
+                            <label for="form-taxa">Taxa:</label>
+                            <textarea rows="10" cols="40" name="taxa" id="form-taxa" placeholder="e.g.:&#10;American Robin&#10;Common Grackle&#10;...etc"><%= listTaxa(cycle.taxa) %></textarea>
+                        </div>
                     <input type="hidden" name="project" value="<%= cycle.Project.id %>">
                 </fieldset>
 

@@ -1,15 +1,3 @@
-<!--
-
-@todo, add:
-OBSERVATION:
-- Select species
-- Select breeding code
-- Enter location of territory or nest
-
-FILES:
-- Nest photos
--->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -19,33 +7,18 @@ FILES:
         <% include ../../menu %>
             <div class="content-wrapper">
                 <div class="header">
-                    <h2>Breeding Bird Survey Form</h2>
+                    <h2>Breeding Bird Survey Form (eBird)</h2>
                 </div>
                 <div class="content">
 
-                    <p>If you already have made an eBird submission, you should <a href="?form=ebird">input an eBird list instead</a>.</p>
+                    <p>Use this form to record an already-submitted eBird record. <a href="?form=">Submit a survey form instead.</a></p>
 
                     <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
 
                         <fieldset>
                             <div class="pure-control-group">
-                                <label for="form-date">Date:</label>
-                                <input type="date" name="date" id="form-date" required>
-                            </div>
-
-                            <div class="pure-control-group">
-                                <label for="form-names">Names:</label>
-                                <input type="text" name="names" id="form-names" placeholder="Enter names here" required>
-                            </div>
-
-                            <div class="pure-control-group">
-                                <label for="form-start-time">Start time:</label>
-                                <input type="time" name="start_time" id="form-start-time" required>
-                            </div>
-
-                            <div class="pure-control-group">
-                                <label for="form-end-time">End time (expected):</label>
-                                <input type="time" name="end_time" id="form-end-time" required>
+                                <label for="form-x-ebird-checklist-url">eBird Checklist URL</label>
+                                <input type="url" name="ebird_checklist_url" id="form-x-ebird-checklist-url" placeholder="e.g. https://ebird.org/view/checklist/S20216033" class="pure-input-1-3" required>
                             </div>
                         </fieldset>
 
@@ -95,6 +68,7 @@ FILES:
                         <fieldset>
                             <input type="hidden" name="cycle" value="<%= cycle.id %>">
                             <input type="hidden" name="skip_observations" value="1">
+                            <input type="hidden" name="form" value="ebird">
                             <div class="pure-control-group">
                                 <label for="form-submit"></label>
                                 <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>

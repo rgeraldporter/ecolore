@@ -14,6 +14,7 @@ const MySQLStore = require('passwordless-mysql');
 const mailgunMod = require('mailgun-js');
 const db = require('./models/index');
 const fs = require('fs');
+const R = require('ramda');
 const routes = require('./routes/index');
 const moment = require('moment');
 const app = express();
@@ -24,6 +25,7 @@ const md = require('markdown-it')({
 
 app.locals.moment = moment; // share with EJS
 app.locals.md = md;
+app.locals.R = R;
 
 app.use( passport.initialize());
 

@@ -457,11 +457,9 @@ module.exports = {
                         type: Sequelize.INTEGER
                     },
                     start: {
-                        allowNull: false,
                         type: Sequelize.DATE
                     },
                     end: {
-                        allowNull: false,
                         type: Sequelize.DATE
                     },
                     data: {

@@ -18,10 +18,20 @@ const observationTemplate = project =>
         ? `forms/custom/${project.get('slug')}-observation.ejs`
         : `forms/project-model/${project.get('model')}-observation.ejs`;
 
-const surveyTemplate = project =>
+const getStandardSurveyForm = project =>
     isViewFile(`forms/custom/${project.get('slug')}-survey.ejs`)
         ? `forms/custom/${project.get('slug')}-survey.ejs`
         : `forms/project-model/${project.get('model')}-survey.ejs`;
+
+const getSurveyFormByName = ([project, formName]) =>
+    isViewFile(`forms/custom/${project.get('slug')}-survey-${formName}.ejs`)
+        ? `forms/custom/${project.get('slug')}-survey-${formName}.ejs`
+        : `forms/project-model/${project.get('model')}-survey-${formName}.ejs`;
+
+const surveyTemplate = ([project, getParams]) =>
+    R.propOr(false, 'form', getParams)
+        ? getSurveyFormByName([project, getParams.form])
+        : getStandardSurveyForm(project);
 
 const rolePath = R.lensPath(['Memberships', 0, 'role']);
 const sincePath = R.lensPath(['Memberships', 0, 'createdAt']);
@@ -1138,7 +1148,7 @@ module.exports = function(router) {
                     ([project, zones]) =>
                         renderProjectPage(
                             res,
-                            surveyTemplate(project),
+                            surveyTemplate([project, req.query]),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.id },
                                 zones
@@ -1532,9 +1542,10 @@ module.exports = function(router) {
             check('end').exists(),
             check('description').exists(),
             check('project').exists(),
+            check('taxa').optional(),
             passwordless.restricted()
         ],
-        function(req, res, next) {
+        (req, res, next) => {
             const errors = validationResult(req);
             console.log('errors', errors.mapped());
             // @todo: handle errors better
@@ -1542,6 +1553,7 @@ module.exports = function(router) {
                 renderProjectPage(res, 'cycle-create');
             } else {
                 const cycleUpdate = matchedData(req);
+                cycleUpdate.taxa = cycleUpdate.taxa.split(/\r|\n/).filter(a=>a);
                 return findProjectBySlugAndOwner([
                     req.params.slug,
                     res.locals.user
@@ -1921,17 +1933,20 @@ module.exports = function(router) {
         }
     );
 
-
-    const getSurveyValidations = project =>
-        isValidationFile(`custom/${project.get('slug')}.js`)
-            ? require(`${validationPath}custom/${project.get('slug')}.js`)
-                  .surveys
-            : require(`${validationPath}${project.get('model')}.js`)
-                  .surveys;
+    const getSurveyValidations = form => project =>
+        isValidationFile(
+            `custom/${project.get('slug')}${form ? '-' + form : ''}.js`
+        )
+            ? require(`custom/${project.get('slug')}${
+                  form ? '-' + form : ''
+              }.js`).surveys
+            : require(`${validationPath}${project.get('model')}${
+                  form ? '-' + form : ''
+              }.js`).surveys;
 
     const validateSurveyData = (req, res, next) =>
         findProjectBySlugF(req.params.slug)
-            .map(getSurveyValidations)
+            .map(getSurveyValidations(req.body.form))
             .chain(validations =>
                 Future.do(function*() {
                     const encasedCheckRequires = Future.encaseP(
@@ -1959,10 +1974,7 @@ module.exports = function(router) {
 
     router.post(
         '/project/:slug/survey',
-        [
-            passwordless.restricted(),
-            validateSurveyData
-        ],
+        [passwordless.restricted(), validateSurveyData],
         (req, res, next) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -1975,8 +1987,14 @@ module.exports = function(router) {
                 authorId: res.locals.user.id,
                 data: R.omit(['cycle', 'resubmit', 'skip_observations'], data),
                 cycleId: Number(cycle),
-                start: data.date ? moment(data.date + ' ' + data.start_time).format() : null,
-                end: data.date ? moment(data.date + ' ' + data.end_time).format() : null
+                start:
+                    data.date && data.start_time
+                        ? moment(data.date + ' ' + data.start_time).format()
+                        : null,
+                end:
+                    data.date && data.end_time
+                        ? moment(data.date + ' ' + data.end_time).format()
+                        : null
             };
 
             const skipObservations = () => R.prop('skip_observations', data);
@@ -1995,7 +2013,8 @@ module.exports = function(router) {
                         req.params.slug +
                         '/cycle/' +
                         data.cycle +
-                        '/survey/new'
+                        '/survey/new' +
+                        (data.form ? '?form=' + data.form : '')
                 );
             const redirectToObservations = survey =>
                 res.redirect(
