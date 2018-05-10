@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) =>
         },
         embedCode: DataTypes.TEXT,
         name: DataTypes.STRING,
+        archived: DataTypes.BOOLEAN,
         projectId: {
             type: DataTypes.INTEGER,
             references: {

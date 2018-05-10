@@ -7,6 +7,9 @@
         <% include ../../menu %>
             <div class="content-wrapper">
                 <div class="header">
+                    <% if (from) { %>
+                        <div id="previous-survey-id">Survey #<%= from %> submitted</div>
+                    <% } %>
                     <h2>Breeding Bird Survey Form (eBird)</h2>
                 </div>
                 <div class="content">

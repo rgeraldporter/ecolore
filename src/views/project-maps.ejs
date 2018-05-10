@@ -9,7 +9,7 @@
             <div class="header">
             </div>
             <div class="content pure-g">
-            
+
             <% include project-menu %>
 
             <main class="pure-u-1 pure-u-md-4-5">
@@ -19,18 +19,18 @@
                 </aside>
                 <table class="pure-table pure-table-horizontal">
                     <thead>
-                        <tr><th>Map Name</th><th>Last Updated</th></tr>
+                        <tr><th>Map Name</th><th>Last Updated</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                     <% if (!maps.length) { %>
                         <tr><td colspan="3">There are no maps yet.</td></tr>
-                    
                     <% } %>
                     <% maps.forEach(function(map) {
                         %>
                         <tr>
                             <td><a href="/project/<%= project.slug %>/map/<%= map.id %>"><%= map.name %></a></td>
                             <td><%= map.updatedAt %></td>
+                            <td><%= map.archived ? 'Archived' : 'Active' %></td>
                         </tr>
                     <% }); %>
                 </tbody>

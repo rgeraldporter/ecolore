@@ -45,6 +45,16 @@ const zoneValue = prop =>
               </button>
             </div>
           </fieldset>
+          <% if (zone.id) { %>
+          <fieldset>
+            <div class="pure-control-group">
+              <label for="form-submit-archive"></label>
+              <button type="submit" id="form-submit-archive" name="archived" class="pure-button button-error" value="<%= zone.archived ? '0' : '1' %>">
+                <%= zone.archived ? 'Unarchive' : 'Archive' %> this zone
+              </button>
+            </div>
+          </fieldset>
+          <% } %>
         </form>
       </div>
   </div>

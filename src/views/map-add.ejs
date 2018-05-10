@@ -46,6 +46,16 @@
               </button>
             </div>
           </fieldset>
+          <% if (map.id) { %>
+          <fieldset>
+            <div class="pure-control-group">
+              <label for="form-archive"></label>
+              <button type="submit" id="form-archive" class="pure-button button-error" name="archived" value="<%= map.archived ? 0 : 1 %>">
+                <%= map.archived ? 'Unarchive' : 'Archive' %> this map
+              </button>
+            </div>
+          </fieldset>
+          <% } %>
         </form>
       </div>
   </div>

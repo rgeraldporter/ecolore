@@ -305,6 +305,9 @@ module.exports = {
                     embedCode: {
                         type: Sequelize.TEXT
                     },
+                    archived: {
+                        type: Sequelize.BOOLEAN
+                    },
                     creatorId: {
                         type: Sequelize.INTEGER,
                         references: {
@@ -355,6 +358,9 @@ module.exports = {
                     },
                     description: {
                         type: Sequelize.TEXT
+                    },
+                    archived: {
+                        type: Sequelize.BOOLEAN
                     },
                     projectId: {
                         type: Sequelize.INTEGER,

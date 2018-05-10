@@ -9,7 +9,7 @@
         <div class="header">
         </div>
         <div class="content pure-g">
-        
+
         <% include project-menu %>
 
         <main class="pure-u-1 pure-u-md-4-5">
@@ -20,18 +20,19 @@
 
             <table class="pure-table pure-table-horizontal">
                 <thead>
-                    <tr><th>Zone Code</th><th>Zone Name</th><th></th></tr>
+                    <tr><th>Zone Code</th><th>Zone Name</th><th>Status</th><th></th></tr>
                 </thead>
                 <tbody>
                 <% if (!zones.length) { %>
                     <tr><td colspan="3">There are no zones yet for this project.</td></tr>
-                
+
                 <% } %>
                 <% zones.forEach(function(zone) {
                     %>
                     <tr>
                         <td><%= zone.code %></td>
                         <td><%= zone.name %></td>
+                        <td><%= zone.archived ? 'Archived' : 'Active' %></td>
                         <td><a href="/project/<%= project.slug %>/zone/<%= zone.id %>/edit">Edit zone</a></td>
                     </tr>
                 <% }); %>

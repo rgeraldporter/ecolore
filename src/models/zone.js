@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) =>
         code: DataTypes.STRING,
         name: DataTypes.STRING,
         description: DataTypes.TEXT,
+        archived: DataTypes.BOOLEAN,
         projectId: {
             type: DataTypes.INTEGER,
             references: {

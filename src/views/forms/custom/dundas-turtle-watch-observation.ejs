@@ -7,6 +7,12 @@
         <% include ../../menu %>
             <div class="content-wrapper">
                 <div class="header">
+                    <% if (from) { %>
+                        <div id="previous-observation-id">#<%= from %> submitted</div>
+                    <% } %>
+                    <% if (fromNewSurvey) { %>
+                        <div id="previous-survey-id">Survey #<%= fromNewSurvey %> started</div>
+                    <% } %>
                     <h2>Dundas Turtle Watch Incident Form</h2>
                 </div>
                 <div class="content">

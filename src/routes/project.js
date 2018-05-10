@@ -917,7 +917,9 @@ module.exports = function(router) {
                             observationTemplate(project),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.cycleId },
-                                survey
+                                survey,
+                                from: req.query.from || false,
+                                fromNewSurvey: req.query.fromNewSurvey || false
                             })
                         )
                 )
@@ -1151,7 +1153,8 @@ module.exports = function(router) {
                             surveyTemplate([project, req.query]),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.id },
-                                zones
+                                zones,
+                                from: req.query.from || false
                             })
                         )
                 )
@@ -1553,7 +1556,9 @@ module.exports = function(router) {
                 renderProjectPage(res, 'cycle-create');
             } else {
                 const cycleUpdate = matchedData(req);
-                cycleUpdate.taxa = cycleUpdate.taxa.split(/\r|\n/).filter(a=>a);
+                cycleUpdate.taxa = cycleUpdate.taxa
+                    .split(/\r|\n/)
+                    .filter(a => a);
                 return findProjectBySlugAndOwner([
                     req.params.slug,
                     res.locals.user
@@ -1627,6 +1632,7 @@ module.exports = function(router) {
             check('name').optional(),
             check('description').optional(),
             check('project').exists(),
+            check('archived').optional(),
             passwordless.restricted()
         ],
         function(req, res, next) {
@@ -1722,6 +1728,7 @@ module.exports = function(router) {
             check('name').exists(),
             check('url').exists(),
             check('project').exists(),
+            check('archived').exists(),
             passwordless.restricted()
         ],
         function(req, res, next) {
@@ -1883,7 +1890,7 @@ module.exports = function(router) {
             const moreObservations = () => R.prop('more_observations', data);
             const resubmit = () => R.prop('resubmit', data);
 
-            const redirectToNewObservation = () =>
+            const redirectToNewObservation = observationData =>
                 res.redirect(
                     '/project/' +
                         req.params.slug +
@@ -1891,7 +1898,8 @@ module.exports = function(router) {
                         cycle +
                         '/survey/' +
                         observation.surveyId +
-                        '/observation/new'
+                        '/observation/new?from=' +
+                        observationData.id
                 );
             const redirectToObservations = slug => survey =>
                 res.redirect(
@@ -1920,9 +1928,7 @@ module.exports = function(router) {
                                       [resubmit, redirectToObservations],
                                       [
                                           moreObservations,
-                                          redirectToNewObservation(
-                                              req.params.slug
-                                          )
+                                          redirectToNewObservation
                                       ],
                                       [R.T, redirectToObservations]
                                   ])
@@ -2007,14 +2013,15 @@ module.exports = function(router) {
                         data.cycle +
                         '/surveys'
                 );
-            const redirectToNewSurvey = () =>
+            const redirectToNewSurvey = surveyData =>
                 res.redirect(
                     '/project/' +
                         req.params.slug +
                         '/cycle/' +
                         data.cycle +
                         '/survey/new' +
-                        (data.form ? '?form=' + data.form : '')
+                        (data.form ? '?form=' + data.form + '&from=' + surveyData.id : '') +
+                        (data.form ? '' : '?from=' + surveyData.id )
                 );
             const redirectToObservations = survey =>
                 res.redirect(
@@ -2024,7 +2031,7 @@ module.exports = function(router) {
                         data.cycle +
                         '/survey/' +
                         survey.id +
-                        '/observation/new'
+                        '/observation/new?fromNewSurvey=' + survey.id
                 );
 
             const createOrUpdateSurvey = () =>
