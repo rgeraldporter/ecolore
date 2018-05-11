@@ -12,13 +12,14 @@
                 </h2>
             </div>
             <div class="content">
-                
+
                 <form action="/project/<%= project.slug %>/invite" method="POST" class="pure-form pure-form-aligned">
                     <fieldset>
                             <legend>Enter a list of email addresses, seperated by comma</legend>
                         <div class="pure-control-group">
                             <label for="form-invitees">Invitees:</label>
-                            <textarea rows="6" cols="35" name="invitees" placeholder="janet.smith@example.com, jonah.jones@example.com"></textarea>
+                            <textarea rows="6" cols="35" name="invitees" placeholder="janet.smith@example.com, jonah.jones@example.com" required></textarea>
+                            <span class="pure-form-message">Do not include listserv addresses, each address should go to one person.</span>
                         </div>
 
                         <div class="pure-control-group">
@@ -37,20 +38,16 @@
                             <legend>Email text will include:</legend>
                             <div>
                                     <%= user.firstName %>
-                                        <%= user.lastName %> would like to invite you to join "
-                                            <%= project.title %>" on EcoLore!</div>
+                                        <%= user.lastName %> would like to invite you to join the project
+                                            "<%= project.title %>" on EcoLore.org!</div>
                     </fieldset>
-                    
-
 
                     <fieldset>
                         <legend></legend>
                             <div class="pure-control-group">
                                 <label for="form-invitation">Additional text</label>
                                         <textarea  rows="6" cols="35" name="invitation" id="form-invitation" placeholder="Add an additional message here (optional)"></textarea>
-                                
                             </div>
-                            
                     </fieldset>
                     <fieldset>
                             <div class="pure-control-group">

@@ -196,6 +196,52 @@ module.exports = {
                 })
             )
             .then(() =>
+                queryInterface.createTable('Invites', {
+                    id: {
+                        allowNull: false,
+                        autoIncrement: true,
+                        primaryKey: true,
+                        type: Sequelize.INTEGER
+                    },
+                    role: {
+                        type: Sequelize.STRING,
+                        validate: {
+                            isIn: [
+                                [
+                                    'administrator',
+                                    'owner',
+                                    'contributor',
+                                    'observer',
+                                    'reporter'
+                                ]
+                            ]
+                        }
+                    },
+                    email: {
+                        type: Sequelize.STRING,
+                        validate: {
+                            isEmail: true
+                        }
+                    },
+                    projectId: {
+                        type: Sequelize.INTEGER,
+                        references: {
+                            type: Sequelize.INTEGER,
+                            model: 'Projects',
+                            key: 'id'
+                        }
+                    },
+                    createdAt: {
+                        allowNull: false,
+                        type: Sequelize.DATE
+                    },
+                    updatedAt: {
+                        allowNull: false,
+                        type: Sequelize.DATE
+                    }
+                })
+            )
+            .then(() =>
                 queryInterface.createTable('Profiles', {
                     id: {
                         allowNull: false,
@@ -739,6 +785,7 @@ module.exports = {
             .then(() => queryInterface.dropTable('Projects'))
             .then(() => queryInterface.dropTable('Cycles'))
             .then(() => queryInterface.dropTable('Memberships'))
+            .then(() => queryInterface.dropTable('Invites'))
             .then(() => queryInterface.dropTable('Profiles'))
             .then(() => queryInterface.dropTable('Reports'))
             .then(() => queryInterface.dropTable('Files'))

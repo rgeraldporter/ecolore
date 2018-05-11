@@ -8,10 +8,16 @@ const randomToken = require('random-token');
 const Op = db.Sequelize.Op;
 const Future = require('fluture');
 const fs = require('fs-extra');
+const mailgunMod = require('mailgun-js');
 const isViewFile = path => fs.existsSync(__dirname + '/../views/' + path);
 const isValidationFile = path =>
     fs.existsSync(__dirname + '/../validations/' + path);
 const validationPath = __dirname + '/../validations/';
+
+const mailgun = mailgunMod({
+    domain: process.env.MAILGUN_DOMAIN,
+    apiKey: process.env.MAILGUN_APIKEY || null
+});
 
 const observationTemplate = project =>
     isViewFile(`forms/custom/${project.get('slug')}-observation.ejs`)
@@ -232,6 +238,7 @@ const findAllObservation = Future.encaseP(a => db.Observation.findAll(a));
 const findOneObservation = Future.encaseP(a => db.Observation.findOne(a));
 const findAllFile = Future.encaseP(a => db.File.findAll(a));
 const findAllProject = Future.encaseP(a => db.Project.findAll(a));
+const createMembership = Future.encaseP(a => db.Membership.create(a));
 const createDriveState = Future.encaseP(a =>
     db.Google_Drive_Project_State.create(a)
 );
@@ -1584,6 +1591,56 @@ module.exports = function(router) {
             }
         }
     );
+
+    router.post(
+        '/project/:slug/invite',
+        [
+            check('invitees').exists(),
+            check('role').exists(),
+            check('invitation').optional(),
+            passwordless.restricted()
+        ],
+        function(req, res, next) {
+            const errors = validationResult(req);
+            // @todo: handle errors better
+            if (!errors.isEmpty()) {
+                renderProjectPage(res, 'project-invite');
+            } else {
+                const inviteData = matchedData(req);
+
+                const emails = inviteData.invitees.split(',').map(R.trim);
+                const role = inviteData.role;
+                const message = inviteData.invitation;
+
+                const addToInvites = email => console.log('EMAIL_ADDED_TO_INVITES', email);
+
+                const addMembership = user => findProjectBySlugF(req.params.slug)
+                    .chain(project => createMembership({ userId: user.get('id'), role, projectId: project.get('id')}))
+                    .fork(x => console.error('ERROR!', x), console.log);
+
+                emails.forEach(email => {
+                    findOneUser({
+                        where: { email }
+                    })
+                    .chain(result => result ? Future.of(result) : Future.reject('Not a user'))
+                    .fork(
+                        _ => addToInvites(email),
+                        addMembership
+                    );
+                });
+
+                res.redirect(`/project/${req.params.slug}`);
+
+                // for each email, look up if in users db
+                // if so, add to memberships
+                // if not, add to invites
+                // send email based on data above
+                // when they first log in, their invite will be converted to membership silently,
+                //     should have the project on their projects list
+            }
+        }
+    );
+
 
     router.post(
         '/project/:slug/zone/new',

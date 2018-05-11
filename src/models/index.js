@@ -54,6 +54,7 @@ const {
     Survey,
     Observation,
     Review,
+    Invite,
     Google_Drive_OAuth2_Token,
     Google_Drive_Project_State
 } = db;
@@ -64,6 +65,7 @@ Cycle.User = Cycle.belongsTo(User, { as: 'creator' });
 Project.belongsTo(User, { as: 'creator' });
 Membership.User = Membership.belongsTo(User);
 Membership.Project = Membership.belongsTo(Project);
+Invite.Project = Invite.belongsTo(Project);
 User.hasMany(Membership);
 Project.hasMany(Membership);
 Project.hasMany(Cycle);
