@@ -19,6 +19,8 @@ const mailgun = mailgunMod({
     apiKey: process.env.MAILGUN_APIKEY || null
 });
 
+const host = process.env.HOST || 'http://ecolore-local.org:' + process.env.PORT + '/';
+
 const observationTemplate = project =>
     isViewFile(`forms/custom/${project.get('slug')}-observation.ejs`)
         ? `forms/custom/${project.get('slug')}-observation.ejs`
@@ -239,6 +241,7 @@ const findOneObservation = Future.encaseP(a => db.Observation.findOne(a));
 const findAllFile = Future.encaseP(a => db.File.findAll(a));
 const findAllProject = Future.encaseP(a => db.Project.findAll(a));
 const createMembership = Future.encaseP(a => db.Membership.create(a));
+const createInvite = Future.encaseP(a => db.Invite.create(a));
 const createDriveState = Future.encaseP(a =>
     db.Google_Drive_Project_State.create(a)
 );
@@ -1610,23 +1613,63 @@ module.exports = function(router) {
 
                 const emails = inviteData.invitees.split(',').map(R.trim);
                 const role = inviteData.role;
-                const message = inviteData.invitation;
+                const invitation = inviteData.invitation;
 
-                const addToInvites = email => console.log('EMAIL_ADDED_TO_INVITES', email);
+                const sendEmail = ([[project, email], _]) => {
 
-                const addMembership = user => findProjectBySlugF(req.params.slug)
-                    .chain(project => createMembership({ userId: user.get('id'), role, projectId: project.get('id')}))
-                    .fork(x => console.error('ERROR!', x), console.log);
+                    const message = {
+                        from: 'Do Not Reply <donotreply@ecolore.org>',
+                        to: email,
+                        subject: `You've been invited to participate`,
+                        text: `${req.user.firstName} ${req.user.lastName} would like to invite you to join the project
+                            "${project.get('title')}" on EcoLore.org!\n\n` + invitation +
+                            `\n\nClick on the link below to get started: \n\n ${host}project/${req.params.slug}`
+                    };
+
+                    mailgun.messages().send(message, (error, body) => {
+                        console.info('Emailed: ', body);
+                    });
+                };
+
+                const addToInvites = email =>
+                    findProjectBySlugF(req.params.slug)
+                        .chain(project =>
+                            Future.both(
+                                Future.of([project, email]), // @todo convert to Inquiry
+                                createInvite({
+                                    email,
+                                    projectId: project.get('id'),
+                                    role
+                                })
+                            )
+                        )
+                        .fork(x => console.error('ERROR!', x), sendEmail);
+
+                const addMembership = user =>
+                    findProjectBySlugF(req.params.slug)
+                        .chain(project =>
+                            Future.of(
+                                Future.of(project),
+                                createMembership({
+                                    userId: user.get('id'),
+                                    role,
+                                    projectId: project.get('id')
+                                })
+                            )
+                        )
+                        .fork(x => console.error('ERROR!', x), sendEmail);
 
                 emails.forEach(email => {
                     findOneUser({
                         where: { email }
                     })
-                    .chain(result => result ? Future.of(result) : Future.reject('Not a user'))
-                    .fork(
-                        _ => addToInvites(email),
-                        addMembership
-                    );
+                        .chain(
+                            result =>
+                                result
+                                    ? Future.of(result)
+                                    : Future.reject('Not a user')
+                        )
+                        .fork(_ => addToInvites(email), addMembership);
                 });
 
                 res.redirect(`/project/${req.params.slug}`);
@@ -1640,7 +1683,6 @@ module.exports = function(router) {
             }
         }
     );
-
 
     router.post(
         '/project/:slug/zone/new',
@@ -2077,8 +2119,10 @@ module.exports = function(router) {
                         '/cycle/' +
                         data.cycle +
                         '/survey/new' +
-                        (data.form ? '?form=' + data.form + '&from=' + surveyData.id : '') +
-                        (data.form ? '' : '?from=' + surveyData.id )
+                        (data.form
+                            ? '?form=' + data.form + '&from=' + surveyData.id
+                            : '') +
+                        (data.form ? '' : '?from=' + surveyData.id)
                 );
             const redirectToObservations = survey =>
                 res.redirect(
@@ -2088,7 +2132,8 @@ module.exports = function(router) {
                         data.cycle +
                         '/survey/' +
                         survey.id +
-                        '/observation/new?fromNewSurvey=' + survey.id
+                        '/observation/new?fromNewSurvey=' +
+                        survey.id
                 );
 
             const createOrUpdateSurvey = () =>
