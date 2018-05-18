@@ -652,7 +652,7 @@ module.exports = {
                 })
             )
             .then(() =>
-                queryInterface.createTable('Google_Drive_Oauth2_Tokens', {
+                queryInterface.createTable('Google_Drive_OAuth2_Tokens', {
                     id: {
                         allowNull: false,
                         autoIncrement: true,
