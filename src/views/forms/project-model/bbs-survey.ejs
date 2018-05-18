@@ -19,8 +19,8 @@ FILES:
         <% include ../../menu %>
             <div class="content-wrapper">
                 <div class="header">
-                    <% if (from) { %>
-                        <div id="previous-survey-id">Survey #<%= from %> submitted</div>
+                    <% if (locals.from) { %>
+                        <div id="previous-survey-id">Survey #<%= locals.from %> submitted</div>
                     <% } %>
                     <h2>Breeding Bird Survey Form</h2>
                 </div>

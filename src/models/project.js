@@ -32,5 +32,8 @@ module.exports = (sequelize, DataTypes) =>
                 model: 'User',
                 key: 'id'
             }
+        },
+        config: {
+            type: DataTypes.JSON
         }
     });

@@ -11,12 +11,19 @@
             <div class="content pure-g">
 
             <% include project-menu %>
+            <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
+            <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
+            || project.memberRole === 'contributor'; %>
 
             <main class="pure-u-1 pure-u-md-4-5">
                 <h2>Maps</h2>
-                <aside>
-                    <a href='/project/<%= project.slug %>/map/add'>Add a new Map</a><br>
-                </aside>
+
+                <% if(isAdmin) { %>
+                    <aside>
+                        <a href='/project/<%= project.slug %>/map/add'>Add a new Map</a><br>
+                    </aside>
+                <% } %>
+
                 <table class="pure-table pure-table-horizontal">
                     <thead>
                         <tr><th>Map Name</th><th>Last Updated</th><th>Status</th></tr>

@@ -12,37 +12,44 @@
 
         <% include project-menu %>
         <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
+        <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
+            || project.memberRole === 'contributor'; %>
 
         <main class="pure-u-1 pure-u-md-4-5">
-            <h2>Cycles</h2>
+            <% console.log('lang', project); %>
+            <h2><%= locals.t('Cycles', project) %></h2>
             <% if(isAdmin) { %>
             <aside>
-                <a href='/project/<%= project.slug %>/cycle/create'>Start a new Cycle</a><br>
+                <a href='/project/<%= project.slug %>/cycle/create'>Start a new <%= locals.t('Cycle', project) %></a><br>
             </aside>
             <% } %>
 
             <table class="pure-table pure-table-horizontal">
                 <thead>
                     <tr>
-                        <th>Cycle Name</th><th></th><th></th><th></th><th>Start</th><th>End</th>
+                        <th><%= locals.t('Cycle', project) %> Name</th>
+                        <% if(isContrib) { %><th></th> <% } %>
+                        <th></th><th></th><th>Start</th><th>End</th>
                         <% if (isAdmin) { %><th></th><% } %>
                     </tr>
                 </thead>
                 <tbody>
                 <% if (!cycles.length) { %>
-                    <tr><td colspan="3">There are no cycles yet.</td></tr>
+                    <tr><td colspan="3">There are no <%= locals.t('cycles', project) %> yet.</td></tr>
                 <% } %>
                 <% cycles.forEach(function(cycle) {
                     %>
                     <tr>
                         <td><%= cycle.title %></td>
+                        <% if(isContrib) { %>
                         <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/new'>Submit survey</a></td>
+                        <% } %>
                         <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/surveys">View surveys</a></td>
                         <td><a href="/data/csv/cycle/<%= cycle.id %>">Download Data</a></td>
                         <td><%= moment(cycle.start).format('LL'); %></td>
                         <td><%= moment(cycle.end).format('LL'); %></td>
                         <% if (isAdmin) { %>
-                        <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/edit'>Edit cycle</a></td>
+                        <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/edit'>Edit <%= locals.t('cycle', project) %></a></td>
                         <% } %>
                     </tr>
                 <% }); %>

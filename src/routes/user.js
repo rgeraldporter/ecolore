@@ -79,7 +79,7 @@ module.exports = router => {
 
     router.get(
         '/user/auth/google/drive/callback',
-        passwordless.restricted(),
+        passwordless.restricted({failureRedirect: '/login' }),
         (req, res, next) => {
             const state = req.params.state;
             db.Google_Drive_Project_State.find({ token: state })
@@ -105,7 +105,7 @@ module.exports = router => {
 
     router.get(
         'user/auth/google/failure',
-        passwordless.restricted(),
+        passwordless.restricted({failureRedirect: '/login' }),
         (req, res) => {
             res.render('google-failure');
         }
@@ -122,7 +122,7 @@ module.exports = router => {
             check('firstName').exists(),
             check('lastName').exists(),
             check('bio').exists(),
-            passwordless.restricted()
+            passwordless.restricted({failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);

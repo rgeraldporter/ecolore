@@ -10,9 +10,15 @@
             </div>
             <div class="content pure-g">
             <% include project-menu %>
+            <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
+            <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
+            || project.memberRole === 'contributor'; %>
+
             <main class="pure-u-1 pure-u-md-3-5">
                     <h2>Data: Photos for Observation Record <%= observation.id %></h2>
-                    <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/upload">Add photo</a><br>
+                    <% if(isContrib) { %>
+                        <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/upload">Add photo</a><br>
+                    <% } %>
                     <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>">Return to observation record #<%= observation.id %></a>
             <table class="pure-table pure-table-horizontal">
                     <thead>

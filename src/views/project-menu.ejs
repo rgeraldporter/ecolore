@@ -29,13 +29,18 @@ const projectTypeLink = `<a href="/project-types/${project.model}">${projectType
 
     <div><%= project.public ? '🌐 Public project' : '🔒 Private project' %></div>
     <div>ℹ️ <u><%- projectTypeLink %></u> in <u><%- projectLocation() %></u></div>
+    <% if(project.memberRole !== 'none') { %>
+    <div>👩🏽‍💻 Your role: <%= project.memberRole %></div>
+    <% } %>
 
     <div>&nbsp;</div>
 
     <% if(project.memberRole !== 'none') { %>
     <div><a href="/project/<%= project.slug %>/">About this project</a></div>
-    <div><a href="/project/<%= project.slug %>/submit">Submit data</a></div>
-    <div><a href="/project/<%= project.slug %>/cycles">Cycles</a></div>
+        <% if(project.memberRole === 'administrator' || project.memberRole === 'owner' || project.memberRole === 'contributor') { %>
+            <div><a href="/project/<%= project.slug %>/submit">Submit data</a></div>
+        <% } %>
+    <div><a href="/project/<%= project.slug %>/cycles"><%= locals.t('Cycles', project) %></a></div>
     <div><a href="/project/<%= project.slug %>/zones">Zones</div>
     <div><a href="/project/<%= project.slug %>/maps">Maps</a></div>
     <% } %>

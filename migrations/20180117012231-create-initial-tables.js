@@ -86,6 +86,9 @@ module.exports = {
                     public: {
                         type: Sequelize.BOOLEAN
                     },
+                    config: {
+                        type: Sequelize.JSON
+                    },
                     createdAt: {
                         allowNull: false,
                         type: Sequelize.DATE

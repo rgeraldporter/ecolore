@@ -27,6 +27,9 @@ app.locals.moment = moment; // share with EJS
 app.locals.md = md;
 app.locals.R = R;
 
+app.locals.text = (key, project) => R.pathOr(key, ['config', 'language', key], project);
+app.locals.t = app.locals.text;
+
 app.use( passport.initialize());
 
 const SequelizeSessionStore = require('connect-session-sequelize')(
@@ -61,9 +64,9 @@ passwordless.init(
 
 passwordless.addDelivery(function(tokenToSend, uidToSend, recipient, callback) {
     const message = {
-        from: 'Do Not Reply <donotreply@example.com>',
+        from: 'EcoLore.org Login Link <donotreply@ecolore.org>',
         to: recipient,
-        subject: 'Login link'
+        subject: 'Your login link'
     };
 
     const send = notice => {
@@ -75,7 +78,8 @@ passwordless.addDelivery(function(tokenToSend, uidToSend, recipient, callback) {
     };
 
     send(
-        host + '?token=' + tokenToSend + '&uid=' + encodeURIComponent(uidToSend)
+        'Log in at EcoLore.org by clicking the following link: ' +
+            host + '?token=' + tokenToSend + '&uid=' + encodeURIComponent(uidToSend)
     );
     callback();
 });

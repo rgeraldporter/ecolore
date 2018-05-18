@@ -11,14 +11,14 @@
       %>
       <div class="content-wrapper">
         <div class="header">
-            <h2><%= cycle && cycle.id ? 'Update' : 'Create' %> Cycle for <%= cycle.Project.title %></h2>
-            <p>Please fill out information about this cycle. Typically a "cycle" would be season, year, or count period.</p>
+            <h2><%= cycle && cycle.id ? 'Update' : 'Create' %> New <%= locals.t('Cycle', cycle.Project) %> for <%= cycle.Project.title %></h2>
+            <p>Please fill out information about this <%= locals.t('cycle', cycle.Project) %>. Typically this would be a season, year, or count period.</p>
         </div>
         <div class="content">
             <form action="/project/<%= cycle.Project.slug %>/cycle/<%= cycle && cycle.id ? cycle.id : 'new' %>" method="POST" enctype="application/x-www-form-urlencoded" class="pure-form pure-form-aligned">
                 <fieldset>
                     <div class="pure-control-group">
-                        <label for="form-name">Cycle name:</label>
+                        <label for="form-name"><%= locals.t('Cycle', cycle.Project) %> name:</label>
                         <input type="text" name="title" id="form-name" placeholder="e.g. Summer &quot;2019&quot;" value="<%= cycle.title %>" required>
                     </div>
                     <div class="pure-control-group">
@@ -35,19 +35,20 @@
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend>Taxa</legend>
+                    <legend>Taxa (ignore if not necessary)</legend>
                     <p>List species that will be listed as possible observable species, one per line.</p>
                     <div class="pure-control-group">
                             <label for="form-taxa">Taxa:</label>
-                            <textarea rows="10" cols="40" name="taxa" id="form-taxa" placeholder="e.g.:&#10;American Robin&#10;Common Grackle&#10;...etc"><%= listTaxa(cycle.taxa) %></textarea>
+                            <textarea rows="10" cols="40" name="taxa" id="form-taxa" placeholder="e.g.:&#10;American Robin&#10;Common Grackle&#10;...etc"><%= cycle && cycle.taxa ? listTaxa(cycle.taxa) : '' %></textarea>
                         </div>
-                    <input type="hidden" name="project" value="<%= cycle.Project.id %>">
                 </fieldset>
+
+                <input type="hidden" name="project" value="<%= cycle.Project.id %>">
 
                 <fieldset>
                     <div class="pure-control-group">
                         <label for="form-submit"></label>
-                        <button type="submit" id="form-submit"><%= cycle.id ? 'Update cycle' : 'Create new cycle' %></button>
+                        <button type="submit" id="form-submit"><%= cycle.id ? `Update ${locals.t('cycle', cycle.Project)}` : `Create new ${locals.t('cycle', cycle.Project)}` %></button>
                     </div>
                 </fieldset>
             </form>

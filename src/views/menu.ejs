@@ -10,9 +10,11 @@
 
 
             <ul class="pure-menu-list">
+                <% if (locals.user) { %>
                 <li class="pure-menu-item <%= menuSelected('project') %>">
                     <a href="/projects" class="pure-menu-link">Projects</a>
                 </li>
+                <% } %>
 
                 <li class="pure-menu-item <%= menuSelected('index') %>">
                         <a href="/about" class="pure-menu-link">About</a>
@@ -20,7 +22,7 @@
 
                 <% if (!locals.user) { %>
                 <li class="pure-menu-item <%= menuSelected('contact') %>">
-                    <a href="/login" class="pure-menu-link">Log in</a>
+                    <a href="/login" class="pure-menu-link">Log in / Sign up</a>
                 </li>
                 <% } else { %>
                 <li class="pure-menu-item <%= menuSelected('contact') %>">

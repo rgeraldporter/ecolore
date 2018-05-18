@@ -3,6 +3,11 @@
 
         <% include head %>
 
+        <%
+            const hasLineBreaks = text => (text.match(/\n/g)||[]).length;
+            const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
+        %>
+
 <body>
         <% include menu %>
         <div class="content-wrapper">
@@ -11,9 +16,14 @@
             </div>
             <div class="content pure-g">
             <% include project-menu %>
+            <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
+            <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
+            || project.memberRole === 'contributor'; %>
             <main class="pure-u-1 pure-u-md-3-5">
                     <h2><%- review ? 'Review ' : '' %>Data: Survey <%= survey.id %></h2>
-                    <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observation/new">Add observation</a><br>
+                    <% if(isContrib) { %>
+                        <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observation/new">Add observation</a><br>
+                    <% } %>
                     <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/surveys">Return to surveys for <%= survey.Cycle.title  %></a>
             <form action="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review" method="POST"  class="pure-form pure-form-aligned">
             <% if(review) { %>
@@ -30,7 +40,7 @@
                 %>
                     <tr>
                         <td><%= key %></td>
-                        <td><%= (data[key] || '[no data]') %></td>
+                        <td><%- (toMd(data[key]) || '[no data]') %></td>
                         <% if (review) { %>
                             <td>
                                 <input type="checkbox" required>

@@ -28,11 +28,11 @@ const taxaList = locals.R.defaultTo([], JSON.parse(survey.Cycle.taxa));
         <% include ../../menu %>
             <div class="content-wrapper">
                 <div class="header">
-                    <% if (from) { %>
-                        <div id="previous-observation-id">#<%= from %> submitted</div>
+                    <% if (locals.from) { %>
+                        <div id="previous-observation-id">#<%= locals.from %> submitted</div>
                     <% } %>
-                    <% if (fromNewSurvey) { %>
-                        <div id="previous-survey-id">Survey #<%= fromNewSurvey %> started</div>
+                    <% if (locals.fromNewSurvey) { %>
+                        <div id="previous-survey-id">Survey #<%= locals.fromNewSurvey %> started</div>
                     <% } %>
                     <h2>Breeding Bird Survey Species Observation</h2>
                 </div>

@@ -19,7 +19,8 @@ const mailgun = mailgunMod({
     apiKey: process.env.MAILGUN_APIKEY || null
 });
 
-const host = process.env.HOST || 'http://ecolore-local.org:' + process.env.PORT + '/';
+const host =
+    process.env.HOST || 'http://ecolore-local.org:' + process.env.PORT + '/';
 
 const observationTemplate = project =>
     isViewFile(`forms/custom/${project.get('slug')}-observation.ejs`)
@@ -61,6 +62,7 @@ const parseProject = project => ({
     initialYear: project.get('initialYear'),
     status: project.get('status'),
     public: project.get('public'),
+    config: JSON.parse(project.get('config')),
     memberSince: R.pathOr(null, ['membership', 'since'], project),
     memberRole: R.pathOr('none', ['membership', 'role'], project),
     Cycles: project.get('Cycles')
@@ -77,6 +79,7 @@ const parseProjectAndMemberships = project => ({
     initialYear: project.get('initialYear'),
     status: project.get('status'),
     public: project.get('public'),
+    config: JSON.parse(project.get('config')),
     memberSince: R.propOr('none', 'since', parseMembership(project)),
     memberRole: R.propOr('none', 'role', parseMembership(project))
 });
@@ -217,6 +220,11 @@ const renderProjectPage = (res, name, values = {}) =>
 
 const isMemberOfProject = project =>
     R.path(['membership', 'role'], project) !== 'none';
+
+const isContributorOfProject = project =>
+    ['administrator', 'owner', 'contributor'].includes(
+        R.path(['membership', 'role'], project)
+    );
 
 const findMemberBySlug = ([slug, userEmail]) =>
     findProjectBySlug(slug).then(project =>
@@ -360,7 +368,22 @@ const findUserAsMemberOfProjectF = ([email, project, required = true]) =>
         include: [
             {
                 model: db.Membership,
-                where: { projectId: project.id },
+                where: { projectId: R.prop('id', project) },
+                required
+            }
+        ]
+    });
+
+const findUserAsContributorOfProjectF = ([email, project, required = true]) =>
+    findOneUser({
+        where: { email },
+        include: [
+            {
+                model: db.Membership,
+                where: {
+                    projectId: project.id,
+                    role: ['administrator', 'owner', 'contributor']
+                },
                 required
             }
         ]
@@ -371,6 +394,20 @@ const findProjectBySlugF = slug =>
         where: { slug },
         include: [{ model: db.Cycle, order: [['start', 'DESC']] }]
     });
+
+const findContributorBySlugF = ([slug, userEmail]) =>
+    findProjectBySlugF(slug)
+        .chain(project =>
+            Future.both(
+                Future.of(project),
+                findUserAsContributorOfProjectF([userEmail, project, false])
+            )
+        )
+        .map(([project, user]) =>
+            Object.assign(project, {
+                membership: parseMembership(user)
+            })
+        );
 
 const findMemberBySlugF = ([slug, userEmail]) =>
     findProjectBySlugF(slug)
@@ -398,7 +435,7 @@ const findMemberById = ([projectId, userEmail]) =>
 module.exports = function(router) {
     router.get(
         '/project/:slug/auth/google/drive',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) => {
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
                 .chain(project =>
@@ -417,44 +454,54 @@ module.exports = function(router) {
         }
     );
 
-    router.get('/project/:slug/edit', passwordless.restricted(), (req, res) =>
-        findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
-            .chain(
-                project =>
-                    project
-                        ? Future.of(project)
-                        : Future.reject(
-                              'You do not have access to edit this project'
-                          )
-            )
-            .fork(
-                _ => res.redirect(`/project/${req.params.slug}`),
-                project =>
-                    renderProjectPage(
-                        res,
-                        'project-registration',
-                        renderProjectTemplate(project)
-                    )
-            )
+    router.get(
+        '/project/:slug/edit',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
+                .chain(
+                    project =>
+                        project
+                            ? Future.of(project)
+                            : Future.reject(
+                                  'You do not have access to edit this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    project =>
+                        renderProjectPage(
+                            res,
+                            'project-registration',
+                            renderProjectTemplate(project)
+                        )
+                )
     );
 
-    router.get('/projects', passwordless.restricted(), (req, res) => {
-        findAllProject({ where: { public: 1 } }).fork(
-            _ => res.redirect(`/project/${req.params.slug}`),
-            projects => renderProjectPage(res, 'projects', { projects })
-        );
-    });
+    router.get(
+        '/projects',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) => {
+            findAllProject({ where: { public: 1 } }).fork(
+                _ => res.redirect(`/project/${req.params.slug}`),
+                projects => renderProjectPage(res, 'projects', { projects })
+            );
+        }
+    );
 
-    router.get('/my-projects', passwordless.restricted(), (req, res) =>
-        findProjectsByUserMember(res.locals.user).fork(
-            _ => res.redirect(`/project/${req.params.slug}`),
-            projects =>
-                renderProjectPage(
-                    res,
-                    'my-projects',
-                    renderProjectsTemplates(projects)
-                )
-        )
+    router.get(
+        '/my-projects',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findProjectsByUserMember(res.locals.user).fork(
+                _ => res.redirect(`/project/${req.params.slug}`),
+                projects =>
+                    renderProjectPage(
+                        res,
+                        'my-projects',
+                        renderProjectsTemplates(projects)
+                    )
+            )
     );
 
     router.post(
@@ -463,7 +510,7 @@ module.exports = function(router) {
             check('cycle').exists(),
             check('project_slug').exists(),
             check('submit').exists(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         (req, res) => {
             const data = matchedData(req);
@@ -491,25 +538,31 @@ module.exports = function(router) {
         }
     );
 
-    router.get('/project/create', passwordless.restricted(), (req, res) =>
-        renderProjectPage(res, 'project-registration', { project: {} })
+    router.get(
+        '/project/create',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            renderProjectPage(res, 'project-registration', { project: {} })
     );
 
-    router.get('/project/:slug', passwordless.restricted(), (req, res) =>
-        findMemberBySlugF([req.params.slug, req.user]).fork(
-            console.error,
-            project =>
-                renderProjectPage(
-                    res,
-                    'project',
-                    renderProjectTemplate(project)
-                )
-        )
+    router.get(
+        '/project/:slug',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findMemberBySlugF([req.params.slug, req.user]).fork(
+                console.error,
+                project =>
+                    renderProjectPage(
+                        res,
+                        'project',
+                        renderProjectTemplate(project)
+                    )
+            )
     );
 
     router.get(
         '/project/:slug/submit',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) => {
             findProjectBySlugF(req.params.slug).fork(console.error, project =>
                 res.redirect(
@@ -523,47 +576,56 @@ module.exports = function(router) {
         }
     );
 
-    router.get('/project/:slug/join', passwordless.restricted(), (req, res) =>
-        findProjectBySlugF(req.params.slug).fork(console.error, project =>
-            renderProjectPage(
-                res,
-                'project-join',
-                renderProjectTemplate(project)
-            )
-        )
-    );
-
-    router.get('/project/:slug/maps', passwordless.restricted(), (req, res) =>
-        findMemberBySlugF([req.params.slug, req.user])
-            .chain(project =>
-                Future.both(
-                    Future.of(project),
-                    findAllMaps({
-                        where: { projectId: project.id },
-                        order: [['name', 'ASC']]
-                    })
+    router.get(
+        '/project/:slug/join',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findProjectBySlugF(req.params.slug).fork(console.error, project =>
+                renderProjectPage(
+                    res,
+                    'project-join',
+                    renderProjectTemplate(project)
                 )
-            )
-            .chain(
-                ([project, maps]) =>
-                    isMemberOfProject(project)
-                        ? Future.of([project, maps])
-                        : Future.reject('Not a member')
-            )
-            .fork(
-                _ => res.redirect(`/project/${req.params.slug}/join`),
-                ([project, maps]) =>
-                    renderProjectPage(
-                        res,
-                        'project-maps',
-                        Object.assign({ maps }, renderProjectTemplate(project))
-                    )
             )
     );
 
     router.get(
+        '/project/:slug/maps',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findAllMaps({
+                            where: { projectId: project.id },
+                            order: [['name', 'ASC']]
+                        })
+                    )
+                )
+                .chain(
+                    ([project, maps]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, maps])
+                            : Future.reject('Not a member')
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}/join`),
+                    ([project, maps]) =>
+                        renderProjectPage(
+                            res,
+                            'project-maps',
+                            Object.assign(
+                                { maps },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
+    );
+
+    router.get(
         '/project/:slug/membership/:id',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
                 .chain(project =>
@@ -594,7 +656,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/members',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
                 .chain(project =>
@@ -643,16 +705,19 @@ module.exports = function(router) {
                 )
     );
 
-    router.get('/project/:slug/invite', passwordless.restricted(), (req, res) =>
-        findProjectBySlugAndOwnerF([req.params.slug, res.locals.user]).fork(
-            _ => res.redirect(`/project/${req.params.slug}`),
-            project =>
-                renderProjectPage(
-                    res,
-                    'project-invite',
-                    Object.assign({ project: parseProject(project) })
-                )
-        )
+    router.get(
+        '/project/:slug/invite',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findProjectBySlugAndOwnerF([req.params.slug, res.locals.user]).fork(
+                _ => res.redirect(`/project/${req.params.slug}`),
+                project =>
+                    renderProjectPage(
+                        res,
+                        'project-invite',
+                        Object.assign({ project: parseProject(project) })
+                    )
+            )
     );
     /*
     Invitation table:
@@ -662,75 +727,96 @@ module.exports = function(router) {
         - new user clicks link, is added to project and redirected to profile page?
     */
 
-    router.get('/project/:slug/cycles', passwordless.restricted(), (req, res) =>
-        findMemberBySlugF([req.params.slug, req.user])
-            .chain(
-                project =>
-                    project.get('id')
-                        ? Future.of(project)
-                        : Future.reject('You are not a member of this project')
-            )
-            .chain(project =>
-                Future.both(
-                    Future.of(project),
-                    findAllCycle({
-                        where: { projectId: project.id },
-                        order: [['start', 'DESC']]
-                    })
+    router.get(
+        '/project/:slug/cycles',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(
+                    project =>
+                        project.get('id')
+                            ? Future.of(project)
+                            : Future.reject(
+                                  'You are not a member of this project'
+                              )
                 )
-            )
-            .fork(
-                _ => res.redirect(`/project/${req.params.slug}`),
-                ([project, cycles]) =>
-                    renderProjectPage(
-                        res,
-                        'project-cycles',
-                        Object.assign(
-                            { cycles },
-                            renderProjectTemplate(project)
-                        )
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findAllCycle({
+                            where: { projectId: project.id },
+                            order: [['start', 'DESC']]
+                        })
                     )
-            )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, cycles]) =>
+                        renderProjectPage(
+                            res,
+                            'project-cycles',
+                            Object.assign(
+                                { cycles },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
     );
 
-    router.get('/project/:slug/zones', passwordless.restricted(), (req, res) =>
-        findMemberBySlugF([req.params.slug, req.user])
-            .chain(project =>
-                Future.both(
-                    Future.of(project),
-                    findAllZone({
-                        where: { projectId: project.id },
-                        order: [['code', 'ASC']]
-                    })
-                )
-            )
-            .chain(
-                ([project, zones]) =>
-                    isMemberOfProject(project)
-                        ? Future.of([project, zones])
-                        : Future.reject('You are not a member of this project')
-            )
-            .fork(
-                _ => res.redirect(`/project/${req.params.slug}`),
-                ([project, zones]) =>
-                    renderProjectPage(
-                        res,
-                        'zones',
-                        Object.assign({ zones }, renderProjectTemplate(project))
+    router.get(
+        '/project/:slug/zones',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.both(
+                        Future.of(project),
+                        findAllZone({
+                            where: { projectId: project.id },
+                            order: [['code', 'ASC']]
+                        })
                     )
-            )
+                )
+                .chain(
+                    ([project, zones]) =>
+                        isMemberOfProject(project)
+                            ? Future.of([project, zones])
+                            : Future.reject(
+                                  'You are not a member of this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([project, zones]) =>
+                        renderProjectPage(
+                            res,
+                            'zones',
+                            Object.assign(
+                                { zones },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
     );
 
     router.get(
         '/project/:slug/zone/new',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
-                .chain(project =>
-                    Future.both(
-                        Future.of(project),
-                        findUserAsMemberOfProjectF([req.user, project])
-                    )
+                .chain(
+                    project =>
+                        project
+                            ? Future.both(
+                                  Future.of(project),
+                                  findUserAsMemberOfProjectF([
+                                      req.user,
+                                      project
+                                  ])
+                              )
+                            : Future.reject(
+                                  'Invalid project or not member of project'
+                              )
                 )
                 .map(([project, user]) =>
                     Object.assign(project, {
@@ -761,7 +847,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/zone/:zoneId',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -788,7 +874,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/zone/:zoneId/edit',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -823,7 +909,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/surveys',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugF(req.params.slug)
                 .chain(project =>
@@ -860,7 +946,7 @@ module.exports = function(router) {
                                 {
                                     projectSlug: req.params.slug
                                 },
-                                renderProjectTemplate(cycle.Project),
+                                renderProjectTemplate(project),
                                 { cycle: cycle },
                                 { surveys }
                             )
@@ -870,7 +956,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observations',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -907,9 +993,9 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observation/new',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
-            findMemberBySlugF([req.params.slug, req.user])
+            findContributorBySlugF([req.params.slug, req.user])
                 .chain(project =>
                     Future.both(
                         Future.of(project),
@@ -937,7 +1023,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observation/:observationId/resubmit',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -970,7 +1056,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -1009,7 +1095,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/files',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -1053,7 +1139,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/upload',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -1094,7 +1180,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/review',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -1135,15 +1221,15 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/new',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(
                     project =>
-                        isMemberOfProject(project)
+                        isContributorOfProject(project)
                             ? Future.of(project)
                             : Future.reject(
-                                  'You are not a member of this project'
+                                  'You are either not a member of this project or not a contributor'
                               )
                 )
                 .chain(project =>
@@ -1172,7 +1258,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/resubmit',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(
@@ -1224,7 +1310,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findSurveyByCycleAndId([req.params.id, req.params.surveyId])
                 .chain(survey =>
@@ -1264,7 +1350,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/review',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findSurveyByCycleAndId([req.params.id, req.params.surveyId])
                 .chain(survey =>
@@ -1304,7 +1390,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/create',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user]).fork(
                 _ => res.redirect(`/project/${req.params.slug}`),
@@ -1314,7 +1400,8 @@ module.exports = function(router) {
                             Project: {
                                 id: project.get('id'),
                                 title: project.get('title'),
-                                slug: project.get('slug')
+                                slug: project.get('slug'),
+                                config: JSON.parse(project.get('config'))
                             }
                         }
                     })
@@ -1323,7 +1410,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/map/add',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user]).fork(
                 _ => res.redirect(`/project/${req.params.slug}`),
@@ -1349,7 +1436,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/map/:id/edit',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
                 .chain(
@@ -1372,7 +1459,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/map/:id',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) => {
             findMemberBySlugF([req.params.slug, req.user])
                 .chain(project =>
@@ -1394,7 +1481,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findCycleByIdF(req.params.id).fork(
                 _ => res.redirect(`/project/${req.params.slug}`),
@@ -1404,7 +1491,7 @@ module.exports = function(router) {
 
     router.get(
         '/project/:slug/cycle/:id/edit',
-        passwordless.restricted(),
+        passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
                 .chain(
@@ -1435,7 +1522,7 @@ module.exports = function(router) {
             check('description').exists(),
             check('public').exists(),
             check('status').exists(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1470,7 +1557,7 @@ module.exports = function(router) {
             check('description').exists(),
             check('public').exists(),
             check('status').exists(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1513,7 +1600,7 @@ module.exports = function(router) {
             check('end').exists(),
             check('description').exists(),
             check('project').exists(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1556,7 +1643,7 @@ module.exports = function(router) {
             check('description').exists(),
             check('project').exists(),
             check('taxa').optional(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         (req, res, next) => {
             const errors = validationResult(req);
@@ -1601,7 +1688,7 @@ module.exports = function(router) {
             check('invitees').exists(),
             check('role').exists(),
             check('invitation').optional(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1616,14 +1703,19 @@ module.exports = function(router) {
                 const invitation = inviteData.invitation;
 
                 const sendEmail = ([[project, email], _]) => {
-
                     const message = {
                         from: 'Do Not Reply <donotreply@ecolore.org>',
                         to: email,
                         subject: `You've been invited to participate`,
-                        text: `${req.user.firstName} ${req.user.lastName} would like to invite you to join the project
-                            "${project.get('title')}" on EcoLore.org!\n\n` + invitation +
-                            `\n\nClick on the link below to get started: \n\n ${host}project/${req.params.slug}`
+                        text:
+                            `${req.user.firstName} ${
+                                req.user.lastName
+                            } has invited you to join the project
+                            "${project.get('title')}" on EcoLore.org!\n\n` +
+                            invitation +
+                            `\n\nClick on the link below to get started: \n\n ${host}project/${
+                                req.params.slug
+                            }`
                     };
 
                     mailgun.messages().send(message, (error, body) => {
@@ -1691,7 +1783,7 @@ module.exports = function(router) {
             check('name').optional(),
             check('project').exists(),
             check('description').optional(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1732,7 +1824,7 @@ module.exports = function(router) {
             check('description').optional(),
             check('project').exists(),
             check('archived').optional(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1776,7 +1868,7 @@ module.exports = function(router) {
             check('name').exists(),
             check('url').exists(),
             check('project').exists(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1828,7 +1920,7 @@ module.exports = function(router) {
             check('url').exists(),
             check('project').exists(),
             check('archived').exists(),
-            passwordless.restricted()
+            passwordless.restricted({ failureRedirect: '/login' })
         ],
         function(req, res, next) {
             const errors = validationResult(req);
@@ -1873,38 +1965,41 @@ module.exports = function(router) {
         }
     );
 
-    router.post('/project/:slug/add', [passwordless.restricted()], function(
-        req,
-        res,
-        next
-    ) {
-        const errors = validationResult(req);
-        console.log('errors', errors.mapped());
-        // @todo: handle errors better
-        if (!errors.isEmpty()) {
-            renderProjectPage(res, 'project-join');
-        } else {
-            const addMembership = {
-                userId: null,
-                projectId: null,
-                role: 'pending'
-            };
+    router.post(
+        '/project/:slug/add',
+        [passwordless.restricted({ failureRedirect: '/login' })],
+        function(req, res, next) {
+            const errors = validationResult(req);
+            console.log('errors', errors.mapped());
+            // @todo: handle errors better
+            if (!errors.isEmpty()) {
+                renderProjectPage(res, 'project-join');
+            } else {
+                const addMembership = {
+                    userId: null,
+                    projectId: null,
+                    role: 'pending'
+                };
 
-            addMembership.userId = res.locals.user.id;
+                addMembership.userId = res.locals.user.id;
 
-            findProjectBySlug(req.params.slug)
-                .then(project => {
-                    addMembership.projectId = project.id;
-                })
-                .then(() => db.Membership.create(addMembership))
-                .then(() => res.redirect('/project/' + req.params.slug))
-                .catch(err => console.error(err));
+                findProjectBySlug(req.params.slug)
+                    .then(project => {
+                        addMembership.projectId = project.id;
+                    })
+                    .then(() => db.Membership.create(addMembership))
+                    .then(() => res.redirect('/project/' + req.params.slug))
+                    .catch(err => console.error(err));
+            }
         }
-    });
+    );
 
     router.post(
         '/project/:slug/membership/:id',
-        [passwordless.restricted(), check('role').exists()],
+        [
+            passwordless.restricted({ failureRedirect: '/login' }),
+            check('role').exists()
+        ],
         function(req, res, next) {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -1971,7 +2066,10 @@ module.exports = function(router) {
 
     router.post(
         '/project/:slug/observation',
-        [passwordless.restricted(), validateObservationData],
+        [
+            passwordless.restricted({ failureRedirect: '/login' }),
+            validateObservationData
+        ],
         (req, res, next) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -2079,7 +2177,10 @@ module.exports = function(router) {
 
     router.post(
         '/project/:slug/survey',
-        [passwordless.restricted(), validateSurveyData],
+        [
+            passwordless.restricted({ failureRedirect: '/login' }),
+            validateSurveyData
+        ],
         (req, res, next) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -2162,7 +2263,10 @@ module.exports = function(router) {
 
     router.post(
         '/project/:slug/cycle/:id/survey/:surveyId/review',
-        [passwordless.restricted(), check('invalidate').optional()],
+        [
+            passwordless.restricted({ failureRedirect: '/login' }),
+            check('invalidate').optional()
+        ],
         (req, res) => {
             const invalidateSurvey = surveyId =>
                 db.Survey.findOne({
@@ -2230,7 +2334,7 @@ module.exports = function(router) {
     router.post(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/review',
         [
-            passwordless.restricted(),
+            passwordless.restricted({ failureRedirect: '/login' }),
             check('invalidate').optional(),
             check('comments').optional()
         ],

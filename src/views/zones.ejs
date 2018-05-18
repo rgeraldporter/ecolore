@@ -11,16 +11,24 @@
         <div class="content pure-g">
 
         <% include project-menu %>
+        <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
+        <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
+        || project.memberRole === 'contributor'; %>
 
         <main class="pure-u-1 pure-u-md-4-5">
             <h2>Zones</h2>
+
+            <% if(isAdmin) { %>
             <aside>
                 <a href='/project/<%= project.slug %>/zone/new'>Add a new Zone</a><br>
             </aside>
+            <% } %>
 
             <table class="pure-table pure-table-horizontal">
                 <thead>
-                    <tr><th>Zone Code</th><th>Zone Name</th><th>Status</th><th></th></tr>
+                    <tr><th>Zone Code</th><th>Zone Name</th><th>Status</th>
+                        <% if(isAdmin) { %><th></th><% } %>
+                    </tr>
                 </thead>
                 <tbody>
                 <% if (!zones.length) { %>
@@ -33,7 +41,9 @@
                         <td><%= zone.code %></td>
                         <td><%= zone.name %></td>
                         <td><%= zone.archived ? 'Archived' : 'Active' %></td>
-                        <td><a href="/project/<%= project.slug %>/zone/<%= zone.id %>/edit">Edit zone</a></td>
+                        <% if(isAdmin) { %>
+                            <td><a href="/project/<%= project.slug %>/zone/<%= zone.id %>/edit">Edit zone</a></td>
+                        <% } %>
                     </tr>
                 <% }); %>
                 </tbody>
