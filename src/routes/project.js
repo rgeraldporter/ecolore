@@ -1704,12 +1704,12 @@ module.exports = function(router) {
 
                 const sendEmail = ([[project, email], _]) => {
                     const message = {
-                        from: 'Do Not Reply <donotreply@ecolore.org>',
+                        from: 'EcoLore.org <donotreply@ecolore.org>',
                         to: email,
-                        subject: `You've been invited to participate`,
+                        subject: `You've been invited to participate on EcoLore.org`,
                         text:
-                            `${req.user.firstName} ${
-                                req.user.lastName
+                            `${res.locals.user.firstName} ${
+                                res.locals.user.lastName
                             } has invited you to join the project
                             "${project.get('title')}" on EcoLore.org!\n\n` +
                             invitation +

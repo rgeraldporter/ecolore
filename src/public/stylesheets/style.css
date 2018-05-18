@@ -254,6 +254,11 @@ main {
     padding-left: 2em;
 }
 
+footer {
+    font-style: italic;
+    font-size: 0.775em;
+}
+
 /*
  * -- TABLET (AND UP) MEDIA QUERIES --
  * On tablets and other medium-sized devices, we want to customize some

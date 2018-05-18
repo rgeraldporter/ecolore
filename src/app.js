@@ -26,6 +26,7 @@ const md = require('markdown-it')({
 app.locals.moment = moment; // share with EJS
 app.locals.md = md;
 app.locals.R = R;
+app.locals.$$ecoLoreVersion = require('../package.json').version;
 
 app.locals.text = (key, project) => R.pathOr(key, ['config', 'language', key], project);
 app.locals.t = app.locals.text;

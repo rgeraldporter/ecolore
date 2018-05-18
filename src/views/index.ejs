@@ -15,23 +15,11 @@
                   <a href="https://groups.google.com/forum/#!forum/ecolore"  class="pure-button pure-button-primary button-secondary" target="_blank">Sign up for updates</a>
                   <a href="/about" class="pure-button pure-button-primary button-success">Learn more</a>
               </p>
+              <div style="color:white; font-style:italic;font-size:0.775em">
+                    EcoLore v<%= $$ecoLoreVersion %>, authored by <a target="_blank" href="http://robporter.ca/">Rob Porter</a> is an
+                    <a target="_blank" href="https://github.com/rgeraldporter/ecolore">open source</a> project.
+            </div>
           </div>
-      </div>
-
-
-      <div class="content-wrapper">
-        <div class="header">
-            <h2>Welcome</h2>
-        </div>
-        <div class="content">
-        <aside>
-            <% if(user) { %>
-              Hi, <%= user.firstName %> (<a href='/logout'>logout</a>)
-            <% } %>
-        </aside>
-        <main>
-          <p>Coming soon.</p>
-        </main>
       </div>
     </div>
   </body>
