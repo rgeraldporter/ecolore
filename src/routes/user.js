@@ -13,9 +13,8 @@ const renderUserPage = (res, name, values = {}) =>
         Object.assign(values, { section: 'profile', user: res.locals.user })
     );
 
-const GOOGLE_CLIENT_ID =
-    '520162226317-ucncmantmp8npp1tjqu4fvmj3aoeldr2.apps.googleusercontent.com';
-const GOOGLE_CLIENT_SECRET = '2tNjkzcXeEUZJoQ0DDkXjoWu';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
 const findProjectByIdAndOwner = ([id, user]) =>
     db.Project.findOne({
