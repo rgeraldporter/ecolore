@@ -293,7 +293,7 @@ const findObservationBySurveyAndIdWithFiles = ([surveyId, id]) =>
         attributes: {
             include: [
                 [
-                    db.Sequelize.fn('COUNT', db.Sequelize.col('files.id')),
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('Files.id')),
                     'fileCount'
                 ]
             ]
@@ -318,7 +318,7 @@ const findObservationsBySurveyCycle = ([surveyId, cycleId]) =>
         attributes: {
             include: [
                 [
-                    db.Sequelize.fn('COUNT', db.Sequelize.col('files.id')),
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('Files.id')),
                     'fileCount'
                 ]
             ]
@@ -341,7 +341,7 @@ const findSurveysByCycle = cycle =>
                 [
                     db.Sequelize.fn(
                         'COUNT',
-                        db.Sequelize.col('observations.id')
+                        db.Sequelize.col('Observations.id')
                     ),
                     'observationCount'
                 ]
@@ -1292,7 +1292,7 @@ module.exports = function(router) {
                     [
                         db.Sequelize.fn(
                             'COUNT',
-                            db.Sequelize.col('observations.id')
+                            db.Sequelize.col('Observations.id')
                         ),
                         'observationCount'
                     ]
