@@ -18,8 +18,8 @@ const client = () =>
     new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        (process.env.HOST || 'http://ecolore-local.org:3001/') +
-            'user/auth/google/drive/callback'
+        (process.env.HOST || 'http://ecolore-local.org:3001') +
+            '/user/auth/google/drive/callback'
     );
 
 const projectFolderQuery = projectName =>
