@@ -985,7 +985,7 @@ module.exports = function(router) {
                                 { cycle },
                                 { observations },
                                 { surveyId: req.params.surveyId },
-                                renderProjectTemplate(cycle.Project)
+                                renderProjectTemplate(project)
                             )
                         )
                 )

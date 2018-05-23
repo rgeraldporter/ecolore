@@ -15,7 +15,7 @@
             || project.memberRole === 'contributor'; %>
 
             <main class="pure-u-1 pure-u-md-3-5">
-                    <h2>Data: Observations for Survey Record <%= surveyId %></h2>
+                    <h2>Data: <%= locals.t('Observations', project) %> for Survey Record <%= surveyId %></h2>
                     <% if(isContrib) { %>
                         <a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= surveyId %>/observation/new">Add observation</a><br>
                     <% } %>

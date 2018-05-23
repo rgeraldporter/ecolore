@@ -22,7 +22,7 @@
             <main class="pure-u-1 pure-u-md-3-5">
                     <h2><%- review ? 'Review ' : '' %>Data: Survey <%= survey.id %></h2>
                     <% if(isContrib) { %>
-                        <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observation/new">Add observation</a><br>
+                        <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observation/new">Add <%= locals.t('observation', project) %></a><br>
                     <% } %>
                     <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/surveys">Return to surveys for <%= survey.Cycle.title  %></a>
             <form action="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review" method="POST"  class="pure-form pure-form-aligned">
@@ -49,8 +49,8 @@
                     </tr>
                 <% }); %>
                     <tr>
-                        <td>observations</td>
-                        <td><a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observations">Show all <%= survey.get('observationCount') %> observations</a></td>
+                        <td><%= locals.t('observations', project) %></td>
+                        <td><a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observations">Show all <%= survey.get('observationCount') %> <%= locals.t('observations', project) %></a></td>
                     </tr>
                 <%
                     //

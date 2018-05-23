@@ -26,11 +26,11 @@
                         </aside>
                         <table class="pure-table pure-table-horizontal">
                             <thead>
-                                <tr><th>Start</th><th>End</th><th></th>
+                                <tr><th>#</th><th>Start</th><th>End</th><th></th>
                                 <% if(isAdmin) { %>
                                     <th></th>
                                 <% } %>
-                                <th>Observations</th>
+                                <th><%= locals.t('Observations', project) %></th>
                                 <th>Submitted by</th><th>Submission date</th></tr>
                             </thead>
                             <tbody>
@@ -38,13 +38,14 @@
                                 surveys.forEach(survey => {
                             %>
                                 <tr>
+                                    <td><%= survey.id %></td>
                                     <td><%= moment(survey.start).format('MMM Do YYYY, h:mm a') %></td>
                                     <td><%= moment(survey.end).format('MMM Do YYYY, h:mm a') %></td>
                                     <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>">View data</a></td>
                                     <% if(isAdmin) { %>
                                         <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/review">Review data</a></td>
                                     <% } %>
-                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observations"><%= survey.get('observationCount') %> records</a></td>
+                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observations"><%= survey.get('observationCount') %> <%= locals.t('records', project) %></a></td>
                                     <td><%= survey.author.firstName %> <%= survey.author.lastName %></td>
                                     <td><%= moment(survey.createdAt).format('MMM Do YYYY, h:mm a') %></td>
                                 </tr>
