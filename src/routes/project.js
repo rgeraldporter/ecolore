@@ -1274,7 +1274,7 @@ module.exports = function(router) {
                     project =>
                         renderProjectPage(
                             res,
-                            surveyTemplate(project),
+                            surveyTemplate([project, req.query]),
                             Object.assign(renderProjectTemplate(project), {
                                 cycle: { id: req.params.id },
                                 resubmit: {
@@ -2098,7 +2098,7 @@ module.exports = function(router) {
                         '/observation/new?from=' +
                         observationData.id
                 );
-            const redirectToObservations = slug => survey =>
+            const redirectToObservations = () =>
                 res.redirect(
                     '/project/' +
                         req.params.slug +
