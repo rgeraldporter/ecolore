@@ -1713,7 +1713,7 @@ module.exports = function(router) {
                             } has invited you to join the project
                             "${project.get('title')}" on EcoLore.org!\n\n` +
                             invitation +
-                            `\n\nClick on the link below to get started: \n\n ${host}project/${
+                            `\n\nClick on the link below to get started: \n\n ${host}/project/${
                                 req.params.slug
                             }`
                     };
