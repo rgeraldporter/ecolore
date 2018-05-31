@@ -40,7 +40,9 @@
                     <tr>
                         <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>">View data</a></td>
                         <% if(isAdmin) { %>
-                            <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>/review">Review data</a></td>
+                            <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>/review">
+                                <%= observation.get('reviewCount') ? 'Passed Reviews: ' + observation.get('reviewCount') : 'Review data' %>
+                            </a></td>
                         <% } %>
                         <td><%= data.incident_line %></td>
                         <td><%= data.name_of_species %></td>

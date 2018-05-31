@@ -50,7 +50,12 @@
                 <% }); %>
                     <tr>
                         <td><%= locals.t('observations', project) %></td>
-                        <td><a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observations">Show all <%= survey.get('observationCount') %> <%= locals.t('observations', project) %></a></td>
+                        <td><a <%= review ? 'target="_blank" ' : '' %> href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observations">Show all <%= survey.get('observationCount') %> <%= locals.t('observations', project) %> <%= review ? '(opens new window)' : '' %></a></td>
+                        <% if (review) { %>
+                            <td>
+                                <input type="checkbox" required>
+                            </td>
+                        <% } %>
                     </tr>
                 <%
                     //

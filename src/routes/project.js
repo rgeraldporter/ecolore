@@ -295,6 +295,10 @@ const findObservationBySurveyAndIdWithFiles = ([surveyId, id]) =>
                 [
                     db.Sequelize.fn('COUNT', db.Sequelize.col('Files.id')),
                     'fileCount'
+                ],
+                [
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
+                    'reviewCount'
                 ]
             ]
         },
@@ -308,7 +312,8 @@ const findObservationBySurveyAndIdWithFiles = ([surveyId, id]) =>
                     }
                 ]
             },
-            db.File
+            db.File,
+            db.Review
         ]
     });
 
@@ -320,6 +325,10 @@ const findObservationsBySurveyCycle = ([surveyId, cycleId]) =>
                 [
                     db.Sequelize.fn('COUNT', db.Sequelize.col('Files.id')),
                     'fileCount'
+                ],
+                [
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
+                    'reviewCount'
                 ]
             ]
         },
@@ -329,7 +338,8 @@ const findObservationsBySurveyCycle = ([surveyId, cycleId]) =>
                 where: { cycleId },
                 required: true
             },
-            db.File
+            db.File,
+            db.Review
         ],
         group: ['Observation.id']
     });
@@ -344,11 +354,19 @@ const findSurveysByCycle = cycle =>
                         db.Sequelize.col('Observations.id')
                     ),
                     'observationCount'
+                ],
+                [
+                    db.Sequelize.fn(
+                        'COUNT',
+                        db.Sequelize.col('Reviews.id')
+                    ),
+                    'reviewCount'
                 ]
             ]
         },
         include: [
             db.Observation,
+            db.Review,
             {
                 model: db.User,
                 as: 'author'
@@ -1295,6 +1313,13 @@ module.exports = function(router) {
                             db.Sequelize.col('Observations.id')
                         ),
                         'observationCount'
+                    ],
+                    [
+                        db.Sequelize.fn(
+                            'COUNT',
+                            db.Sequelize.col('Reviews.id')
+                        ),
+                        'reviewCount'
                     ]
                 ]
             },
@@ -1304,7 +1329,8 @@ module.exports = function(router) {
                     model: db.Cycle,
                     include: [db.Project]
                 },
-                db.Observation
+                db.Observation,
+                db.Review
             ]
         });
 
@@ -2314,6 +2340,20 @@ module.exports = function(router) {
                         )
                     );
 
+            const addReview = data =>
+                db.Review.create({
+                    comments: data.comments,
+                    reviewerId: res.locals.user.id,
+                    surveyId: req.params.surveyId,
+                    pass: true
+                }).then(() =>
+                    res.redirect(
+                        `/project/${req.params.slug}/cycle/${
+                            req.params.id
+                        }/surveys/`
+                    )
+                );
+
             const processReview = data =>
                 data.invalidate
                     ? invalidateSurvey(req.params.surveyId)
@@ -2384,7 +2424,13 @@ module.exports = function(router) {
                     reviewerId: res.locals.user.id,
                     observationId: req.params.observationId,
                     pass: true
-                });
+                }).then(() =>
+                    res.redirect(
+                        `/project/${req.params.slug}/cycle/${
+                            req.params.id
+                        }/survey/${req.params.surveyId}/observations`
+                    )
+                );
 
             const processReview = data =>
                 data.invalidate
