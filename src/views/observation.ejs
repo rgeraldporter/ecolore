@@ -64,13 +64,32 @@ const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
                 %>
               </tbody>
             </table>
-            <%- review ? '<button type="submit">Pass review</button>' : '' %>
+            <% if (review) { %>
+                <p>Your name and time of review will be recorded when you complete your review.</p>
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="form-invitees">Review Notes</label>
+                        <textarea rows="6" cols="35" name="comments" placeholder="Enter comments here (optional)"></textarea>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="pass-submit"></label>
+                        <button type="submit" class="pure-button pure-button-primary button-success" id="pass-submit">Pass review</button>
+                    </div>
+                </fieldset>
+            <% } %>
             </form>
             <% if (review) { %>
-            <form action="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review" method="POST" class="pure-form pure-form-aligned">
-                <input type="hidden" value="1" name="invalidate">
-                <button type="submit">Invalidate and resubmit data</button>
-            </form>
+                <form action="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review" method="POST" class="pure-form pure-form-aligned">
+                    <fieldset>
+                        <input type="hidden" value="1" name="invalidate">
+                        <div class="pure-control-group">
+                            <label for="invalidate-submit"></label>
+                            <button type="submit" class="pure-button button-error" id="invalidate-submit">Invalidate and resubmit data</button>
+                        </div>
+                    </fieldset>
+                </form>
             <% } %>
             </main>
         </div>

@@ -966,7 +966,10 @@ module.exports = function(router) {
                                 },
                                 renderProjectTemplate(project),
                                 { cycle: cycle },
-                                { surveys }
+                                { surveys },
+                                {
+                                    filter: req.query.filter || false
+                                }
                             )
                         )
                 )
@@ -2291,7 +2294,8 @@ module.exports = function(router) {
         '/project/:slug/cycle/:id/survey/:surveyId/review',
         [
             passwordless.restricted({ failureRedirect: '/login' }),
-            check('invalidate').optional()
+            check('invalidate').optional(),
+            check('comments').optional()
         ],
         (req, res) => {
             const invalidateSurvey = surveyId =>
@@ -2357,7 +2361,7 @@ module.exports = function(router) {
             const processReview = data =>
                 data.invalidate
                     ? invalidateSurvey(req.params.surveyId)
-                    : addReview(req.params.surveyId);
+                    : addReview(data);
 
             const data = matchedData(req);
             return findMemberBySlug([req.params.slug, req.user])
@@ -2435,7 +2439,7 @@ module.exports = function(router) {
             const processReview = data =>
                 data.invalidate
                     ? invalidateObservation(req.params.observationId)
-                    : addReview(req.params.observationId);
+                    : addReview(data);
 
             const data = matchedData(req);
             return findMemberBySlug([req.params.slug, req.user])

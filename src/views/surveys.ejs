@@ -24,6 +24,14 @@
                             <% } %>
                             <a href='/project/<%= projectSlug %>/cycles'>Return to list of <%= locals.t('cycles', project) %></a>
                         </aside>
+                        <% if(isContrib) { %>
+                            <% if ( !filter ) { %>
+                                All surveys for <%= cycle.title %> are shown below. <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys?filter=needs_review'>Show only unreviewed surveys</a><br>
+                            <% } %>
+                            <% if ( filter ) { %>
+                                Only unreviewed surveys for <%= cycle.title %> are being shown below. <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys'>Show all surveys</a><br>
+                            <% } %>
+                        <% } %>
                         <table class="pure-table pure-table-horizontal">
                             <thead>
                                 <tr><th>#</th><th>Start</th><th>End</th><th></th>
@@ -36,6 +44,13 @@
                             <tbody>
                             <%
                                 surveys.forEach(survey => {
+                                    if ( filter ) {
+                                        if ( filter === 'needs_review' ) {
+                                            if ( survey.get('reviewCount') ) {
+                                                return;
+                                            }
+                                        }
+                                    }
                             %>
                                 <tr>
                                     <td><%= survey.id %></td>
