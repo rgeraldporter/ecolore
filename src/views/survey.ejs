@@ -29,6 +29,11 @@
             <% if(review) { %>
                 <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
             <% } %>
+            <% if (survey.get('reviewCount')) { %>
+            <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/reviews">Show all <%= survey.get('reviewCount') %> reviews</a>
+            <% } else { %>
+            No reviews yet.
+            <% } %>
             <table class="pure-table pure-table-horizontal">
                 <thead>
                     <tr><th>Row</th><th>Value</th><%- review ? '<th>Correct?</th>' : '' %></tr>
@@ -57,13 +62,10 @@
                             </td>
                         <% } %>
                     </tr>
-                <%
-                    //
-                %>
               </tbody>
             </table>
             <% if (review) { %>
-                <p>Your name and time of review will be recorded when you complete your review.</p>
+                <p>Review notes are only recorded if review is passed. For failed reviews, leave any review notes when re-entering under the notes section.</p>
                 <fieldset>
                     <div class="pure-control-group">
                         <label for="form-invitees">Review Notes</label>

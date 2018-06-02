@@ -57,9 +57,13 @@
                                     <td><%= moment(survey.start).format('MMM Do YYYY, h:mm a') %></td>
                                     <td><%= moment(survey.end).format('MMM Do YYYY, h:mm a') %></td>
                                     <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>">View data</a></td>
-                                    <% if(isAdmin) { %>
+                                    <% if(isAdmin && !survey.get('reviewCount')) { %>
                                         <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/review">
-                                            <%= survey.get('reviewCount') ? 'Passed Reviews: ' + survey.get('reviewCount') : 'Review data' %>
+                                            Review data
+                                        </a></td>
+                                    <% } else if (isAdmin) { %>
+                                        <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/reviews">
+                                            Reviews: <%= survey.get('reviewCount') %>
                                         </a></td>
                                     <% } %>
                                     <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observations"><%= survey.get('observationCount') %> <%= locals.t('records', project) %></a></td>

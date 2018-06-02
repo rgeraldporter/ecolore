@@ -248,6 +248,7 @@ const findAllObservation = Future.encaseP(a => db.Observation.findAll(a));
 const findOneObservation = Future.encaseP(a => db.Observation.findOne(a));
 const findAllFile = Future.encaseP(a => db.File.findAll(a));
 const findAllProject = Future.encaseP(a => db.Project.findAll(a));
+const findAllReview = Future.encaseP(a => db.Review.findAll(a));
 const createMembership = Future.encaseP(a => db.Membership.create(a));
 const createInvite = Future.encaseP(a => db.Invite.create(a));
 const createDriveState = Future.encaseP(a =>
@@ -271,6 +272,14 @@ const findObservationBySurveyAndId = ([surveyId, id]) =>
             surveyId,
             id
         },
+        attributes: {
+            include: [
+                [
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
+                    'reviewCount'
+                ]
+            ]
+        },
         include: [
             {
                 model: db.Survey,
@@ -280,7 +289,8 @@ const findObservationBySurveyAndId = ([surveyId, id]) =>
                         include: [db.Project]
                     }
                 ]
-            }
+            },
+            db.Review
         ]
     });
 
@@ -356,10 +366,7 @@ const findSurveysByCycle = cycle =>
                     'observationCount'
                 ],
                 [
-                    db.Sequelize.fn(
-                        'COUNT',
-                        db.Sequelize.col('Reviews.id')
-                    ),
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
                     'reviewCount'
                 ]
             ]
@@ -426,6 +433,32 @@ const findContributorBySlugF = ([slug, userEmail]) =>
                 membership: parseMembership(user)
             })
         );
+
+const findReviewsByObservationId = ([observationId]) =>
+    findAllReview({
+        where: {
+            observationId
+        },
+        include: [
+            {
+                model: db.User,
+                as: 'reviewer'
+            }
+        ]
+    });
+
+const findReviewsBySurveyId = ([surveyId]) =>
+    findAllReview({
+        where: {
+            surveyId
+        },
+        include: [
+            {
+                model: db.User,
+                as: 'reviewer'
+            }
+        ]
+    });
 
 const findMemberBySlugF = ([slug, userEmail]) =>
     findProjectBySlugF(slug)
@@ -1241,6 +1274,44 @@ module.exports = function(router) {
     );
 
     router.get(
+        '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/reviews',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findReviewsByObservationId([req.params.observationId])
+                .chain(reviews =>
+                    Future.both(
+                        Future.of(reviews),
+                        findMemberBySlugF([req.params.slug, req.user])
+                    )
+                )
+                .chain(
+                    ([reviews, membership]) =>
+                        membership
+                            ? Future.of([reviews, membership])
+                            : Future.reject(
+                                  'You are not a member of this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([reviews, project]) =>
+                        renderProjectPage(
+                            res,
+                            'observation-reviews',
+                            Object.assign(
+                                {
+                                    reviews,
+                                    cycleId: req.params.id,
+                                    surveyId: req.params.surveyId,
+                                    observationId: req.params.observationId
+                                },
+                                renderProjectTemplate(project)
+                            )
+                        )
+                )
+    );
+
+    router.get(
         '/project/:slug/cycle/:id/survey/new',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
@@ -1372,6 +1443,43 @@ module.exports = function(router) {
                                     review: false
                                 },
                                 renderProjectTemplate(survey.Cycle.Project)
+                            )
+                        )
+                )
+    );
+
+    router.get(
+        '/project/:slug/cycle/:id/survey/:surveyId/reviews',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findReviewsBySurveyId([req.params.surveyId])
+                .chain(reviews =>
+                    Future.both(
+                        Future.of(reviews),
+                        findMemberBySlugF([req.params.slug, req.user])
+                    )
+                )
+                .chain(
+                    ([reviews, membership]) =>
+                        membership
+                            ? Future.of([reviews, membership])
+                            : Future.reject(
+                                  'You are not a member of this project'
+                              )
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([reviews, project]) =>
+                        renderProjectPage(
+                            res,
+                            'survey-reviews',
+                            Object.assign(
+                                {
+                                    reviews,
+                                    cycleId: req.params.id,
+                                    surveyId: req.params.surveyId
+                                },
+                                renderProjectTemplate(project)
                             )
                         )
                 )
@@ -2298,7 +2406,7 @@ module.exports = function(router) {
             check('comments').optional()
         ],
         (req, res) => {
-            const invalidateSurvey = surveyId =>
+            const invalidateSurvey = (surveyId, data) =>
                 db.Survey.findOne({
                     where: {
                         id: surveyId
@@ -2337,6 +2445,13 @@ module.exports = function(router) {
                         )
                     )
                     .then(invalidSurvey =>
+                        db.Review.create({
+                            reviewerId: res.locals.user.id,
+                            surveyId: surveyId,
+                            pass: false
+                        })
+                    )
+                    .then(_ =>
                         res.redirect(
                             `/project/${req.params.slug}/cycle/${
                                 req.params.id
@@ -2360,7 +2475,7 @@ module.exports = function(router) {
 
             const processReview = data =>
                 data.invalidate
-                    ? invalidateSurvey(req.params.surveyId)
+                    ? invalidateSurvey(req.params.surveyId, data)
                     : addReview(data);
 
             const data = matchedData(req);
@@ -2383,7 +2498,7 @@ module.exports = function(router) {
             check('comments').optional()
         ],
         (req, res) => {
-            const invalidateObservation = observationId =>
+            const invalidateObservation = (observationId, data) =>
                 db.Observation.findOne({
                     where: {
                         id: observationId
@@ -2413,6 +2528,13 @@ module.exports = function(router) {
                         )
                     )
                     .then(invalidObservation =>
+                        db.Review.create({
+                            reviewerId: res.locals.user.id,
+                            observationId: observationId,
+                            pass: false
+                        })
+                    )
+                    .then(_ =>
                         res.redirect(
                             `/project/${req.params.slug}/cycle/${
                                 req.params.id
@@ -2438,7 +2560,7 @@ module.exports = function(router) {
 
             const processReview = data =>
                 data.invalidate
-                    ? invalidateObservation(req.params.observationId)
+                    ? invalidateObservation(req.params.observationId, data)
                     : addReview(data);
 
             const data = matchedData(req);

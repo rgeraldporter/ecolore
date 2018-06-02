@@ -28,6 +28,11 @@ const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
             <% } %>
             <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observations">Return to <%= locals.t('observations', project) %> for survey #<%= observation.Survey.id %></a>
             <form action="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review" method="POST" class="pure-form pure-form-aligned">
+            <% if (observation.get('reviewCount')) { %>
+                <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/reviews">Show all <%= observation.get('reviewCount') %> reviews</a>
+            <% } else { %>
+                No reviews yet.
+            <% } %>
             <% if(review) { %>
                 <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
             <% } %>
