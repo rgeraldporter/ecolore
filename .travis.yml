@@ -12,7 +12,7 @@ env:
  - EXPRESS_SESSION_SECRET = "EXPRESS_SESSION_SECRET"
  - GOOGLE_CLIENT_ID = "GOOGLE_CLIENT_ID"
  - GOOGLE_CLIENT_SECRET = "GOOGLE_CLIENT_SECRET"
- - DB_NAME = "ecolore-travis"
+ - DB_NAME = "ecoloretravis"
  - DB_USERNAME = "travis"
  - DB_PASSWORD = ""
  - DB_HOST = "127.0.0.1"
@@ -26,7 +26,7 @@ node_js:
   - "10"
 
 before_install:
-  - mysql -e 'CREATE DATABASE ecolore-travis;'
+  - mysql -e 'CREATE DATABASE ecoloretravis;'
 
 before_script:
   - npm install
