@@ -1,17 +1,36 @@
 sudo: required
 addons:
   firefox: "latest"
+  mariadb: '10.2'
   apt:
     packages:
       - google-chrome-stable
+
+env:
+ - MAILGUN_DOMAIN = "MAILGUN_DOMAIN"
+ - MAILGUN_APIKEY = "MAILGUN_APIKEY"
+ - EXPRESS_SESSION_SECRET = "EXPRESS_SESSION_SECRET"
+ - GOOGLE_CLIENT_ID = "GOOGLE_CLIENT_ID"
+ - GOOGLE_CLIENT_SECRET = "GOOGLE_CLIENT_SECRET"
+ - DB_NAME = "ecolore-travis"
+ - DB_USERNAME = "travis"
+ - DB_PASSWORD = ""
+ - DB_HOST = "127.0.0.1"
+ - MYSQL_CONNECTION = "mysql://DB_USERNAME:DB_PASSWORD@DB_HOST/DB_NAME"
+ - PORT=3001
+ - HOST="http://127.0.0.1:3001/"
 
 language: node_js
 
 node_js:
   - "10"
 
+before_install:
+  - mysql -e 'CREATE DATABASE ecolore-travis;'
+
 before_script:
   - npm install
+  - npm run db:migrate
   - npm run start &
 
 script:
