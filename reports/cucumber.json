@@ -1,0 +1,61 @@
+[
+  {
+    "keyword": "Feature",
+    "name": "Basic Unauthenticated Navigations",
+    "line": 1,
+    "id": "basic-unauthenticated-navigations",
+    "tags": [],
+    "uri": "features/basic-navigation.feature",
+    "elements": [
+      {
+        "id": "basic-unauthenticated-navigations;main-pages",
+        "keyword": "Scenario",
+        "line": 3,
+        "name": "Main pages",
+        "tags": [],
+        "type": "scenario",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 4,
+            "name": "we have browsed to the EcoLore site",
+            "match": {
+              "location": "features/step_definitions/steps.js:4"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1652000000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 5,
+            "name": "we click on Log in / Sign up",
+            "match": {
+              "location": "features/step_definitions/steps.js:10"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 122000000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 6,
+            "name": "we should be at the login page",
+            "match": {
+              "location": "features/step_definitions/steps.js:16"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 47000000
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -5,3 +5,6 @@ node_modules/
 npm-debug.log
 yarn.lock
 package-lock.json
+reports
+screenshots
+selenium-debug.log
