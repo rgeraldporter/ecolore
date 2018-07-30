@@ -2161,8 +2161,8 @@ module.exports = function(router) {
     );
 
     const getObservationsValidations = project =>
-        isValidationFile(`custom/${project.get('slug')}.js`)
-            ? require(`${validationPath}custom/${project.get('slug')}.js`)
+        isValidationFile(`custom/${project.get('slug')}.validation.js`)
+            ? require(`${validationPath}custom/${project.get('slug')}.validation.js`)
                   .observations
             : require(`${validationPath}${project.get('model')}.js`)
                   .observations;
@@ -2214,6 +2214,7 @@ module.exports = function(router) {
                 return renderProjectPage(res, 'project-membership');
             }
             const data = matchedData(req);
+            console.log('DATA', data);
             const survey = data.survey;
             const cycle = data.cycle;
             const observation = {
