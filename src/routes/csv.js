@@ -3,9 +3,12 @@ const { body, check, validationResult } = require('express-validator/check');
 const { sanitizeBody, matchedData } = require('express-validator/filter');
 const db = require('../models/index');
 const R = require('ramda');
+const fs = require('fs');
 const moment = require('moment');
 const csv = require('csv-express');
 const { Maybe } = require('simple-maybe');
+const isFormatFile = path => fs.existsSync(__dirname + '/../formats/' + path);
+const formatPath = __dirname + '/../formats/';
 
 const findUserAsMemberOfProject = ([id, projectId, required = true]) =>
     db.User.findOne({
@@ -19,10 +22,15 @@ const findUserAsMemberOfProject = ([id, projectId, required = true]) =>
         ]
     });
 
+const findProject = projectId =>
+    db.Project.findOne({
+        where: { id: projectId }
+    });
+
 module.exports = function(router) {
     router.get('/data/csv/cycle/:cycleId', (req, res) => {
         db.Cycle.findOne({
-            id: req.params.cycleId
+            where: { id: req.params.cycleId }
         })
             .then(cycle =>
                 findUserAsMemberOfProject([
@@ -30,10 +38,11 @@ module.exports = function(router) {
                     cycle.get('projectId')
                 ]).then(
                     membership =>
-                        membership ? true : res.redirect(req.header('Referer'))
+                        membership ? cycle : res.redirect(req.header('Referer'))
                 )
             )
-            .then(() =>
+            .then(cycle => findProject(cycle.get('projectId')))
+            .then(project =>
                 db.Observation.findAll({
                     include: [
                         {
@@ -43,9 +52,9 @@ module.exports = function(router) {
                             required: true
                         }
                     ]
-                })
+                }).then(observations => [project, observations])
             )
-            .then(observations => {
+            .then(([project, observations]) => {
                 // go through them all to find all columns possible
                 let dataCols = observations.reduce((acc, observation) => {
                     const observationData = JSON.parse(observation.data);
@@ -55,9 +64,28 @@ module.exports = function(router) {
                 }, []);
 
                 //make unique
-                dataCols = ['Start Time', 'End Time', 'Survey ID', 'Observation ID', ...new Set(dataCols)];
+                dataCols = [
+                    'Start Time',
+                    'End Time',
+                    'Survey ID',
+                    'Observation ID',
+                    ...new Set(dataCols)
+                ];
+
+                if (isFormatFile(`custom/${project.get('slug')}.format.js`)) {
+                    const formatCols = require(`${formatPath}custom/${project.get(
+                        'slug'
+                    )}.format.js`).columns;
+
+                    // find those not in format file, tack onto the end
+                    const diffCols = dataCols.filter(
+                        x => !formatCols.includes(x)
+                    );
+                    dataCols = formatCols.concat(diffCols);
+                }
+
                 const emptyObj = {};
-                dataCols.forEach(col => emptyObj[col] = null);
+                dataCols.forEach(col => (emptyObj[col] = null));
 
                 return [emptyObj, observations];
             })
