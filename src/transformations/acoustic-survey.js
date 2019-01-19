@@ -8,8 +8,8 @@ const moment = require('moment');
 const upload = multer({ dest: os.tmpdir() });
 
 const observation = (req, res, next) => {
-    upload.array('labelfiles')(req, res, () => {
-        const files = req.files;
+    return upload.array('labelfiles')(req, res, () => {
+        const files = Array.from(req.files);
         req.body.observations = [];
         req.body.filenames = [];
 
