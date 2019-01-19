@@ -590,16 +590,18 @@ module.exports = function(router) {
                 .fork(
                     _ => res.redirect('/project/' + data.project_slug),
                     observation =>
-                        res.redirect(
-                            '/project/' +
-                                data.project_slug +
-                                '/cycle/' +
-                                observation.get('Survey').cycleId +
-                                '/survey/' +
-                                observation.get('surveyId') +
-                                '/observation/' +
-                                observation.get('id')
-                        )
+                        observation
+                            ? res.redirect(
+                                  '/project/' +
+                                      data.project_slug +
+                                      '/cycle/' +
+                                      observation.get('Survey').cycleId +
+                                      '/survey/' +
+                                      observation.get('surveyId') +
+                                      '/observation/' +
+                                      observation.get('id')
+                              )
+                            : res.redirect('/project/' + data.project_slug)
                 );
         }
     );
