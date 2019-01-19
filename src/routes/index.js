@@ -10,4 +10,8 @@ module.exports = function(router) {
     router.get('/about', (req, res) => {
         renderIndexPage(res, 'about', { user: res.locals.user });
     });
+
+    router.get('/release-notes/:version', (req, res) => {
+        renderIndexPage(res, `release-notes/${req.params.version}.notes.ejs`, { user: res.locals.user });
+    });
 };

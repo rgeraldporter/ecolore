@@ -4,6 +4,11 @@
 <%
 const zoneValue = prop =>
   zone[prop] ? ` value="${zone[prop]}"` : '';
+
+const text = {
+  'Zone': locals.R.pathOr('Zone', ['config', 'language', 'Zone'], project),
+  'zone': locals.R.pathOr('Zone', ['config', 'language', 'zone'], project)
+};
 %>
 
 <% include head %>
@@ -13,7 +18,7 @@ const zoneValue = prop =>
     <div class="content-wrapper">
       <div class="header">
         <h2>
-          <%= zone && zone.id ? 'Update' : 'Add' %> Zone for
+          <%= zone && zone.id ? 'Update' : 'Add' %> <%= text.Zone %> for
             <%= project.title %>
         </h2>
       </div>
@@ -22,17 +27,17 @@ const zoneValue = prop =>
           class="pure-form pure-form-aligned">
           <fieldset>
             <div class="pure-control-group">
-                <label for="form-zone-code">Zone code:</label>
+                <label for="form-zone-code"><%= text.Zone %> code:</label>
                 <input type="text" name="code" id="form-zone-code" placeholder="e.g. &quot;1&quot;, or &quot;3a&quot;"<%- zoneValue('code') %> class="pure-input-1-4">
             </div>
             <div class="pure-control-group">
-              <label for="form-name">Zone name:</label>
-              <input type="text" name="name" id="form-name" placeholder="Zone name, e.g. &quot;West Harbour&quot;"<%- zoneValue('name') %> class="pure-input-1-2" required>
+              <label for="form-name"><%= text.Zone %> name:</label>
+              <input type="text" name="name" id="form-name" placeholder="<%= text.Zone %> name, e.g. &quot;West Harbour&quot;"<%- zoneValue('name') %> class="pure-input-1-2" required>
             </div>
 
             <div class="pure-control-group">
               <label for="form-description">Description:</label>
-              <textarea rows="5" cols="35" id="form-description" name="description" placeholder="Notes about this zone"><%= zone.description %></textarea>
+              <textarea rows="5" cols="35" id="form-description" name="description" placeholder="Notes about this <%= text.zone %>"><%= zone.description %></textarea>
             </div>
 
           </fieldset>
@@ -41,7 +46,7 @@ const zoneValue = prop =>
             <div class="pure-control-group">
               <label for="form-submit"></label>
               <button type="submit" id="form-submit" class="pure-button">
-                <%= zone.id ? 'Update this zone' : 'Add new zone' %>
+                <%= zone.id ? `Update this ${text.zone}` : `Add new ${text.zone}` %>
               </button>
             </div>
           </fieldset>
@@ -50,7 +55,7 @@ const zoneValue = prop =>
             <div class="pure-control-group">
               <label for="form-submit-archive"></label>
               <button type="submit" id="form-submit-archive" name="archived" class="pure-button button-error" value="<%= zone.archived ? '0' : '1' %>">
-                <%= zone.archived ? 'Unarchive' : 'Archive' %> this zone
+                <%= zone.archived ? 'Unarchive' : 'Archive' %> this <%= text.zone %>
               </button>
             </div>
           </fieldset>

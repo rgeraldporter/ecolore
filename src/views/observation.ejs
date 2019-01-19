@@ -4,8 +4,14 @@
 <% include head %>
 
 <%
+const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'observations'], locals);
 const hasLineBreaks = text => (text.match(/\n/g)||[]).length;
 const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
+const canHavePhotos = ! project.config.noPhotos;
+const archiveAudio = projectTypeSettings.archiveAudioLink;
+const noLineBasedReviews = projectTypeSettings.noLineBasedReviews;
+const allowNewData = projectTypeSettings.allowNewData;
+
 %>
 
 <body>
@@ -23,7 +29,7 @@ const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
 
             <main class="pure-u-1 pure-u-md-3-5">
             <h2><%- review ? 'Review ' : '' %>Data: <%= locals.t('Observation', project) %> <%= observation.id %></h2>
-            <% if(isContrib) { %>
+            <% if(isContrib && canHavePhotos) { %>
                 <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/upload">Add photo</a><br>
             <% } %>
             <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observations">Return to <%= locals.t('observations', project) %> for survey #<%= observation.Survey.id %></a>
@@ -31,30 +37,34 @@ const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
             <% if (observation.get('reviewCount')) { %>
                 <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/reviews">Show all <%= observation.get('reviewCount') %> reviews</a>
             <% } else { %>
-                No reviews yet.
+                No reviews yet. <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review">
+                    Add a review
+                </a>
             <% } %>
-            <% if(review) { %>
+            <% if(review && !noLineBasedReviews) { %>
                 <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
             <% } %>
             <table class="pure-table pure-table-horizontal">
                 <thead>
-                    <tr><th>Row</th><th>Value</th><%- review ? '<th>Correct?</th>' : '' %></tr>
+                    <tr><th>Row</th><th>Value</th><%- review && !noLineBasedReviews ? '<th>Correct?</th>' : '' %></tr>
                 </thead>
                 <tbody>
                 <%
                     const data = JSON.parse(observation.data);
+                    const surveyData = JSON.parse(observation.Survey.data);
                     Object.keys(data).forEach(key => {
                 %>
                     <tr>
                         <td><%= key %></td>
-                        <td><%= (toMd(data[key]) || '[no data]') %></td>
-                        <% if (review) { %>
+                        <td><%= (typeof data[key] === 'string' ? toMd(data[key]) : data[key] || '[no data]') %></td>
+                        <% if (review && !noLineBasedReviews) { %>
                         <td>
                             <input type="checkbox" required>
                         </td>
                         <% } %>
                     </tr>
                 <% }); %>
+                    <% if (canHavePhotos) { %>
                     <tr>
                         <td>photos</td>
                         <td><a <%= review ? 'target="_blank" ' : '' %> href="/project/<%= project.slug %>/cycle/<%=observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/files">Show all <%= observation.get('fileCount') %> photos <%= review ? '(opens new window)' : '' %></a></td>
@@ -64,6 +74,19 @@ const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
                             </td>
                         <% } %>
                     </tr>
+                    <% } %>
+                    <% if (archiveAudio) { %>
+                        <%
+                            const filename = data.filename + '.wav';
+                            const startTime = data.startTime;
+                        %>
+                        <tr>
+                            <td>link</td>
+                            <td>
+                                <a target="_blank" href="<%= surveyData.archive_org_url + '/' + filename + '?start=' + startTime  %>">Listen</a>
+                            </td>
+                        </tr>
+                    <% } %>
                 <%
                     //
                 %>
@@ -78,20 +101,35 @@ const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
                     </div>
                 </fieldset>
                 <fieldset>
+                        <div class="pure-control-group">
+                            <label for="comment-submit"></label>
+                            <button type="submit" name="submitComment" value="1" class="pure-button pure-button-primary" id="comment-submit">Submit comment</button>
+                        </div>
+                </fieldset>
+                <fieldset>
                     <div class="pure-control-group">
-                        <label for="pass-submit"></label>
-                        <button type="submit" class="pure-button pure-button-primary button-success" id="pass-submit">Pass review</button>
+                        <label for="pass-submit">Passing the review will also submit your comments</label>
+                        <button type="submit" class="pure-button pure-button-primary button-success green" id="pass-submit">Pass review</button>
                     </div>
                 </fieldset>
             <% } %>
             </form>
             <% if (review) { %>
                 <form action="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review" method="POST" class="pure-form pure-form-aligned">
+                    <% if (allowNewData) { %>
+                    <fieldset>
+                        <legend>New identification</legend>
+                        <div class="pure-control-group">
+                            <label for="form-x-ebird-checklist-url">labelText</label>
+                            <input type="text" name="newData" placeholder="e.g. Gray squirrel" class="pure-input-1-3" required>
+                        </div>
+                    </fieldset>
+                    <% } %>
                     <fieldset>
                         <input type="hidden" value="1" name="invalidate">
                         <div class="pure-control-group">
                             <label for="invalidate-submit"></label>
-                            <button type="submit" class="pure-button button-error" id="invalidate-submit">Invalidate and resubmit data</button>
+                            <button type="submit" class="pure-button button-error" id="invalidate-submit"><%= allowNewData ? 'Change identification' : 'Invalidate and resubmit data' %></button>
                         </div>
                     </fieldset>
                 </form>

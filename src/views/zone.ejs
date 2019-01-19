@@ -3,6 +3,13 @@
 
 <% include head %>
 
+<%
+const text = {
+  'Zone': locals.R.pathOr('Zone', ['config', 'language', 'Zone'], project),
+  'zone': locals.R.pathOr('Zone', ['config', 'language', 'zone'], project)
+};
+%>
+
 <body>
         <% include menu %>
         <div class="content-wrapper">
@@ -11,7 +18,7 @@
             </div>
             <div class="content">
             <aside>
-                <a href='/project/<%= project.slug %>/zone/<%= zone.id %>/edit'>Edit zone</a><br>
+                <a href='/project/<%= project.slug %>/zone/<%= zone.id %>/edit'>Edit <%= text.zone %></a><br>
             </aside>
             <h3>Description:</h3>
             <section>

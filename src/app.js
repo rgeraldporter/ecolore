@@ -19,19 +19,30 @@ const routes = require('./routes/index');
 const moment = require('moment');
 const app = express();
 const passport = require('passport');
+const isUrl = require('is-url');
 const md = require('markdown-it')({
     linkify: true
+});
+var mila = require('markdown-it-link-attributes');
+
+md.use(mila, {
+    attrs: {
+        target: '_blank',
+        rel: 'noopener'
+    }
 });
 
 app.locals.moment = moment; // share with EJS
 app.locals.md = md;
+app.locals.isUrl = isUrl;
 app.locals.R = R;
 app.locals.$$ecoLoreVersion = require('../package.json').version;
-
-app.locals.text = (key, project) => R.pathOr(key, ['config', 'language', key], project);
+app.locals.text = (key, project) =>
+    R.pathOr(key, ['config', 'language', key], project);
 app.locals.t = app.locals.text;
+app.locals.projectSettings = require('./helpers/project-settings.js').settings;
 
-app.use( passport.initialize());
+app.use(passport.initialize());
 
 const SequelizeSessionStore = require('connect-session-sequelize')(
     expressSession.Store
@@ -43,7 +54,8 @@ const mailgun = mailgunMod({
 });
 
 // TODO: Path to be send via email
-const host = process.env.HOST || 'http://ecolore-local.org:' + process.env.PORT + '/';
+const host =
+    process.env.HOST || 'http://ecolore-local.org:' + process.env.PORT + '/';
 const mySqlConnection =
     process.env.MYSQL_CONNECTION || 'mysql://root@127.0.0.1/ecolore';
 
@@ -80,7 +92,11 @@ passwordless.addDelivery(function(tokenToSend, uidToSend, recipient, callback) {
 
     send(
         'Log in at EcoLore.org by clicking the following link: ' +
-            host + '?token=' + tokenToSend + '&uid=' + encodeURIComponent(uidToSend)
+            host +
+            '?token=' +
+            tokenToSend +
+            '&uid=' +
+            encodeURIComponent(uidToSend)
     );
     callback();
 });
@@ -112,8 +128,8 @@ app.use(passwordless.sessionSupport());
 app.use(passwordless.acceptToken({ successRedirect: '/profile' }));
 app.use(function(req, res, next) {
     return findUserByEmail(req.user)
-        .then(user => res.locals.user = user)
-        .catch(err => res.locals.unauthenticated = true)
+        .then(user => (res.locals.user = user))
+        .catch(err => (res.locals.unauthenticated = true))
         .then(() => next());
 });
 

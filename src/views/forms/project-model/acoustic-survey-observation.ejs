@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../../head %>
+
+<%
+
+const surveyData = JSON.parse(survey.data);
+
+%>
+
+    <body>
+        <% include ../../menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <h2>Acoustic Observations Form</h2>
+                    <p>For date <strong><%= moment(survey.start).format('MMMM DD, YYYY') %></strong> at <strong><%= survey.Zone ? survey.Zone.name : 'unknown location' %></strong>.</p>
+                </div>
+                <div class="content">
+
+                    <h2>Observation process</h2>
+
+                    <ol>
+
+                    <li>Download audio files from: <a href="<%= surveyData.archive_org_url %>" target="_blank"><%= surveyData.archive_org_url %></a></li>
+                    <li>One at a time, open files into <a href="https://www.audacityteam.org/" target="_blank">Audacity</a></li>
+                    <li>Create <a href="https://manual.audacityteam.org/man/creating_and_selecting_labels.html" target="_blank">Audacity labels</a> for each sound found</li>
+                    <li>When done a file, export the labels to a file, filename should match the corresponding audio filename, e.g., <strong>HNCSW1_<%= moment(survey.start).format('YYYYMMDD') %>_000000.txt</strong></li>
+                    <li>Once all or as many as you can complete are done, upload those labels using the form below!</li>
+
+                    </ol>
+
+                    <p>You may select multiple files with this form.</p>
+
+                    <form action="/project/<%= project.slug %>/observation" method="POST" enctype="multipart/form-data" class="pure-form pure-form-aligned">
+                        <fieldset>
+                            <legend>Label file(s)</legend>
+                            <div class="pure-control-group">
+                                <label for="form-add-photo">Select label file(s)</label>
+                                <input type="file" name="labelfiles" required multiple accept="text/plain">
+                            </div>
+                        </fieldset>
+
+                        <% if (locals.resubmit) { %>
+                        <input type="hidden" name="resubmit" value="<%= resubmit.id %>">
+                        <fieldset>
+                            <legend>Resubmit</legend>
+                            <div class="pure-controls">
+                                    <label></label>
+                                    <p>This is a resubmit of <b>Observation #<%= resubmit.id %></b>. Please review the data carefully so you need not re-enter again!</p>
+                            </div>
+                        </fieldset>
+                        <% } %>
+
+                        <input type="hidden" name="survey" value="<%= survey.id %>">
+                        <input type="hidden" name="cycle" value="<%= cycle.id %>">
+
+                        <fieldset>
+
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button id="form-submit" type="submit" class="pure-button pure-button-primary">Upload labels</button>
+                            </div>
+                        </fieldset>
+
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>

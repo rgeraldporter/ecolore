@@ -1,10 +1,12 @@
 <%
+const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'menu'], locals);
 const projectTypes = {
     bbs: 'Breeding Bird Survey (BBS)',
     cbc: 'Christmas Bird Count (CBC)',
     'turtle-watch': 'Turtle Watch',
     'iba-survey': 'Important Bird Area (IBA) Survey',
-    'generic': 'Generic Project'
+    'generic': 'Generic Project',
+    'acoustic-survey': 'Acoustic Survey'
 };
 const roleTypes = {
     pending: 'Your membership is pending approval by a project administrator',
@@ -14,6 +16,8 @@ const roleTypes = {
     reporter: 'You are a project reporter',
     administrator: 'You are a project administrator'
 };
+
+const hideSubmitData = projectTypeSettings.hideSubmitData || false;
 
 const projectLocation = () =>
     project.location
@@ -37,12 +41,22 @@ const projectTypeLink = `<a href="/project-types/${project.model}">${projectType
 
     <% if(project.memberRole !== 'none') { %>
     <div><a href="/project/<%= project.slug %>/">About this project</a></div>
-        <% if(project.memberRole === 'administrator' || project.memberRole === 'owner' || project.memberRole === 'contributor') { %>
+        <% if( !hideSubmitData && (project.memberRole === 'administrator' || project.memberRole === 'owner' || project.memberRole === 'contributor')) { %>
             <div><a href="/project/<%= project.slug %>/submit">Submit data</a></div>
         <% } %>
     <div><a href="/project/<%= project.slug %>/cycles"><%= locals.t('Cycles', project) %></a></div>
-    <div><a href="/project/<%= project.slug %>/zones">Zones</div>
+    <div><a href="/project/<%= project.slug %>/zones"><%= locals.t('Zones', project) %></div>
     <div><a href="/project/<%= project.slug %>/maps">Maps</a></div>
+    <div>Go to observation</div>
+    <form method="POST" action="/project/browse-observation" class="pure-form pure-form-stacked">
+        <fieldset>
+            <input type="text" name="observation" placeholder="Observation #" autocomplete="off">
+            <input type="hidden" value="<%= project.slug %>" name="project_slug">
+            <button class="pure-button" id="form-submit" type="submit" name="submit">Go</button>
+        </fieldset>
+
+    </form>
+
     <% } %>
 
     <% if(project.memberRole === 'administrator' || project.memberRole === 'owner') { %>

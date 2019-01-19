@@ -5,6 +5,7 @@ const db = require('../models/index');
 const R = require('ramda');
 const moment = require('moment');
 const randomToken = require('random-token');
+const labels = require('audacity-labels');
 const Op = db.Sequelize.Op;
 const Future = require('fluture');
 const fs = require('fs-extra');
@@ -12,7 +13,15 @@ const mailgunMod = require('mailgun-js');
 const isViewFile = path => fs.existsSync(__dirname + '/../views/' + path);
 const isValidationFile = path =>
     fs.existsSync(__dirname + '/../validations/' + path);
+const isTransformationFile = path =>
+    fs.existsSync(__dirname + '/../transformations/' + path);
 const validationPath = __dirname + '/../validations/';
+const transformationPath = __dirname + '/../transformations/';
+
+const multer = require('multer');
+const os = require('os');
+
+const upload = multer({ dest: os.tmpdir() });
 
 const mailgun = mailgunMod({
     domain: process.env.MAILGUN_DOMAIN,
@@ -374,6 +383,7 @@ const findSurveysByCycle = cycle =>
         include: [
             db.Observation,
             db.Review,
+            db.Zone,
             {
                 model: db.User,
                 as: 'author'
@@ -510,13 +520,12 @@ module.exports = function(router) {
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
-                .chain(
-                    project =>
-                        project
-                            ? Future.of(project)
-                            : Future.reject(
-                                  'You do not have access to edit this project'
-                              )
+                .chain(project =>
+                    project
+                        ? Future.of(project)
+                        : Future.reject(
+                              'You do not have access to edit this project'
+                          )
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -553,6 +562,46 @@ module.exports = function(router) {
                         renderProjectsTemplates(projects)
                     )
             )
+    );
+
+    router.post(
+        '/project/browse-observation',
+        [
+            check('observation').exists(),
+            check('project_slug').exists(),
+            check('submit').exists(),
+            passwordless.restricted({ failureRedirect: '/login' })
+        ],
+        (req, res) => {
+            const data = matchedData(req);
+            findMemberBySlugF([data.project_slug, req.user])
+                .chain(project =>
+                    findOneObservation({
+                        where: {
+                            id: data.observation
+                        },
+                        include: [db.Survey]
+                    })
+                )
+                .map(test => {
+                    console.log('TEST', test);
+                    return test;
+                })
+                .fork(
+                    _ => res.redirect('/project/' + data.project_slug),
+                    observation =>
+                        res.redirect(
+                            '/project/' +
+                                data.project_slug +
+                                '/cycle/' +
+                                observation.get('Survey').cycleId +
+                                '/survey/' +
+                                observation.get('surveyId') +
+                                '/observation/' +
+                                observation.get('id')
+                        )
+                );
+        }
     );
 
     router.post(
@@ -654,11 +703,10 @@ module.exports = function(router) {
                         })
                     )
                 )
-                .chain(
-                    ([project, maps]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, maps])
-                            : Future.reject('Not a member')
+                .chain(([project, maps]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, maps])
+                        : Future.reject('Not a member')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}/join`),
@@ -685,11 +733,10 @@ module.exports = function(router) {
                         findUserAsMemberOfProjectByIdF([req.params.id, project])
                     )
                 )
-                .chain(
-                    ([project, membership]) =>
-                        membership.get('id') == res.locals.user.id
-                            ? Future.reject('Cannot edit own membership')
-                            : Future.of([project, membership])
+                .chain(([project, membership]) =>
+                    membership.get('id') == res.locals.user.id
+                        ? Future.reject('Cannot edit own membership')
+                        : Future.of([project, membership])
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -716,11 +763,10 @@ module.exports = function(router) {
                         findUserAsMemberOfProjectF([req.user, project, false])
                     )
                 )
-                .chain(
-                    ([project, user]) =>
-                        project.get('id')
-                            ? Future.of([project, user])
-                            : Future.reject('You are not a project owner')
+                .chain(([project, user]) =>
+                    project.get('id')
+                        ? Future.of([project, user])
+                        : Future.reject('You are not a project owner')
                 )
                 .map(([project, user]) =>
                     Object.assign(project, {
@@ -783,13 +829,10 @@ module.exports = function(router) {
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
-                .chain(
-                    project =>
-                        project.get('id')
-                            ? Future.of(project)
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(project =>
+                    project.get('id')
+                        ? Future.of(project)
+                        : Future.reject('You are not a member of this project')
                 )
                 .chain(project =>
                     Future.both(
@@ -828,13 +871,10 @@ module.exports = function(router) {
                         })
                     )
                 )
-                .chain(
-                    ([project, zones]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, zones])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([project, zones]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, zones])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -855,30 +895,25 @@ module.exports = function(router) {
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
-                .chain(
-                    project =>
-                        project
-                            ? Future.both(
-                                  Future.of(project),
-                                  findUserAsMemberOfProjectF([
-                                      req.user,
-                                      project
-                                  ])
-                              )
-                            : Future.reject(
-                                  'Invalid project or not member of project'
-                              )
+                .chain(project =>
+                    project
+                        ? Future.both(
+                              Future.of(project),
+                              findUserAsMemberOfProjectF([req.user, project])
+                          )
+                        : Future.reject(
+                              'Invalid project or not member of project'
+                          )
                 )
                 .map(([project, user]) =>
                     Object.assign(project, {
                         membership: parseMembership(user)
                     })
                 )
-                .chain(
-                    membershipProject =>
-                        isMemberOfProject(membershipProject)
-                            ? Future.of(membershipProject)
-                            : Future.reject('Not a member of the project')
+                .chain(membershipProject =>
+                    isMemberOfProject(membershipProject)
+                        ? Future.of(membershipProject)
+                        : Future.reject('Not a member of the project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -936,13 +971,10 @@ module.exports = function(router) {
                         })
                     )
                 )
-                .chain(
-                    ([project, zone]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, zone])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([project, zone]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, zone])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -974,11 +1006,10 @@ module.exports = function(router) {
                         membership: parseMembership(user)
                     })
                 )
-                .chain(
-                    project =>
-                        isMemberOfProject(project)
-                            ? Future.of(project)
-                            : Future.reject('Not a member of this project')
+                .chain(project =>
+                    isMemberOfProject(project)
+                        ? Future.of(project)
+                        : Future.reject('Not a member of this project')
                 )
                 .chain(project =>
                     Future.parallel(3, [
@@ -1023,11 +1054,10 @@ module.exports = function(router) {
                         ])
                     ])
                 )
-                .chain(
-                    ([project, cycle, observations]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, cycle, observations])
-                            : Future.reject('Not a member of this project')
+                .chain(([project, cycle, observations]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, cycle, observations])
+                        : Future.reject('Not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1042,6 +1072,74 @@ module.exports = function(router) {
                                 renderProjectTemplate(project)
                             )
                         )
+                )
+    );
+
+    router.get(
+        '/project/:slug/cycle/:cycleId/survey/:surveyId/observation/:observationId/audacity-labels',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            findMemberBySlugF([req.params.slug, req.user])
+                .chain(project =>
+                    Future.parallel(4, [
+                        Future.of(project),
+                        findCycleByIdF(req.params.cycleId),
+                        findSurveyByCycleAndId([
+                            req.params.cycleId,
+                            req.params.surveyId
+                        ]),
+                        findObservationsBySurveyCycle([
+                            req.params.surveyId,
+                            req.params.cycleId
+                        ])
+                    ])
+                )
+                .chain(([project, cycle, survey, observations]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, cycle, survey, observations])
+                        : Future.reject('Not a member of this project')
+                )
+                .fork(
+                    _ => console.error(_),
+                    ([project, cycle, survey, observations]) => {
+                        const selectedObservation = observations.find(
+                            observation => {
+                                return (
+                                    Number(observation.get('id')) ===
+                                    Number(req.params.observationId)
+                                );
+                            }
+                        );
+
+                        const jsonData = JSON.parse(selectedObservation.data);
+
+                        const observationsByFile = observations.filter(
+                            observation =>
+                                JSON.parse(observation.data).filename ===
+                                jsonData.filename
+                        );
+
+                        const observationLabels = observationsByFile.map(
+                            label => {
+                                const labelData = JSON.parse(label.data);
+                                return Object.assign(labelData, {
+                                    labelText: `${labelData.labelText} :[${
+                                        labelData.submitterName
+                                    }/#${label.id}]`
+                                });
+                            }
+                        );
+
+                        const theText = labels.stringify(observationLabels);
+
+                        res.set({
+                            'Content-Type': `application/octet-stream`,
+                            'Content-Disposition': `attachment; filename="${
+                                jsonData.filename
+                            }.txt"`
+                        });
+                        res.send(theText.join());
+                    }
                 )
     );
 
@@ -1122,11 +1220,10 @@ module.exports = function(router) {
                         ])
                     )
                 )
-                .chain(
-                    ([project, observation]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, observation])
-                            : Future.reject('Not a member of this project')
+                .chain(([project, observation]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, observation])
+                        : Future.reject('Not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1166,13 +1263,10 @@ module.exports = function(router) {
                         })
                     ])
                 )
-                .chain(
-                    ([project, observation, files]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, observation, files])
-                            : Future.reject(
-                                  'You are not a part of this project'
-                              )
+                .chain(([project, observation, files]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, observation, files])
+                        : Future.reject('You are not a part of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1205,13 +1299,10 @@ module.exports = function(router) {
                         ])
                     )
                 )
-                .chain(
-                    ([project, observation]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, observation])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([project, observation]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, observation])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1246,13 +1337,10 @@ module.exports = function(router) {
                         ])
                     )
                 )
-                .chain(
-                    ([project, observation]) =>
-                        isMemberOfProject(project)
-                            ? Future.of([project, observation])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([project, observation]) =>
+                    isMemberOfProject(project)
+                        ? Future.of([project, observation])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1284,13 +1372,10 @@ module.exports = function(router) {
                         findMemberBySlugF([req.params.slug, req.user])
                     )
                 )
-                .chain(
-                    ([reviews, membership]) =>
-                        membership
-                            ? Future.of([reviews, membership])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([reviews, membership]) =>
+                    membership
+                        ? Future.of([reviews, membership])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1316,13 +1401,12 @@ module.exports = function(router) {
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
-                .chain(
-                    project =>
-                        isContributorOfProject(project)
-                            ? Future.of(project)
-                            : Future.reject(
-                                  'You are either not a member of this project or not a contributor'
-                              )
+                .chain(project =>
+                    isContributorOfProject(project)
+                        ? Future.of(project)
+                        : Future.reject(
+                              'You are either not a member of this project or not a contributor'
+                          )
                 )
                 .chain(project =>
                     Future.both(
@@ -1353,13 +1437,10 @@ module.exports = function(router) {
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findMemberBySlugF([req.params.slug, req.user])
-                .chain(
-                    project =>
-                        isMemberOfProject(project)
-                            ? Future.of(project)
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(project =>
+                    isMemberOfProject(project)
+                        ? Future.of(project)
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1404,7 +1485,8 @@ module.exports = function(router) {
                     include: [db.Project]
                 },
                 db.Observation,
-                db.Review
+                db.Review,
+                db.Zone
             ]
         });
 
@@ -1423,13 +1505,10 @@ module.exports = function(router) {
                         ])
                     )
                 )
-                .chain(
-                    ([survey, membership]) =>
-                        membership
-                            ? Future.of([survey, membership])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([survey, membership]) =>
+                    membership
+                        ? Future.of([survey, membership])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1459,13 +1538,10 @@ module.exports = function(router) {
                         findMemberBySlugF([req.params.slug, req.user])
                     )
                 )
-                .chain(
-                    ([reviews, membership]) =>
-                        membership
-                            ? Future.of([reviews, membership])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([reviews, membership]) =>
+                    membership
+                        ? Future.of([reviews, membership])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1500,13 +1576,10 @@ module.exports = function(router) {
                         ])
                     )
                 )
-                .chain(
-                    ([survey, membership]) =>
-                        membership
-                            ? Future.of([survey, membership])
-                            : Future.reject(
-                                  'You are not a member of this project'
-                              )
+                .chain(([survey, membership]) =>
+                    membership
+                        ? Future.of([survey, membership])
+                        : Future.reject('You are not a member of this project')
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
@@ -1576,13 +1649,10 @@ module.exports = function(router) {
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
-                .chain(
-                    project =>
-                        project
-                            ? Future.of(project)
-                            : Future.reject(
-                                  'You are not an owner of this project'
-                              )
+                .chain(project =>
+                    project
+                        ? Future.of(project)
+                        : Future.reject('You are not an owner of this project')
                 )
                 .chain(project =>
                     Future.both(Future.of(project), findMapByIdF(req.params.id))
@@ -1631,13 +1701,10 @@ module.exports = function(router) {
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
             findProjectBySlugAndOwnerF([req.params.slug, res.locals.user])
-                .chain(
-                    project =>
-                        project
-                            ? Future.of(project)
-                            : Future.reject(
-                                  'You are not an owner of this project'
-                              )
+                .chain(project =>
+                    project
+                        ? Future.of(project)
+                        : Future.reject('You are not an owner of this project')
                 )
                 .chain(project => findCycleByIdF(req.params.id))
                 .fork(
@@ -1706,23 +1773,20 @@ module.exports = function(router) {
                 const projectUpdate = matchedData(req);
 
                 return findProjectByIdAndOwner([req.params.id, res.locals.user])
-                    .then(
-                        project =>
-                            project
-                                ? db.Project.update(projectUpdate, {
-                                      where: { id: req.params.id }
-                                  })
-                                      .then(() =>
-                                          db.Project.findOne({
-                                              where: { id: req.params.id }
-                                          })
-                                      )
-                                      .then(project =>
-                                          res.redirect(
-                                              '/project/' + project.slug
-                                          )
-                                      )
-                                : res.redirect(`/project/${req.params.slug}`)
+                    .then(project =>
+                        project
+                            ? db.Project.update(projectUpdate, {
+                                  where: { id: req.params.id }
+                              })
+                                  .then(() =>
+                                      db.Project.findOne({
+                                          where: { id: req.params.id }
+                                      })
+                                  )
+                                  .then(project =>
+                                      res.redirect('/project/' + project.slug)
+                                  )
+                            : res.redirect(`/project/${req.params.slug}`)
                     )
                     .catch(err => console.error(err));
             }
@@ -1754,17 +1818,14 @@ module.exports = function(router) {
                     req.params.slug,
                     res.locals.user
                 ])
-                    .then(
-                        project =>
-                            project
-                                ? db.Cycle.create(cycleCreate).then(cycle =>
-                                      res.redirect(
-                                          '/project/' +
-                                              req.params.slug +
-                                              '/cycles'
-                                      )
+                    .then(project =>
+                        project
+                            ? db.Cycle.create(cycleCreate).then(cycle =>
+                                  res.redirect(
+                                      '/project/' + req.params.slug + '/cycles'
                                   )
-                                : res.redirect(`/project/${req.params.slug}`)
+                              )
+                            : res.redirect(`/project/${req.params.slug}`)
                     )
                     .catch(err => console.error(err));
             }
@@ -1797,22 +1858,19 @@ module.exports = function(router) {
                     req.params.slug,
                     res.locals.user
                 ])
-                    .then(
-                        project =>
-                            project
-                                ? db.Cycle.update(cycleUpdate, {
-                                      where: {
-                                          id: req.params.id,
-                                          projectId: project.id
-                                      }
-                                  }).then(() =>
-                                      res.redirect(
-                                          '/project/' +
-                                              req.params.slug +
-                                              '/cycles'
-                                      )
+                    .then(project =>
+                        project
+                            ? db.Cycle.update(cycleUpdate, {
+                                  where: {
+                                      id: req.params.id,
+                                      projectId: project.id
+                                  }
+                              }).then(() =>
+                                  res.redirect(
+                                      '/project/' + req.params.slug + '/cycles'
                                   )
-                                : res.redirect(`/project/${req.params.slug}`)
+                              )
+                            : res.redirect(`/project/${req.params.slug}`)
                     )
                     .catch(err => console.error(err));
             }
@@ -1892,11 +1950,10 @@ module.exports = function(router) {
                     findOneUser({
                         where: { email }
                     })
-                        .chain(
-                            result =>
-                                result
-                                    ? Future.of(result)
-                                    : Future.reject('Not a user')
+                        .chain(result =>
+                            result
+                                ? Future.of(result)
+                                : Future.reject('Not a user')
                         )
                         .fork(_ => addToInvites(email), addMembership);
                 });
@@ -1936,17 +1993,14 @@ module.exports = function(router) {
                     req.params.slug,
                     res.locals.user
                 ])
-                    .then(
-                        project =>
-                            project
-                                ? db.Zone.create(zoneAdd).then(zone =>
-                                      res.redirect(
-                                          '/project/' +
-                                              req.params.slug +
-                                              '/zones'
-                                      )
+                    .then(project =>
+                        project
+                            ? db.Zone.create(zoneAdd).then(zone =>
+                                  res.redirect(
+                                      '/project/' + req.params.slug + '/zones'
                                   )
-                                : res.redirect(`/project/${req.params.slug}`)
+                              )
+                            : res.redirect(`/project/${req.params.slug}`)
                     )
                     .catch(err => console.error(err));
             }
@@ -1975,22 +2029,19 @@ module.exports = function(router) {
                     req.params.slug,
                     res.locals.user
                 ])
-                    .then(
-                        project =>
-                            project
-                                ? db.Zone.update(zoneUpdate, {
-                                      where: {
-                                          id: req.params.id,
-                                          projectId: project.id
-                                      }
-                                  }).then(map =>
-                                      res.redirect(
-                                          '/project/' +
-                                              req.params.slug +
-                                              '/zones/'
-                                      )
+                    .then(project =>
+                        project
+                            ? db.Zone.update(zoneUpdate, {
+                                  where: {
+                                      id: req.params.id,
+                                      projectId: project.id
+                                  }
+                              }).then(map =>
+                                  res.redirect(
+                                      '/project/' + req.params.slug + '/zones/'
                                   )
-                                : res.redirect(`/project/${req.params.slug}`)
+                              )
+                            : res.redirect(`/project/${req.params.slug}`)
                     )
                     .catch(err => console.error(err));
             }
@@ -2030,18 +2081,17 @@ module.exports = function(router) {
                     req.params.slug,
                     res.locals.user
                 ])
-                    .then(
-                        project =>
-                            project
-                                ? db.Map.create(mapAdd).then(map =>
-                                      res.redirect(
-                                          '/project/' +
-                                              req.params.slug +
-                                              '/map/' +
-                                              map.id
-                                      )
+                    .then(project =>
+                        project
+                            ? db.Map.create(mapAdd).then(map =>
+                                  res.redirect(
+                                      '/project/' +
+                                          req.params.slug +
+                                          '/map/' +
+                                          map.id
                                   )
-                                : res.redirect(`/project/${req.params.slug}`)
+                              )
+                            : res.redirect(`/project/${req.params.slug}`)
                     )
                     .catch(err => console.error(err));
             }
@@ -2079,23 +2129,22 @@ module.exports = function(router) {
                     req.params.slug,
                     res.locals.user
                 ])
-                    .then(
-                        project =>
-                            project
-                                ? db.Map.update(mapUpdate, {
-                                      where: {
-                                          id: req.params.id,
-                                          projectId: project.id
-                                      }
-                                  }).then(map =>
-                                      res.redirect(
-                                          '/project/' +
-                                              req.params.slug +
-                                              '/map/' +
-                                              req.params.id
-                                      )
+                    .then(project =>
+                        project
+                            ? db.Map.update(mapUpdate, {
+                                  where: {
+                                      id: req.params.id,
+                                      projectId: project.id
+                                  }
+                              }).then(map =>
+                                  res.redirect(
+                                      '/project/' +
+                                          req.params.slug +
+                                          '/map/' +
+                                          req.params.id
                                   )
-                                : res.redirect(`/project/${req.params.slug}`)
+                              )
+                            : res.redirect(`/project/${req.params.slug}`)
                     )
                     .catch(err => console.error(err));
             }
@@ -2162,10 +2211,25 @@ module.exports = function(router) {
 
     const getObservationsValidations = project =>
         isValidationFile(`custom/${project.get('slug')}.validation.js`)
-            ? require(`${validationPath}custom/${project.get('slug')}.validation.js`)
-                  .observations
+            ? require(`${validationPath}custom/${project.get(
+                  'slug'
+              )}.validation.js`).observations
             : require(`${validationPath}${project.get('model')}.js`)
                   .observations;
+
+    const getObservationTransformations = project =>
+        isTransformationFile(`${project.get('model')}.js`)
+            ? require(`${transformationPath}${project.get('model')}.js`)
+                  .observation
+            : () => {};
+
+    const transformObservationData = (req, res, next) =>
+        findProjectBySlugF(req.params.slug)
+            .map(getObservationTransformations)
+            .map(observationTrans => {
+                return observationTrans(req, res, next);
+            })
+            .fork(console.error, next);
 
     const checkRequirements = ([validations, req, res, next]) =>
         check(validations.exists).exists()(req, res, next);
@@ -2205,6 +2269,7 @@ module.exports = function(router) {
         '/project/:slug/observation',
         [
             passwordless.restricted({ failureRedirect: '/login' }),
+            transformObservationData,
             validateObservationData
         ],
         (req, res, next) => {
@@ -2214,7 +2279,6 @@ module.exports = function(router) {
                 return renderProjectPage(res, 'project-membership');
             }
             const data = matchedData(req);
-            console.log('DATA', data);
             const survey = data.survey;
             const cycle = data.cycle;
             const observation = {
@@ -2223,6 +2287,7 @@ module.exports = function(router) {
             };
 
             const moreObservations = () => R.prop('more_observations', data);
+            const bulkObservations = () => R.prop('observations', data);
             const resubmit = () => R.prop('resubmit', data);
 
             const redirectToNewObservation = observationData =>
@@ -2236,6 +2301,7 @@ module.exports = function(router) {
                         '/observation/new?from=' +
                         observationData.id
                 );
+
             const redirectToObservations = () =>
                 res.redirect(
                     '/project/' +
@@ -2247,6 +2313,27 @@ module.exports = function(router) {
                         '/observations'
                 );
 
+            const createBulkObservations = () => {
+                data.observations.forEach(observationList =>
+                    observationList.forEach(observation =>
+                        db.Observation.create({
+                            surveyId: survey,
+                            data: observation
+                        })
+                    )
+                );
+                // take us right to the imported observations
+                res.redirect(
+                    '/project/' +
+                        req.params.slug +
+                        '/cycle/' +
+                        cycle +
+                        '/survey/' +
+                        survey +
+                        '/observations'
+                );
+            };
+
             const createOrUpdateObservation = () =>
                 data.resubmit
                     ? db.Observation.update(observation, {
@@ -2254,21 +2341,23 @@ module.exports = function(router) {
                       })
                     : db.Observation.create(observation);
 
+            const createOrUpdateObservations = () =>
+                bulkObservations()
+                    ? createBulkObservations()
+                    : createOrUpdateObservation();
+
             return findMemberBySlug([req.params.slug, req.user])
-                .then(
-                    project =>
-                        isMemberOfProject(project)
-                            ? createOrUpdateObservation().then(
-                                  R.cond([
-                                      [resubmit, redirectToObservations],
-                                      [
-                                          moreObservations,
-                                          redirectToNewObservation
-                                      ],
-                                      [R.T, redirectToObservations]
-                                  ])
-                              )
-                            : res.redirect(`/project/${req.params.slug}`)
+                .then(project =>
+                    isMemberOfProject(project)
+                        ? createOrUpdateObservations().then(
+                              R.cond([
+                                  [resubmit, redirectToObservations],
+                                  [moreObservations, redirectToNewObservation],
+                                  [bulkObservations, () => {}],
+                                  [R.T, redirectToObservations]
+                              ])
+                          )
+                        : res.redirect(`/project/${req.params.slug}`)
                 )
                 .catch(err => console.error(err));
         }
@@ -2276,14 +2365,29 @@ module.exports = function(router) {
 
     const getSurveyValidations = form => project =>
         isValidationFile(
-            `custom/${project.get('slug')}${form ? '-' + form : ''}.js`
+            `custom/${project.get('slug')}${
+                form ? '-' + form : ''
+            }.validation.js`
         )
-            ? require(`custom/${project.get('slug')}${
+            ? require(`${validationPath}custom/${project.get('slug')}${
                   form ? '-' + form : ''
-              }.js`).surveys
+              }.validation.js`).surveys
             : require(`${validationPath}${project.get('model')}${
                   form ? '-' + form : ''
               }.js`).surveys;
+
+    const getSurveyTransformations = project =>
+        isTransformationFile(`${project.get('model')}.js`)
+            ? require(`${transformationPath}${project.get('model')}.js`).survey
+            : () => {};
+
+    const transformSurveyData = (req, res, next) =>
+        findProjectBySlugF(req.params.slug)
+            .map(getSurveyTransformations)
+            .map(surveyTrans => {
+                surveyTrans ? surveyTrans(req, res, next) : null;
+            })
+            .fork(console.error, next);
 
     const validateSurveyData = (req, res, next) =>
         findProjectBySlugF(req.params.slug)
@@ -2317,6 +2421,7 @@ module.exports = function(router) {
         '/project/:slug/survey',
         [
             passwordless.restricted({ failureRedirect: '/login' }),
+            transformSurveyData,
             validateSurveyData
         ],
         (req, res, next) => {
@@ -2325,12 +2430,16 @@ module.exports = function(router) {
                 console.error('ERRORS', { errors: errors.mapped() });
                 return renderProjectPage(res, 'project-membership');
             }
-            const data = matchedData(req);
+            const data = matchedData(req).cycle ? matchedData(req) : req.body;
             const cycle = data.cycle;
             const surveyData = {
                 authorId: res.locals.user.id,
-                data: R.omit(['cycle', 'resubmit', 'skip_observations'], data),
+                data: R.omit(
+                    ['cycle', 'resubmit', 'skip_observations', 'observations'],
+                    data
+                ),
                 cycleId: Number(cycle),
+                zoneId: data.zone,
                 start:
                     data.date && data.start_time
                         ? moment(data.date + ' ' + data.start_time).format()
@@ -2342,6 +2451,7 @@ module.exports = function(router) {
             };
 
             const skipObservations = () => R.prop('skip_observations', data);
+            const bulkObservations = () => R.prop('observations', data);
             const resubmit = () => R.prop('resubmit', data);
             const redirectToSurveyList = () =>
                 res.redirect(
@@ -2382,18 +2492,39 @@ module.exports = function(router) {
                       })
                     : db.Survey.create(surveyData);
 
+            const createBulkObservations = surveyEntry => {
+                data.observations.forEach(observationList =>
+                    observationList.forEach(observation =>
+                        db.Observation.create({
+                            surveyId: surveyEntry.dataValues.id,
+                            data: observation
+                        })
+                    )
+                );
+                // take us right to the imported observations
+                res.redirect(
+                    '/project/' +
+                        req.params.slug +
+                        '/cycle/' +
+                        data.cycle +
+                        '/survey/' +
+                        surveyEntry.dataValues.id +
+                        '/observations'
+                );
+            };
+
             return findMemberBySlug([req.params.slug, req.user])
-                .then(
-                    project =>
-                        isMemberOfProject(project)
-                            ? createOrUpdateSurvey().then(
-                                  R.cond([
-                                      [resubmit, redirectToSurveyList],
-                                      [skipObservations, redirectToNewSurvey],
-                                      [R.T, redirectToObservations]
-                                  ])
-                              )
-                            : res.redirect(`/project/${req.params.slug}`)
+                .then(project =>
+                    isMemberOfProject(project)
+                        ? createOrUpdateSurvey().then(
+                              R.cond([
+                                  [resubmit, redirectToSurveyList],
+                                  [bulkObservations, createBulkObservations],
+                                  [skipObservations, redirectToNewSurvey],
+                                  [R.T, redirectToObservations]
+                              ])
+                          )
+                        : res.redirect(`/project/${req.params.slug}`)
                 )
                 .catch(err => console.error(err));
         }
@@ -2481,11 +2612,10 @@ module.exports = function(router) {
 
             const data = matchedData(req);
             return findMemberBySlug([req.params.slug, req.user])
-                .then(
-                    project =>
-                        isMemberOfProject(project)
-                            ? processReview(data)
-                            : res.redirect(`/project/${req.params.slug}`)
+                .then(project =>
+                    isMemberOfProject(project)
+                        ? processReview(data)
+                        : res.redirect(`/project/${req.params.slug}`)
                 )
                 .catch(err => console.error(err));
         }
@@ -2496,7 +2626,9 @@ module.exports = function(router) {
         [
             passwordless.restricted({ failureRedirect: '/login' }),
             check('invalidate').optional(),
-            check('comments').optional()
+            check('comments').optional(),
+            check('newData').optional(),
+            check('submitComment').optional()
         ],
         (req, res) => {
             const invalidateObservation = (observationId, data) =>
@@ -2527,22 +2659,66 @@ module.exports = function(router) {
                                 }
                             )
                         )
-                    )
-                    .then(invalidObservation =>
-                        db.Review.create({
-                            reviewerId: res.locals.user.id,
-                            observationId: observationId,
-                            pass: false
-                        })
+                            .then(invalidObs =>
+                                data.newData
+                                    ? db.Observation.update(
+                                          Object.assign(
+                                              observation.dataValues,
+                                              {
+                                                  data: R.mergeDeepRight(
+                                                      JSON.parse(
+                                                          observation.get(
+                                                              'data'
+                                                          )
+                                                      ),
+                                                      {
+                                                          labelText:
+                                                              data.newData,
+                                                          submitterName:
+                                                              res.locals.user
+                                                                  .firstName +
+                                                              ' ' +
+                                                              res.locals.user
+                                                                  .lastName
+                                                      }
+                                                  )
+                                              }
+                                          ),
+                                          {
+                                              where: { id: observationId }
+                                          }
+                                      )
+                                    : invalidObs
+                            )
+                            .then(invalidObservation =>
+                                db.Review.create({
+                                    reviewerId: res.locals.user.id,
+                                    observationId: observationId,
+                                    pass: false,
+                                    comments: data.newData
+                                        ? `ID change: ${
+                                              observation.get('data').labelText
+                                          } → ${data.newData}`
+                                        : null
+                                })
+                            )
                     )
                     .then(_ =>
-                        res.redirect(
-                            `/project/${req.params.slug}/cycle/${
-                                req.params.id
-                            }/survey/${req.params.surveyId}/observation/${
-                                req.params.observationId
-                            }/resubmit`
-                        )
+                        data.newData
+                            ? res.redirect(
+                                  `/project/${req.params.slug}/cycle/${
+                                      req.params.id
+                                  }/survey/${req.params.surveyId}/observation/${
+                                      req.params.observationId
+                                  }`
+                              )
+                            : res.redirect(
+                                  `/project/${req.params.slug}/cycle/${
+                                      req.params.id
+                                  }/survey/${req.params.surveyId}/observation/${
+                                      req.params.observationId
+                                  }/resubmit`
+                              )
                     );
 
             const addReview = data =>
@@ -2550,7 +2726,7 @@ module.exports = function(router) {
                     comments: data.comments,
                     reviewerId: res.locals.user.id,
                     observationId: req.params.observationId,
-                    pass: true
+                    pass: data.submitComment ? false : true
                 }).then(() =>
                     res.redirect(
                         `/project/${req.params.slug}/cycle/${
@@ -2566,11 +2742,8 @@ module.exports = function(router) {
 
             const data = matchedData(req);
             return findMemberBySlug([req.params.slug, req.user])
-                .then(
-                    project =>
-                        isMemberOfProject(project)
-                            ? processReview(data)
-                            : project
+                .then(project =>
+                    isMemberOfProject(project) ? processReview(data) : project
                 )
                 .then(_ => res.redirect(`/project/${req.params.slug}`))
                 .catch(err => console.error(err));

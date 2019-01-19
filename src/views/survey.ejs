@@ -5,7 +5,8 @@
 
         <%
             const hasLineBreaks = text => (text.match(/\n/g)||[]).length;
-            const toMd = text => hasLineBreaks(text) ? md.render(text) : text;
+            const toUrl = text => locals.isUrl(text) ? md.render(`[${text}](${text})`) : text;
+            const toMd = text => hasLineBreaks(text) ? md.render(text) : toUrl(text);
         %>
 
 <body>
@@ -20,11 +21,11 @@
             <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
             || project.memberRole === 'contributor'; %>
             <main class="pure-u-1 pure-u-md-3-5">
-                    <h2><%- review ? 'Review ' : '' %>Data: Survey <%= survey.id %></h2>
+                    <h2><%- review ? 'Review ' : '' %>Data: <%= locals.t('Survey', project) %> <%= survey.id %></h2>
                     <% if(isContrib) { %>
                         <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observation/new">Add <%= locals.t('observation', project) %></a><br>
                     <% } %>
-                    <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/surveys">Return to surveys for <%= survey.Cycle.title  %></a>
+                    <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/surveys">Return to <%= locals.t('surveys', project) %> for <%= survey.Cycle.title  %></a>
             <form action="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review" method="POST"  class="pure-form pure-form-aligned">
             <% if(review) { %>
                 <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
@@ -45,7 +46,7 @@
                 %>
                     <tr>
                         <td><%= key %></td>
-                        <td><%- (toMd(data[key]) || '[no data]') %></td>
+                        <td><%- (typeof data[key] === 'string' ? toMd(data[key]) : data[key] || '[no data]') %></td>
                         <% if (review) { %>
                             <td>
                                 <input type="checkbox" required>

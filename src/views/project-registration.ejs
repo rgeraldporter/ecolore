@@ -12,6 +12,8 @@
           </h2>
         </div>
         <div class="content">
+          <p><b>NOTE</b> - This site is in testing phases, and is highly tailored towards the projects that already exist here.</p>
+          <p>You should hold off on actually hosting projects here until otherwise notified.</p>
           <form action="/project/<%= project && project.id ? project.id : 'new' %>" method="POST" enctype="application/x-www-form-urlencoded"
             class="pure-form pure-form-aligned">
             <fieldset>
@@ -40,6 +42,7 @@
                   <option value="">Select one...</option>
                   <option value="bbs" <%=project.model==='bbs' ? 'selected' : '' %>>Breeding Bird Survey</option>
                   <option value="turtle-watch" <%=project.model==='turtle-watch' ? 'selected' : '' %>>Turtle Watch</option>
+                  <option value="acoustic-survey" <%=project.model==='acoustic-survey' ? 'selected' : '' %>>Acoustic Survey</option>
                   <option value="cbc" <%=project.model==='cbc' ? 'selected' : '' %>>Christmas Bird Count</option>
                   <option value="iba-survey" <%=project.model==='iba-survey' ? 'selected' : '' %>>IBA Survey</option>
                   <option value="generic" <%=project.model==='generic' ? 'selected' : '' %>>Generic Project</option>

@@ -157,9 +157,9 @@ div.home-menu.pure-menu {
     left: 0;
     position: fixed !important;
     background-image:     linear-gradient(
-        rgba(107, 129, 9, 0.45),
-        rgba(5, 82, 11, 0.45)
-      ),url('/assets/images/rwbl.jpg');
+        rgba(82, 83, 76, 0.45),
+        rgba(93, 91, 81, 0.45)
+      ),url('/assets/images/core.jpg');
     background-size: cover;
 }
 
@@ -169,7 +169,7 @@ div.home-menu.pure-menu {
     height: 50%;
     margin: auto;
     position: absolute;
-    top: 10px; left: 0; bottom: 0; right: 0;
+    top: 10px; left: 0; bottom: 0; right: 280px;
 }
 
 /* This is the main heading that appears on the blue section */

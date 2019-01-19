@@ -3,6 +3,15 @@
 
 <% include head %>
 
+<%
+const text = {
+  'Zone': locals.R.pathOr('Zone', ['config', 'language', 'Zone'], project),
+  'zone': locals.R.pathOr('Zone', ['config', 'language', 'zone'], project),
+  'Zones': locals.R.pathOr('Zones', ['config', 'language', 'Zones'], project),
+  'zones': locals.R.pathOr('Zones', ['config', 'language', 'zones'], project)
+};
+%>
+
 <body>
     <% include menu %>
     <div class="content-wrapper">
@@ -16,23 +25,23 @@
         || project.memberRole === 'contributor'; %>
 
         <main class="pure-u-1 pure-u-md-4-5">
-            <h2>Zones</h2>
+            <h2><%= text.Zones %></h2>
 
             <% if(isAdmin) { %>
             <aside>
-                <a href='/project/<%= project.slug %>/zone/new'>Add a new Zone</a><br>
+                <a href='/project/<%= project.slug %>/zone/new'>Add a new <%= text.Zone %></a><br>
             </aside>
             <% } %>
 
             <table class="pure-table pure-table-horizontal">
                 <thead>
-                    <tr><th>Zone Code</th><th>Zone Name</th><th>Status</th>
+                    <tr><th><%= text.Zone %> Code</th><th><%= text.Zone %> Name</th><th>Status</th>
                         <% if(isAdmin) { %><th></th><% } %>
                     </tr>
                 </thead>
                 <tbody>
                 <% if (!zones.length) { %>
-                    <tr><td colspan="3">There are no zones yet for this project.</td></tr>
+                    <tr><td colspan="3">There are no <%= text.zones %> yet for this project.</td></tr>
 
                 <% } %>
                 <% zones.forEach(function(zone) {
@@ -42,7 +51,7 @@
                         <td><%= zone.name %></td>
                         <td><%= zone.archived ? 'Archived' : 'Active' %></td>
                         <% if(isAdmin) { %>
-                            <td><a href="/project/<%= project.slug %>/zone/<%= zone.id %>/edit">Edit zone</a></td>
+                            <td><a href="/project/<%= project.slug %>/zone/<%= zone.id %>/edit">Edit <%= text.zone %></a></td>
                         <% } %>
                     </tr>
                 <% }); %>

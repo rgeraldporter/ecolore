@@ -88,6 +88,7 @@ Page.belongsTo(Project);
 Page.belongsTo(Cycle);
 Survey.belongsTo(Cycle);
 Survey.belongsTo(User, { as: 'author' });
+Survey.belongsTo(Zone);
 Cycle.hasMany(Survey);
 Observation.belongsTo(Survey);
 Observation.hasMany(File);

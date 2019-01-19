@@ -27,14 +27,14 @@
                     <a href="/project/<%= project.slug %>/cycle/<%= cycleId %>/survey/<%= surveyId %>/observation/<%= observationId %>">Return to <%= locals.t('Observation', project) %> <%= observationId %></a>
             <table class="pure-table pure-table-horizontal">
                 <thead>
-                    <tr><th>Pass/Fail</th><th>Reviewer</th><th>Comments</th><th>Reviewed at</th></tr>
+                    <tr><th>Pass?</th><th>Reviewer</th><th>Comments</th><th>Reviewed at</th></tr>
                 </thead>
                 <tbody>
                 <%
                     reviews.forEach(review => {
                 %>
                     <tr>
-                        <td><%= review.pass ? 'Pass' : 'Fail' %></td>
+                        <td><%= review.pass ? 'Yes' : 'No' %></td>
                         <td><%= review.reviewer.firstName + ' ' + review.reviewer.lastName %></td>
                         <td><%- (review.comments ? toMd(review.comments) : '[no comments]') %></td>
                         <td><%= review.createdAt %></td>

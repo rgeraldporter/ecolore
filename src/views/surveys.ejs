@@ -3,6 +3,18 @@
 
 <% include head %>
 
+<%
+
+const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'surveys'], locals);
+const noStart = projectTypeSettings.noStart;
+const noEnd = projectTypeSettings.noEnd;
+const noReviews = projectTypeSettings.noReviews;
+const hasZone = projectTypeSettings.hasZone;
+const noSubmissionDate = projectTypeSettings.noSubmissionDate;
+const addObservationsColumn = projectTypeSettings.addObservationsColumn;
+
+%>
+
     <body>
         <% include menu %>
             <div class="content-wrapper">
@@ -17,29 +29,48 @@
 
                     <main class="pure-u-1 pure-u-md-4-5">
 
-                            <h2><%= cycle.title %> Surveys</h2>
+                            <h2><%= cycle.title %> <%= locals.t('Surveys', project) %></h2>
                         <aside>
                             <% if(isContrib) { %>
-                                <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/new'>Submit survey</a><br>
+                                <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/new'><%= locals.t('Submit survey', project) %></a><br>
                             <% } %>
                             <a href='/project/<%= projectSlug %>/cycles'>Return to list of <%= locals.t('cycles', project) %></a>
                         </aside>
-                        <% if(isContrib) { %>
+                        <% if(isContrib && !noReviews) { %>
                             <% if ( !filter ) { %>
-                                All surveys for <%= cycle.title %> are shown below. <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys?filter=needs_review'>Show only unreviewed surveys</a><br>
+                                All <%= locals.t('surveys', project) %> for <%= cycle.title %> are shown below. <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys?filter=needs_review'>Show only unreviewed <%= locals.t('surveys', project) %></a><br>
                             <% } %>
                             <% if ( filter ) { %>
-                                Only unreviewed surveys for <%= cycle.title %> are being shown below. <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys'>Show all surveys</a><br>
+                                Only unreviewed <%= locals.t('surveys', project) %> for <%= cycle.title %> are being shown below. <a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys'>Show all <%= locals.t('surveys', project) %></a><br>
                             <% } %>
                         <% } %>
                         <table class="pure-table pure-table-horizontal">
                             <thead>
-                                <tr><th>#</th><th>Start</th><th>End</th><th></th>
-                                <% if(isAdmin) { %>
+                                <tr>
+                                    <th>#</th>
+                                <% if (!noStart) { %>
+                                    <th>Start</th>
+                                <% } %>
+                                <% if (!noEnd) { %>
+                                    <th>End</th>
+                                <% } %>
+                                <% if (hasZone) { %>
+                                    <th>Location</th>
+                                <% } %>
+                                    <th></th>
+                                <% if(isAdmin && !noReviews) { %>
                                     <th></th>
                                 <% } %>
                                 <th><%= locals.t('Observations', project) %></th>
-                                <th>Submitted by</th><th>Submission date</th></tr>
+                                <% if (addObservationsColumn) { %>
+                                <th></th>
+                                <% } else { %>
+                                <th>Submitted by</th>
+                                <% } %>
+                                <% if (!noSubmissionDate) { %>
+                                    <th>Submission date</th>
+                                <% } %>
+                            </tr>
                             </thead>
                             <tbody>
                             <%
@@ -51,24 +82,38 @@
                                             }
                                         }
                                     }
+                                    console.log('SURV', survey);
                             %>
                                 <tr>
                                     <td><%= survey.id %></td>
+                                    <% if (!noStart) { %>
                                     <td><%= moment(survey.start).format('MMM Do YYYY, h:mm a') %></td>
+                                    <% } %>
+                                    <% if (!noEnd) { %>
                                     <td><%= moment(survey.end).format('MMM Do YYYY, h:mm a') %></td>
+                                    <% } %>
+                                    <% if (hasZone) { %>
+                                        <td><%= survey.Zone ? survey.Zone.name : '' %></td>
+                                        <% } %>
                                     <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>">View data</a></td>
-                                    <% if(isAdmin && !survey.get('reviewCount')) { %>
+                                    <% if(isAdmin && !survey.get('reviewCount') && !noReviews) { %>
                                         <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/review">
                                             Review data
                                         </a></td>
-                                    <% } else if (isAdmin) { %>
+                                    <% } else if (isAdmin && !noReviews) { %>
                                         <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/reviews">
                                             Reviews: <%= survey.get('reviewCount') %>
                                         </a></td>
                                     <% } %>
                                     <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observations"><%= survey.get('observationCount') %> <%= locals.t('records', project) %></a></td>
+                                    <% if (addObservationsColumn) { %>
+                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observation/new">Add <%= locals.t('observations', project) %></a></td>
+                                    <% } else { %>
                                     <td><%= survey.author.firstName %> <%= survey.author.lastName %></td>
-                                    <td><%= moment(survey.createdAt).format('MMM Do YYYY, h:mm a') %></td>
+                                    <% } %>
+                                    <% if (!noSubmissionDate) { %>
+                                        <td><%= moment(survey.createdAt).format('MMM Do YYYY, h:mm a') %></td>
+                                    <% } %>
                                 </tr>
                             <% }); %>
                             </tbody>

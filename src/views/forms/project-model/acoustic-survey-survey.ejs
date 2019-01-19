@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../../head %>
+
+    <body>
+        <% include ../../menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <% if (locals.from) { %>
+                        <div id="previous-survey-id">Survey #<%= locals.from %> submitted</div>
+                    <% } %>
+                    <h2>Acoustic Survey Form</h2>
+                </div>
+                <div class="content">
+
+                    <p>Enter the archive.org URL to the survey period.</p>
+
+                    <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
+                        <fieldset>
+                            <div class="pure-control-group">
+                                <label for="form-date">Date:</label>
+                                <input type="date" name="date" id="form-date" required>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-start-time">Start time:</label>
+                                <input type="time" name="start_time" id="form-start-time" value="00:00">
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-route">Location:</label>
+                                <select name="route" id="form-route" required>
+                                    <option value="">Select one...</option>
+                                    <%
+                                        zones.forEach(zone => {
+                                    %>
+                                    <option value="<%= zone.id %>"><%= zone.name %> (<%= zone.code %>)</option>
+                                    <%
+                                        });
+                                    %>
+                                </select>
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <div class="pure-control-group">
+                                <label for="form-x-ebird-checklist-url">archive.org URL</label>
+                                <input type="url" name="archive_org_url" id="form-x-ebird-checklist-url" placeholder="e.g. https://archive.org/details/HNCSW120181220" class="pure-input-1-3" required>
+                            </div>
+                        </fieldset>
+
+                        <% if (locals.resubmit) { %>
+                        <input type="hidden" name="resubmit" value="<%= resubmit.id %>">
+                        <fieldset>
+                            <legend>Resubmit</legend>
+                            <div class="pure-controls">
+                                    <label></label>
+                                    <p>This is a resubmit of <b>Survey #<%= resubmit.id %></b>. Please review the data carefully so you need not re-enter again!</p>
+                            </div>
+                        </fieldset>
+                        <% } %>
+
+                        <fieldset>
+                            <input type="hidden" name="cycle" value="<%= cycle.id %>">
+                            <input type="hidden" name="skip_observations" value="1">
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>
+                            </div>
+                        </fieldset>
+
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>
