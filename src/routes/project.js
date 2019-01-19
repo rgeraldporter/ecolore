@@ -2231,7 +2231,7 @@ module.exports = function(router) {
             .map(observationTrans => {
                 return observationTrans(req, res, next);
             })
-            .fork(console.error, next);
+            .fork(console.error, x => x);
 
     const checkRequirements = ([validations, req, res, next]) =>
         check(validations.exists).exists()(req, res, next);

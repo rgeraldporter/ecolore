@@ -14,22 +14,35 @@ const observation = (req, res, next) => {
         req.body.filenames = [];
 
         files.forEach(file => {
-            const content = fs.readFileSync(file.path,'utf8');
+            const content = fs.readFileSync(file.path, 'utf8');
             const filename = file.originalname.slice(0, -4);
-            const fileDate = moment(filename.split('_')[1] + filename.split('_')[2], 'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss');
+            const fileDate = moment(
+                filename.split('_')[1] + filename.split('_')[2],
+                'YYYYMMDDHHmmss'
+            ).format('YYYY-MM-DD HH:mm:ss');
             const deviceId = filename.split('_')[0];
-            const observations = labels.parse(content).join()
-                .map(label => Object.assign(label, {
-                    fileDate,
-                    filename,
-                    deviceId,
-                    time: moment(fileDate).add(label.startTime, 'seconds').format('YYYY-MM-DD HH:mm:ss.SSS'),
-                    duration: label.endTime - label.startTime,
-                    submitterName: res.locals.user.firstName + ' ' + res.locals.user.lastName
-                }));
+            const observations = labels
+                .parse(content)
+                .join()
+                .map(label =>
+                    Object.assign(label, {
+                        fileDate,
+                        filename,
+                        deviceId,
+                        time: moment(fileDate)
+                            .add(label.startTime, 'seconds')
+                            .format('YYYY-MM-DD HH:mm:ss.SSS'),
+                        duration: label.endTime - label.startTime,
+                        submitterName:
+                            res.locals.user.firstName +
+                            ' ' +
+                            res.locals.user.lastName
+                    })
+                );
             req.body.observations.push(observations);
             req.body.filenames.push(file.originalname);
-        })
+        });
+        next();
     });
 };
 
