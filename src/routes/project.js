@@ -2271,9 +2271,9 @@ module.exports = function(router) {
         '/project/:slug/observation',
         [
             passwordless.restricted({ failureRedirect: '/login' }),
-            transformObservationData,
-            validateObservationData
+            transformObservationData
         ],
+        validateObservationData,
         (req, res, next) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
