@@ -51,47 +51,8 @@ const surveyTemplate = ([project, getParams]) =>
         ? getSurveyFormByName([project, getParams.form])
         : getStandardSurveyForm(project);
 
-const rolePath = R.lensPath(['Memberships', 0, 'role']);
-const sincePath = R.lensPath(['Memberships', 0, 'createdAt']);
-const parseMembership = val => ({
-    role: R.view(rolePath, val) || 'none',
-    since: R.view(sincePath, val) || null
-});
-
 /* @todo verify cycles are part of the right project, etc */
-
-const parseProject = project => ({
-    id: project.get('id'),
-    title: project.get('title'),
-    slug: project.get('slug'),
-    model: project.get('model'),
-    location: project.get('location'),
-    description: project.get('description'),
-    url: project.get('url'),
-    initialYear: project.get('initialYear'),
-    status: project.get('status'),
-    public: project.get('public'),
-    config: JSON.parse(project.get('config')),
-    memberSince: R.pathOr(null, ['membership', 'since'], project),
-    memberRole: R.pathOr('none', ['membership', 'role'], project),
-    Cycles: project.get('Cycles')
-});
-
-const parseProjectAndMemberships = project => ({
-    id: project.get('id'),
-    title: project.get('title'),
-    slug: project.get('slug'),
-    model: project.get('model'),
-    location: project.get('location'),
-    description: project.get('description'),
-    url: project.get('url'),
-    initialYear: project.get('initialYear'),
-    status: project.get('status'),
-    public: project.get('public'),
-    config: JSON.parse(project.get('config')),
-    memberSince: R.propOr('none', 'since', parseMembership(project)),
-    memberRole: R.propOr('none', 'role', parseMembership(project))
-});
+const {parseProject, parseMembership, parseProjectAndMemberships} = require('../helpers/project-helper');
 
 const renderProjectTemplate = project =>
     project ? { project: parseProject(project) } : { project: {} };
@@ -1142,36 +1103,6 @@ module.exports = function(router) {
                         });
                         res.send(theText.join());
                     }
-                )
-    );
-
-    router.get(
-        '/project/:slug/cycle/:cycleId/survey/:surveyId/observation/new',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findContributorBySlugF([req.params.slug, req.user])
-                .chain(project =>
-                    Future.both(
-                        Future.of(project),
-                        findSurveyByCycleAndId([
-                            req.params.cycleId,
-                            req.params.surveyId
-                        ])
-                    )
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([project, survey]) =>
-                        renderProjectPage(
-                            res,
-                            observationTemplate(project),
-                            Object.assign(renderProjectTemplate(project), {
-                                cycle: { id: req.params.cycleId },
-                                survey,
-                                from: req.query.from || false,
-                                fromNewSurvey: req.query.fromNewSurvey || false
-                            })
-                        )
                 )
     );
 

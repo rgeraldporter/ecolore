@@ -1,10 +1,10 @@
 {
     "name": "ecolore",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "description": "EcoLore",
     "main": "src/app.js",
     "scripts": {
-        "test": "test",
+        "test": "jest",
         "start": "TZ=utc nodemon src/app.js",
         "db:migrate": "node_modules/.bin/sequelize db:migrate"
     },
@@ -47,6 +47,8 @@
         "write-csv": "1.0.0"
     },
     "devDependencies": {
+        "falsifire": "0.3.0",
+        "jest": "24.0.0",
         "nodemon": "1.17.3",
         "sequelize-cli": "^3.2.0"
     }
