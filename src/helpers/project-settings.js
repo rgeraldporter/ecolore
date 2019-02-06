@@ -1,12 +1,13 @@
 const settings = {
     'acoustic-survey': {
         surveys: {
-            noReviews: true,
+            noReviews: false,
             noStart: false,
             noEnd: true,
             hasZone: true,
             noSubmissionDate: true,
-            addObservationsColumn: true
+            addObservationsColumn: true,
+            doNotReviewObservationCount: true
         },
         observations: {
             noReviews: false,

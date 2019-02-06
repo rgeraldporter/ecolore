@@ -6,7 +6,7 @@ const observations = {
 
 const surveys = {
     exists: ['cycle', 'archive_org_url', 'date', 'start_time', 'zone'],
-    optional: ['form', 'resubmit']
+    optional: ['form', 'resubmit', 'skip_observations']
 };
 
 module.exports = { observations, surveys };

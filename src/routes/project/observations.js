@@ -47,7 +47,7 @@ const findSurveyByCycleAndId = ([cycleId, id]) =>
         ]
     });
 
-const findUserAsContributorOfProjectF = ([email, project, required = true]) =>
+const findUserAsContributorOfProject = ([email, project, required = true]) =>
     findOneUser({
         where: { email },
         include: [
@@ -62,18 +62,18 @@ const findUserAsContributorOfProjectF = ([email, project, required = true]) =>
         ]
     });
 
-const findProjectBySlugF = slug =>
+const findProjectBySlug = slug =>
     findOneProject({
         where: { slug },
         include: [{ model: db.Cycle, order: [['start', 'DESC']] }]
     });
 
 const findContributorBySlug = ({ slug, userEmail }) =>
-    findProjectBySlugF(slug)
+    findProjectBySlug(slug)
         .chain(project =>
             Future.both(
                 Future.of(project),
-                findUserAsContributorOfProjectF([userEmail, project, false])
+                findUserAsContributorOfProject([userEmail, project, false])
             )
         )
         .map(([project, user]) =>
@@ -100,7 +100,7 @@ const newObservationRouter = (req, res, next) =>
         )
         // verify it is part of the correct project
         .chain(([project, survey]) =>
-            R.pathOr(0, ['Cycle', 'Project', 'id'], survey) !==
+            R.pathOr(Symbol('nonce'), ['Cycle', 'Project', 'id'], survey) !==
             project.get('id')
                 ? Future.reject('Survey not part of this project')
                 : Future.of({ project, survey })

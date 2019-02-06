@@ -7,6 +7,8 @@
             const hasLineBreaks = text => (text.match(/\n/g)||[]).length;
             const toUrl = text => locals.isUrl(text) ? md.render(`[${text}](${text})`) : text;
             const toMd = text => hasLineBreaks(text) ? md.render(text) : toUrl(text);
+            const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'surveys'], locals);
+            const doNotReviewObservationCount = projectTypeSettings.doNotReviewObservationCount || false;
         %>
 
 <body>
@@ -57,7 +59,7 @@
                     <tr>
                         <td><%= locals.t('observations', project) %></td>
                         <td><a <%= review ? 'target="_blank" ' : '' %> href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observations">Show all <%= survey.get('observationCount') %> <%= locals.t('observations', project) %> <%= review ? '(opens new window)' : '' %></a></td>
-                        <% if (review) { %>
+                        <% if (review && ! doNotReviewObservationCount) { %>
                             <td>
                                 <input type="checkbox" required>
                             </td>
