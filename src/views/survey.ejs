@@ -9,6 +9,22 @@
             const toMd = text => hasLineBreaks(text) ? md.render(text) : toUrl(text);
             const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'surveys'], locals);
             const doNotReviewObservationCount = projectTypeSettings.doNotReviewObservationCount || false;
+            const noLineBasedReviews = projectTypeSettings.noLineBasedReviews;
+
+            const detectField = ({key, data}) => key === 'zone' ? survey.Zone.name : data[key];
+            const noData = () => '[no data]';
+            const detectType = (key, data) => {
+
+                const condTable = ([key, data]) => [
+                    [!isNaN(data[key]), detectField, {key, data}],
+                    [typeof data[key] === 'string', toMd, data[key]],
+                    [true, noData, null]
+                ];
+
+                const result = condTable([key, data]).find(a => a[0]);
+                return result[1](result[2]);
+            };
+
         %>
 
 <body>
@@ -29,17 +45,19 @@
                     <% } %>
                     <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/surveys">Return to <%= locals.t('surveys', project) %> for <%= survey.Cycle.title  %></a>
             <form action="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review" method="POST"  class="pure-form pure-form-aligned">
-            <% if(review) { %>
-                <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
-            <% } %>
+            <% if(review && !noLineBasedReviews) { %>
+                    <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
+                <% } %>
             <% if (survey.get('reviewCount')) { %>
             <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/reviews">Show all <%= survey.get('reviewCount') %> reviews</a>
             <% } else { %>
-            No reviews yet.
+            No reviews yet. <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review">
+                Add a review
+            </a>
             <% } %>
             <table class="pure-table pure-table-horizontal">
                 <thead>
-                    <tr><th>Row</th><th>Value</th><%- review ? '<th>Correct?</th>' : '' %></tr>
+                    <tr><th>Row</th><th>Value</th><%- review && !noLineBasedReviews ? '<th>Correct?</th>' : '' %></tr>
                 </thead>
                 <tbody>
                 <%
@@ -48,8 +66,8 @@
                 %>
                     <tr>
                         <td><%= key %></td>
-                        <td><%- (typeof data[key] === 'string' ? toMd(data[key]) : data[key] || '[no data]') %></td>
-                        <% if (review) { %>
+                        <td><%- detectType(key,data) %></td>
+                        <% if (review && !noLineBasedReviews) { %>
                             <td>
                                 <input type="checkbox" required>
                             </td>
@@ -68,16 +86,28 @@
               </tbody>
             </table>
             <% if (review) { %>
-                <p>Review notes are only recorded if review is passed. For failed reviews, leave any review notes when re-entering under the notes section.</p>
+                <p>Your name and time of review will be recorded when you complete your review.</p>
                 <fieldset>
                     <div class="pure-control-group">
                         <label for="form-invitees">Review Notes</label>
                         <textarea rows="6" cols="35" name="comments" placeholder="Enter comments here (optional)"></textarea>
                     </div>
                 </fieldset>
+                <% if (noLineBasedReviews) { %>
+                <fieldset>
+                        <div class="pure-control-group">
+                            <label for="comment-submit"></label>
+                            <button type="submit" name="submitComment" value="1" class="pure-button pure-button-primary" id="comment-submit">Submit comment</button>
+                        </div>
+                </fieldset>
+                <% } %>
                 <fieldset>
                     <div class="pure-control-group">
-                        <label for="pass-submit"></label>
+                        <% if (noLineBasedReviews) { %>
+                        <label for="pass-submit">Passing the review will also submit your comments</label>
+                        <% } else { %>
+                            <label for="pass-submit"></label>
+                        <% } %>
                         <button type="submit" class="pure-button pure-button-primary button-success" id="pass-submit">Pass review</button>
                     </div>
                 </fieldset>

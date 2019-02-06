@@ -6,6 +6,7 @@ const settings = {
             noEnd: true,
             hasZone: true,
             noSubmissionDate: true,
+            noLineBasedReviews: true,
             addObservationsColumn: true,
             doNotReviewObservationCount: true
         },

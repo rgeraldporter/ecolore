@@ -96,6 +96,8 @@ Survey.hasMany(Observation);
 Google_Drive_OAuth2_Token.belongsTo(Project);
 Google_Drive_Project_State.belongsTo(Project);
 Review.belongsTo(User, { as: 'reviewer' });
+Review.belongsTo(Survey);
+Review.belongsTo(Observation);
 Observation.hasMany(Review);
 Survey.hasMany(Review);
 

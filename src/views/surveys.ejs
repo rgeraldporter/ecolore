@@ -12,6 +12,7 @@ const noReviews = projectTypeSettings.noReviews;
 const hasZone = projectTypeSettings.hasZone;
 const noSubmissionDate = projectTypeSettings.noSubmissionDate;
 const addObservationsColumn = projectTypeSettings.addObservationsColumn;
+const trunc = (str, len) => str.length > len ? str.substr(0, len) + '...' : str;
 
 %>
 
@@ -82,7 +83,6 @@ const addObservationsColumn = projectTypeSettings.addObservationsColumn;
                                             }
                                         }
                                     }
-                                    console.log('SURV', survey);
                             %>
                                 <tr>
                                     <td><%= survey.id %></td>
@@ -93,22 +93,23 @@ const addObservationsColumn = projectTypeSettings.addObservationsColumn;
                                     <td><%= moment(survey.end).format('MMM Do YYYY, h:mm a') %></td>
                                     <% } %>
                                     <% if (hasZone) { %>
-                                        <td><%= survey.Zone ? survey.Zone.name : '' %></td>
+                                        <td><%= survey.Zone ? `[${survey.Zone.code}] ` + trunc(survey.Zone.name, 35) : '' %></td>
                                         <% } %>
-                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>">View data</a></td>
+                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>">View</a></td>
                                     <% if(isAdmin && !survey.get('reviewCount') && !noReviews) { %>
                                         <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/review">
-                                            Review data
+                                            Review
                                         </a></td>
                                     <% } else if (isAdmin && !noReviews) { %>
                                         <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/reviews">
                                             Reviews: <%= survey.get('reviewCount') %>
                                         </a></td>
                                     <% } %>
-                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observations"><%= survey.get('observationCount') %> <%= locals.t('records', project) %></a></td>
+                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observations"><%= survey.get('observationCount') %> <%= locals.t('records', project) %></a>
                                     <% if (addObservationsColumn) { %>
-                                    <td><a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observation/new">Add <%= locals.t('observations', project) %></a></td>
+                                        (<a href="/project/<%= projectSlug %>/cycle/<%= cycle.id %>/survey/<%= survey.id %>/observation/new">+Add</a>)
                                     <% } else { %>
+                                    </td>
                                     <td><%= survey.author.firstName %> <%= survey.author.lastName %></td>
                                     <% } %>
                                     <% if (!noSubmissionDate) { %>

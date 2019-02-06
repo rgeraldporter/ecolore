@@ -52,10 +52,19 @@ const surveyTemplate = ([project, getParams]) =>
         : getStandardSurveyForm(project);
 
 /* @todo verify cycles are part of the right project, etc */
-const {parseProject, parseMembership, parseProjectAndMemberships} = require('../helpers/project-helper');
+const {
+    parseProject,
+    parseMembership,
+    parseProjectAndMemberships
+} = require('../helpers/project-helper');
 
 const renderProjectTemplate = project =>
     project ? { project: parseProject(project) } : { project: {} };
+
+const renderProjectMembershipsTemplate = project =>
+    project
+        ? { project: parseProjectAndMemberships(project) }
+        : { project: {} };
 
 const renderProjectsTemplates = projects => ({
     projects: projects.map(parseProjectAndMemberships)
@@ -336,7 +345,9 @@ const findSurveysByCycle = cycle =>
                     'observationCount'
                 ],
                 [
-                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
+                    db.Sequelize.literal(
+                        '(SELECT COUNT(*) FROM Reviews WHERE Reviews.surveyId = Survey.id)'
+                    ),
                     'reviewCount'
                 ]
             ]
@@ -982,7 +993,10 @@ module.exports = function(router) {
                     ])
                 )
                 .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
+                    _ => {
+                        console.error(_);
+                        return res.redirect(`/project/${req.params.slug}`);
+                    },
                     ([project, cycle, surveys]) =>
                         renderProjectPage(
                             res,
@@ -1391,6 +1405,51 @@ module.exports = function(router) {
                 )
     );
 
+    const findSurveyByCycleAndIdWithUser = ([cycleId, id, userId]) =>
+        findOneSurvey({
+            attributes: {
+                include: [
+                    [
+                        db.Sequelize.fn(
+                            'COUNT',
+                            db.Sequelize.col('Observations.id')
+                        ),
+                        'observationCount'
+                    ],
+                    // https://stackoverflow.com/questions/33900750/sequelize-order-by-count-association/36852571#36852571
+                    // cannot use same pattern as above, gives duplicate result.
+                    [
+                        db.Sequelize.literal(
+                            '(SELECT COUNT(*) FROM Reviews WHERE Reviews.surveyId = Survey.id)'
+                        ),
+                        'reviewCount'
+                    ]
+                ]
+            },
+            where: { cycleId, id },
+            include: [
+                {
+                    model: db.Cycle,
+                    include: [
+                        {
+                            model: db.Project,
+                            include: [
+                                {
+                                    model: db.Membership,
+                                    where: {
+                                        userId
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                db.Observation,
+                db.Review,
+                db.Zone
+            ]
+        });
+
     const findSurveyByCycleAndId = ([cycleId, id]) =>
         findOneSurvey({
             attributes: {
@@ -1402,10 +1461,11 @@ module.exports = function(router) {
                         ),
                         'observationCount'
                     ],
+                    // https://stackoverflow.com/questions/33900750/sequelize-order-by-count-association/36852571#36852571
+                    // cannot use same pattern as above, gives duplicate result.
                     [
-                        db.Sequelize.fn(
-                            'COUNT',
-                            db.Sequelize.col('Reviews.id')
+                        db.Sequelize.literal(
+                            '(SELECT COUNT(*) FROM Reviews WHERE Reviews.surveyId = Survey.id)'
                         ),
                         'reviewCount'
                     ]
@@ -1427,7 +1487,11 @@ module.exports = function(router) {
         '/project/:slug/cycle/:id/survey/:surveyId',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
-            findSurveyByCycleAndId([req.params.id, req.params.surveyId])
+            findSurveyByCycleAndIdWithUser([
+                req.params.id,
+                req.params.surveyId,
+                res.locals.user.id
+            ])
                 .chain(survey =>
                     Future.both(
                         Future.of(survey),
@@ -1444,7 +1508,10 @@ module.exports = function(router) {
                         : Future.reject('You are not a member of this project')
                 )
                 .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
+                    _ => {
+                        console.error(_);
+                        return res.redirect(`/project/${req.params.slug}`);
+                    },
                     ([survey, membership]) =>
                         renderProjectPage(
                             res,
@@ -1454,7 +1521,9 @@ module.exports = function(router) {
                                     survey,
                                     review: false
                                 },
-                                renderProjectTemplate(survey.Cycle.Project)
+                                renderProjectMembershipsTemplate(
+                                    survey.Cycle.Project
+                                )
                             )
                         )
                 )
@@ -1498,7 +1567,11 @@ module.exports = function(router) {
         '/project/:slug/cycle/:id/survey/:surveyId/review',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
-            findSurveyByCycleAndId([req.params.id, req.params.surveyId])
+            findSurveyByCycleAndIdWithUser([
+                req.params.id,
+                req.params.surveyId,
+                res.locals.user.id
+            ])
                 .chain(survey =>
                     Future.both(
                         Future.of(survey),
@@ -1525,7 +1598,9 @@ module.exports = function(router) {
                                     survey,
                                     review: true
                                 },
-                                renderProjectTemplate(survey.Cycle.Project)
+                                renderProjectMembershipsTemplate(
+                                    survey.Cycle.Project
+                                )
                             )
                         )
                 )
@@ -2468,7 +2543,8 @@ module.exports = function(router) {
         [
             passwordless.restricted({ failureRedirect: '/login' }),
             check('invalidate').optional(),
-            check('comments').optional()
+            check('comments').optional(),
+            check('submitComment').optional()
         ],
         (req, res) => {
             const invalidateSurvey = (surveyId, data) =>
@@ -2529,7 +2605,7 @@ module.exports = function(router) {
                     comments: data.comments,
                     reviewerId: res.locals.user.id,
                     surveyId: req.params.surveyId,
-                    pass: true
+                    pass: data.submitComment ? false : true
                 }).then(() =>
                     res.redirect(
                         `/project/${req.params.slug}/cycle/${

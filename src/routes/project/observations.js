@@ -30,7 +30,9 @@ const findSurveyByCycleAndId = ([cycleId, id]) =>
                     'observationCount'
                 ],
                 [
-                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
+                    db.Sequelize.literal(
+                        '(SELECT COUNT(*) FROM Reviews WHERE Reviews.surveyId = Survey.id)'
+                    ),
                     'reviewCount'
                 ]
             ]

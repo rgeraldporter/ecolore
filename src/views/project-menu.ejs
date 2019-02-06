@@ -45,8 +45,9 @@ const projectTypeLink = `<a href="/project-types/${project.model}">${projectType
             <div><a href="/project/<%= project.slug %>/submit">Submit data</a></div>
         <% } %>
     <div><a href="/project/<%= project.slug %>/cycles"><%= locals.t('Cycles', project) %></a></div>
-    <div><a href="/project/<%= project.slug %>/zones"><%= locals.t('Zones', project) %></div>
-    <div><a href="/project/<%= project.slug %>/maps">Maps</a></div>
+    <div><a href="/project/<%= project.slug %>/zones"><%= locals.t('Zones', project) %></a></div>
+    <div>&nbsp;</div>
+    <!-- div><a href="/project/<%= project.slug %>/maps">Maps</a></div -->
     <div>Go to observation</div>
     <form method="POST" action="/project/browse-observation" class="pure-form pure-form-stacked">
         <fieldset>

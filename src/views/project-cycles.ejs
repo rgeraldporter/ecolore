@@ -27,9 +27,9 @@
             <table class="pure-table pure-table-horizontal">
                 <thead>
                     <tr>
-                        <th><%= locals.t('Cycle', project) %> Name</th>
+                        <th><%= locals.t('Cycle', project) %></th>
                         <% if(isContrib) { %><th></th> <% } %>
-                        <th></th><th></th><th>Start</th><th>End</th>
+                        <th></th><th>Start</th><th>End</th>
                         <% if (isAdmin) { %><th></th><% } %>
                     </tr>
                 </thead>
@@ -40,16 +40,15 @@
                 <% cycles.forEach(function(cycle) {
                     %>
                     <tr>
-                        <td><%= cycle.title %></td>
+                        <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/surveys"><%= cycle.title %></a></td>
                         <% if(isContrib) { %>
                         <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/new'><%= locals.t('Submit survey', project) %></a></td>
                         <% } %>
-                        <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/surveys">View <%= locals.t('surveys', project) %></a></td>
                         <td><a href="/data/csv/cycle/<%= cycle.id %>">Download Data</a></td>
                         <td><%= moment(cycle.start).format('LL'); %></td>
                         <td><%= moment(cycle.end).format('LL'); %></td>
                         <% if (isAdmin) { %>
-                        <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/edit'>Edit <%= locals.t('cycle', project) %></a></td>
+                        <td><a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/edit'>Edit</a></td>
                         <% } %>
                     </tr>
                 <% }); %>
