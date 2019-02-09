@@ -273,39 +273,6 @@ const findObservationBySurveyAndId = ([surveyId, id]) =>
         ]
     });
 
-const findObservationBySurveyAndIdWithFiles = ([surveyId, id]) =>
-    findOneObservation({
-        where: {
-            surveyId,
-            id
-        },
-        attributes: {
-            include: [
-                [
-                    db.Sequelize.fn('COUNT', db.Sequelize.col('Files.id')),
-                    'fileCount'
-                ],
-                [
-                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
-                    'reviewCount'
-                ]
-            ]
-        },
-        include: [
-            {
-                model: db.Survey,
-                include: [
-                    {
-                        model: db.Cycle,
-                        include: [db.Project]
-                    }
-                ]
-            },
-            db.File,
-            db.Review
-        ]
-    });
-
 const findObservationsBySurveyCycle = ([surveyId, cycleId]) =>
     findAllObservation({
         where: { surveyId, invalid: null },
@@ -798,38 +765,7 @@ module.exports = function(router) {
         - new user clicks link, is added to project and redirected to profile page?
     */
 
-    router.get(
-        '/project/:slug/cycles',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findMemberBySlugF([req.params.slug, req.user])
-                .chain(project =>
-                    project.get('id')
-                        ? Future.of(project)
-                        : Future.reject('You are not a member of this project')
-                )
-                .chain(project =>
-                    Future.both(
-                        Future.of(project),
-                        findAllCycle({
-                            where: { projectId: project.id },
-                            order: [['start', 'DESC']]
-                        })
-                    )
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([project, cycles]) =>
-                        renderProjectPage(
-                            res,
-                            'project-cycles',
-                            Object.assign(
-                                { cycles },
-                                renderProjectTemplate(project)
-                            )
-                        )
-                )
-    );
+
 
     router.get(
         '/project/:slug/zones',
@@ -965,94 +901,6 @@ module.exports = function(router) {
     );
 
     router.get(
-        '/project/:slug/cycle/:id/surveys',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findProjectBySlugF(req.params.slug)
-                .chain(project =>
-                    Future.both(
-                        Future.of(project),
-                        findUserAsMemberOfProjectF([req.user, project])
-                    )
-                )
-                .map(([project, user]) =>
-                    Object.assign(project, {
-                        membership: parseMembership(user)
-                    })
-                )
-                .chain(project =>
-                    isMemberOfProject(project)
-                        ? Future.of(project)
-                        : Future.reject('Not a member of this project')
-                )
-                .chain(project =>
-                    Future.parallel(3, [
-                        Future.of(project),
-                        findCycleByIdF(req.params.id),
-                        findSurveysByCycle(req.params.id)
-                    ])
-                )
-                .fork(
-                    _ => {
-                        console.error(_);
-                        return res.redirect(`/project/${req.params.slug}`);
-                    },
-                    ([project, cycle, surveys]) =>
-                        renderProjectPage(
-                            res,
-                            'surveys',
-                            Object.assign(
-                                {
-                                    projectSlug: req.params.slug
-                                },
-                                renderProjectTemplate(project),
-                                { cycle: cycle },
-                                { surveys },
-                                {
-                                    filter: req.query.filter || false
-                                }
-                            )
-                        )
-                )
-    );
-
-    router.get(
-        '/project/:slug/cycle/:cycleId/survey/:surveyId/observations',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findMemberBySlugF([req.params.slug, req.user])
-                .chain(project =>
-                    Future.parallel(3, [
-                        Future.of(project),
-                        findCycleByIdF(req.params.cycleId),
-                        findObservationsBySurveyCycle([
-                            req.params.surveyId,
-                            req.params.cycleId
-                        ])
-                    ])
-                )
-                .chain(([project, cycle, observations]) =>
-                    isMemberOfProject(project)
-                        ? Future.of([project, cycle, observations])
-                        : Future.reject('Not a member of this project')
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([project, cycle, observations]) =>
-                        renderProjectPage(
-                            res,
-                            'observations',
-                            Object.assign(
-                                { cycle },
-                                { observations },
-                                { surveyId: req.params.surveyId },
-                                renderProjectTemplate(project)
-                            )
-                        )
-                )
-    );
-
-    router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observation/:observationId/audacity-labels',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
@@ -1154,44 +1002,6 @@ module.exports = function(router) {
     );
 
     router.get(
-        '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findMemberBySlugF([req.params.slug, req.user])
-                .chain(project =>
-                    Future.both(
-                        Future.of(project),
-                        findObservationBySurveyAndIdWithFiles([
-                            req.params.surveyId,
-                            req.params.observationId
-                        ])
-                    )
-                )
-                .chain(([project, observation]) =>
-                    isMemberOfProject(project)
-                        ? Future.of([project, observation])
-                        : Future.reject('Not a member of this project')
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([project, observation]) =>
-                        renderProjectPage(
-                            res,
-                            'observation',
-                            Object.assign(
-                                {
-                                    cycleId: req.params.id,
-                                    projectSlug: req.params.slug,
-                                    observation
-                                },
-                                renderProjectTemplate(project),
-                                { review: false }
-                            )
-                        )
-                )
-    );
-
-    router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/files',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
@@ -1271,44 +1081,6 @@ module.exports = function(router) {
     );
 
     router.get(
-        '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/review',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findMemberBySlugF([req.params.slug, req.user])
-                .chain(project =>
-                    Future.both(
-                        Future.of(project),
-                        findObservationBySurveyAndId([
-                            req.params.surveyId,
-                            req.params.observationId
-                        ])
-                    )
-                )
-                .chain(([project, observation]) =>
-                    isMemberOfProject(project)
-                        ? Future.of([project, observation])
-                        : Future.reject('You are not a member of this project')
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([project, observation]) =>
-                        renderProjectPage(
-                            res,
-                            'observation',
-                            Object.assign(
-                                {
-                                    cycleId: req.params.id,
-                                    projectSlug: req.params.slug,
-                                    observation
-                                },
-                                renderProjectTemplate(project),
-                                { review: true }
-                            )
-                        )
-                )
-    );
-
-    router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/observation/:observationId/reviews',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
@@ -1339,42 +1111,6 @@ module.exports = function(router) {
                                 },
                                 renderProjectTemplate(project)
                             )
-                        )
-                )
-    );
-
-    router.get(
-        '/project/:slug/cycle/:id/survey/new',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findMemberBySlugF([req.params.slug, req.user])
-                .chain(project =>
-                    isContributorOfProject(project)
-                        ? Future.of(project)
-                        : Future.reject(
-                              'You are either not a member of this project or not a contributor'
-                          )
-                )
-                .chain(project =>
-                    Future.both(
-                        Future.of(project),
-                        findAllZone({
-                            where: { projectId: project.id },
-                            order: [['code', 'ASC']]
-                        })
-                    )
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([project, zones]) =>
-                        renderProjectPage(
-                            res,
-                            surveyTemplate([project, req.query]),
-                            Object.assign(renderProjectTemplate(project), {
-                                cycle: { id: req.params.id },
-                                zones,
-                                from: req.query.from || false
-                            })
                         )
                 )
     );
@@ -1484,52 +1220,6 @@ module.exports = function(router) {
         });
 
     router.get(
-        '/project/:slug/cycle/:id/survey/:surveyId',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findSurveyByCycleAndIdWithUser([
-                req.params.id,
-                req.params.surveyId,
-                res.locals.user.id
-            ])
-                .chain(survey =>
-                    Future.both(
-                        Future.of(survey),
-                        findUserAsMemberOfProjectByIdF([
-                            res.locals.user.id,
-                            survey.Cycle.Project,
-                            true
-                        ])
-                    )
-                )
-                .chain(([survey, membership]) =>
-                    membership
-                        ? Future.of([survey, membership])
-                        : Future.reject('You are not a member of this project')
-                )
-                .fork(
-                    _ => {
-                        console.error(_);
-                        return res.redirect(`/project/${req.params.slug}`);
-                    },
-                    ([survey, membership]) =>
-                        renderProjectPage(
-                            res,
-                            'survey',
-                            Object.assign(
-                                {
-                                    survey,
-                                    review: false
-                                },
-                                renderProjectMembershipsTemplate(
-                                    survey.Cycle.Project
-                                )
-                            )
-                        )
-                )
-    );
-
-    router.get(
         '/project/:slug/cycle/:id/survey/:surveyId/reviews',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
@@ -1558,49 +1248,6 @@ module.exports = function(router) {
                                     surveyId: req.params.surveyId
                                 },
                                 renderProjectTemplate(project)
-                            )
-                        )
-                )
-    );
-
-    router.get(
-        '/project/:slug/cycle/:id/survey/:surveyId/review',
-        passwordless.restricted({ failureRedirect: '/login' }),
-        (req, res) =>
-            findSurveyByCycleAndIdWithUser([
-                req.params.id,
-                req.params.surveyId,
-                res.locals.user.id
-            ])
-                .chain(survey =>
-                    Future.both(
-                        Future.of(survey),
-                        findUserAsMemberOfProjectByIdF([
-                            res.locals.user.id,
-                            survey.Cycle.Project,
-                            true
-                        ])
-                    )
-                )
-                .chain(([survey, membership]) =>
-                    membership
-                        ? Future.of([survey, membership])
-                        : Future.reject('You are not a member of this project')
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([survey, membership]) =>
-                        renderProjectPage(
-                            res,
-                            'survey',
-                            Object.assign(
-                                {
-                                    survey,
-                                    review: true
-                                },
-                                renderProjectMembershipsTemplate(
-                                    survey.Cycle.Project
-                                )
                             )
                         )
                 )

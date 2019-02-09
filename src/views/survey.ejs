@@ -4,27 +4,8 @@
         <% include head %>
 
         <%
-            const hasLineBreaks = text => (text.match(/\n/g)||[]).length;
-            const toUrl = text => locals.isUrl(text) ? md.render(`[${text}](${text})`) : text;
-            const toMd = text => hasLineBreaks(text) ? md.render(text) : toUrl(text);
             const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'surveys'], locals);
-            const doNotReviewObservationCount = projectTypeSettings.doNotReviewObservationCount || false;
             const noLineBasedReviews = projectTypeSettings.noLineBasedReviews;
-
-            const detectField = ({key, data}) => key === 'zone' ? survey.Zone.name : data[key];
-            const noData = () => '[no data]';
-            const detectType = (key, data) => {
-
-                const condTable = ([key, data]) => [
-                    [!isNaN(data[key]), detectField, {key, data}],
-                    [typeof data[key] === 'string', toMd, data[key]],
-                    [true, noData, null]
-                ];
-
-                const result = condTable([key, data]).find(a => a[0]);
-                return result[1](result[2]);
-            };
-
         %>
 
 <body>
@@ -38,12 +19,19 @@
             <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
             <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
             || project.memberRole === 'contributor'; %>
-            <main class="pure-u-1 pure-u-md-3-5">
-                    <h2><%- review ? 'Review ' : '' %>Data: <%= locals.t('Survey', project) %> <%= survey.id %></h2>
+            <main class="pure-u-1 pure-u-md-5-6">
+
+                    <h3 class="content-subhead">
+                            <a href='/project/<%= project.slug %>/cycles'><%= locals.t('Cycles', project) %></a> &raquo;
+                            <a href='/project/<%= project.slug %>/cycles'><%= survey.Cycle.title %></a> &raquo;
+                            <%= locals.t('Survey', project) %> # <%= survey.id %> <%- review ? '(Review)' : '' %>
+                        </h3>
+
+
                     <% if(isContrib) { %>
                         <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observation/new">Add <%= locals.t('observation', project) %></a><br>
                     <% } %>
-                    <a href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/surveys">Return to <%= locals.t('surveys', project) %> for <%= survey.Cycle.title  %></a>
+
             <form action="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/review" method="POST"  class="pure-form pure-form-aligned">
             <% if(review && !noLineBasedReviews) { %>
                     <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
@@ -55,36 +43,9 @@
                 Add a review
             </a>
             <% } %>
-            <table class="pure-table pure-table-horizontal">
-                <thead>
-                    <tr><th>Row</th><th>Value</th><%- review && !noLineBasedReviews ? '<th>Correct?</th>' : '' %></tr>
-                </thead>
-                <tbody>
-                <%
-                    const data = JSON.parse(survey.data);
-                    Object.keys(data).forEach(key => {
-                %>
-                    <tr>
-                        <td><%= key %></td>
-                        <td><%- detectType(key,data) %></td>
-                        <% if (review && !noLineBasedReviews) { %>
-                            <td>
-                                <input type="checkbox" required>
-                            </td>
-                        <% } %>
-                    </tr>
-                <% }); %>
-                    <tr>
-                        <td><%= locals.t('observations', project) %></td>
-                        <td><a <%= review ? 'target="_blank" ' : '' %> href="/project/<%= project.slug %>/cycle/<%= survey.Cycle.id %>/survey/<%= survey.id %>/observations">Show all <%= survey.get('observationCount') %> <%= locals.t('observations', project) %> <%= review ? '(opens new window)' : '' %></a></td>
-                        <% if (review && ! doNotReviewObservationCount) { %>
-                            <td>
-                                <input type="checkbox" required>
-                            </td>
-                        <% } %>
-                    </tr>
-              </tbody>
-            </table>
+
+            <% include datatable %>
+
             <% if (review) { %>
                 <p>Your name and time of review will be recorded when you complete your review.</p>
                 <fieldset>

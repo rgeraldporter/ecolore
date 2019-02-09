@@ -1,4 +1,11 @@
 const settings = {
+    'turtle-watch': {
+        surveys: {
+            excludeColumns: [
+                'Location'
+            ]
+        }
+    },
     'acoustic-survey': {
         surveys: {
             noReviews: false,
@@ -8,7 +15,12 @@ const settings = {
             noSubmissionDate: true,
             noLineBasedReviews: true,
             addObservationsColumn: true,
-            doNotReviewObservationCount: true
+            doNotReviewObservationCount: true,
+            excludeColumns: [
+                'End',
+                'Submitted by',
+                'Submission date'
+            ]
         },
         observations: {
             noReviews: false,
@@ -24,4 +36,4 @@ const settings = {
     }
 };
 
-module.exports = {settings};
+module.exports = { settings };

@@ -12,6 +12,9 @@ body {
     color: #7f8c8d;
     font-size: 13px;
     line-height: 1.6em;
+    margin:0;
+    padding:0;
+    height:100%;
 }
 
 h1,
@@ -89,7 +92,41 @@ a.button-success {
 }
 
 a.button-secondary {
-    background: #408dde; /* this is a light blue */
+    background: rgb(66, 184, 221); /* this is a light blue */
+}
+
+a.button-cyan-table-action {
+    color: rgb(65, 136, 168);
+    border-radius: 4px;
+    border: 1px solid rgb(65, 136, 168);
+    background: #faf9f9;
+}
+
+a.button-table-action {
+    color: rgb(54, 54, 54);
+    border-radius: 4px;
+    border: 1px solid rgb(143, 143, 143);
+    background: #faf9f9;
+}
+
+.button-xsmall {
+    font-size: 70%;
+}
+
+.button-small {
+    font-size: 85%;
+}
+
+.button-large {
+    font-size: 110%;
+}
+
+.button-xlarge {
+    font-size: 125%;
+}
+
+.small-caps {
+    font-variant: small-caps;
 }
 
 
@@ -197,17 +234,16 @@ div.home-menu.pure-menu {
     /* These styles are required for the "scroll-over" effect */
     position: absolute;
     width: 100%;
-    min-height: 12%;
+    padding-top: 3.75em;
     /*z-index: 2;*/
-    top: 4em;
-    padding-left: 1em;
-    background: white;
-
+    background: #f3f3f3;
+    min-height:100%;
 }
 
 /* We want to give the content area some more padding */
 .content {
-    padding: 1em 1em 3em;
+    padding-left: 1em;
+    padding-bottom: 2em;
 }
 
 /* This is the class used for the main content headers (<h2>) */
@@ -238,20 +274,38 @@ div.home-menu.pure-menu {
 }
 
 /* This is the class used for the footer */
-.footer {
-    background: #111;
-    position: fixed;
-    bottom: 0;
+footer {
+    padding: 0.5em;
+    position: absolute;
     width: 100%;
+    bottom: 0;
+    background-color: rgb(224, 224, 231)
+}
+
+.header {
+    padding-left: 0.5em;
 }
 
 .project-sidebar {
+    font-size: 10pt;
+    padding-left: 0em;
+}
+
+table {
     font-size: 11pt;
+}
+
+tr {
+    color: #101010;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 main {
     border-left: 1px solid #bbb;
     padding-left: 2em;
+    padding-bottom: 2.75em;
+    background: #faf9f9;
+    border-bottom: 1px solid #bbb;
 }
 
 footer {

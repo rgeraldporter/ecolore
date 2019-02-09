@@ -27,12 +27,20 @@ const allowNewData = projectTypeSettings.allowNewData;
             <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
             || project.memberRole === 'contributor'; %>
 
-            <main class="pure-u-1 pure-u-md-3-5">
-            <h2><%- review ? 'Review ' : '' %>Data: <%= locals.t('Observation', project) %> <%= observation.id %></h2>
+            <main class="pure-u-1 pure-u-md-5-6">
+
+            <h3 class="content-subhead">
+                    <a href='/project/<%= project.slug %>/cycles'><%= locals.t('Cycles', project) %></a> &raquo;
+                    <a href='/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/surveys'><%= observation.Survey.Cycle.title %></a>  &raquo;
+                    <a href='/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>'><%= locals.t('Survey', project) %> #<%= observation.Survey.id %></a> &raquo;
+                    <a href='/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observations'><%= locals.t('Observations', project) %></a> &raquo;
+                    <%= locals.t('Observation', project) %> # <%= observation.id %>
+                </h3>
+
+
             <% if(isContrib && canHavePhotos) { %>
                 <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/upload">Add photo</a><br>
             <% } %>
-            <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observations">Return to <%= locals.t('observations', project) %> for survey #<%= observation.Survey.id %></a>
             <form action="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/review" method="POST" class="pure-form pure-form-aligned">
             <% if (observation.get('reviewCount')) { %>
                 <a href="/project/<%= project.slug %>/cycle/<%= observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/reviews">Show all <%= observation.get('reviewCount') %> reviews</a>
@@ -44,54 +52,9 @@ const allowNewData = projectTypeSettings.allowNewData;
             <% if(review && !noLineBasedReviews) { %>
                 <p>When in review, each row must be checked off as correct, before you can submit it as passed.</p>
             <% } %>
-            <table class="pure-table pure-table-horizontal">
-                <thead>
-                    <tr><th>Row</th><th>Value</th><%- review && !noLineBasedReviews ? '<th>Correct?</th>' : '' %></tr>
-                </thead>
-                <tbody>
-                <%
-                    const data = JSON.parse(observation.data);
-                    const surveyData = JSON.parse(observation.Survey.data);
-                    Object.keys(data).forEach(key => {
-                %>
-                    <tr>
-                        <td><%= key %></td>
-                        <td><%= (typeof data[key] === 'string' ? toMd(data[key]) : data[key] || '[no data]') %></td>
-                        <% if (review && !noLineBasedReviews) { %>
-                        <td>
-                            <input type="checkbox" required>
-                        </td>
-                        <% } %>
-                    </tr>
-                <% }); %>
-                    <% if (canHavePhotos) { %>
-                    <tr>
-                        <td>photos</td>
-                        <td><a <%= review ? 'target="_blank" ' : '' %> href="/project/<%= project.slug %>/cycle/<%=observation.Survey.Cycle.id %>/survey/<%= observation.Survey.id %>/observation/<%= observation.id %>/files">Show all <%= observation.get('fileCount') %> photos <%= review ? '(opens new window)' : '' %></a></td>
-                        <% if (review) { %>
-                            <td>
-                                <input type="checkbox" required>
-                            </td>
-                        <% } %>
-                    </tr>
-                    <% } %>
-                    <% if (archiveAudio) { %>
-                        <%
-                            const filename = data.filename + '.wav';
-                            const startTime = data.startTime;
-                        %>
-                        <tr>
-                            <td>link</td>
-                            <td>
-                                <a target="_blank" href="<%= surveyData.archive_org_url + '/' + filename + '?start=' + startTime  %>">Listen</a>
-                            </td>
-                        </tr>
-                    <% } %>
-                <%
-                    //
-                %>
-              </tbody>
-            </table>
+
+            <% include datatable %>
+
             <% if (review) { %>
                 <p>Your name and time of review will be recorded when you complete your review.</p>
                 <fieldset>

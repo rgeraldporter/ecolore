@@ -1,0 +1,35 @@
+<table class="pure-table pure-table-horizontal">
+    <caption style=" caption-side: bottom;">
+        Table data formats available: 
+            <a href="<%= urlPath %>/csv">csv</a> |
+            <a href="<%= urlPath %>/json">json</a> <!--|
+            <a href="<%= urlPath %>/xml">xml</a> |
+            <a href="<%= urlPath %>/text">text</a> |
+            <a href="<%= urlPath %>/text">excel</a> |
+            <a href="<%= urlPath %>/text">yaml</a> |
+            <a href="<%= urlPath %>/text">tsv</a> |
+            <a href="<%= urlPath %>/text">md</a>
+            -->
+    </caption>
+    <thead>
+        <tr>
+            <% dt.header().forEach(header => { %>
+                <th><%= header %></th>
+            <% }); %>
+        </tr>
+    </thead>
+    <tbody>
+        <% dt.join().forEach((row, i) => { %>
+
+            <tr data-index="<%= i %>">
+
+                <% if(i == 0) return; %>
+
+                <% row.forEach((point, ii) => { %>
+                    <td data-index="<%= ii %>"><%- point %></td>
+                <% }); %>
+
+            </tr>
+        <% }); %>
+    </tbody>
+</table>

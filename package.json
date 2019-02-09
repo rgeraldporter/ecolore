@@ -1,6 +1,6 @@
 {
     "name": "ecolore",
-    "version": "0.9.3",
+    "version": "0.10.0",
     "description": "EcoLore",
     "main": "src/app.js",
     "scripts": {
@@ -17,6 +17,7 @@
         "connect-session-sequelize": "5.2.1",
         "cookie-parser": "^1.4.3",
         "csv-express": "1.2.2",
+        "datatable-monad": "0.2.0",
         "dotenv": "5.0.1",
         "ejs": "^2.5.7",
         "express": "^4.16.2",
@@ -44,7 +45,9 @@
         "random-token": "0.0.8",
         "sequelize": "4.37.6",
         "simple-maybe": "0.1.2",
-        "write-csv": "1.0.0"
+        "write-csv": "1.0.0",
+        "xml": "1.0.1",
+        "xml-js": "1.6.9"
     },
     "devDependencies": {
         "falsifire": "0.3.0",
