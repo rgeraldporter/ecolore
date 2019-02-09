@@ -10,11 +10,11 @@
                     <% if (locals.from) { %>
                         <div id="previous-survey-id">Survey #<%= locals.from %> submitted</div>
                     <% } %>
-                    <h2>Acoustic Survey Day Form</h2>
+                    <h2>Acoustic Survey Trackset Form</h2>
                 </div>
                 <div class="content">
 
-                    <p>Enter the archive.org URL to the survey period.</p>
+                    <p>Enter the archive.org URL that contains the tracks for this set.</p>
 
                     <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
                         <fieldset>

@@ -3,15 +3,6 @@
 
         <% include head %>
 
-<%
-
-const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'observations'], locals);
-const noReviews = projectTypeSettings.noReviews;
-const noPhotos = projectTypeSettings.noPhotos;
-const labelDownload = projectTypeSettings.labelDownload;
-
-%>
-
 <body>
         <% include menu %>
         <div class="content-wrapper">
@@ -23,64 +14,20 @@ const labelDownload = projectTypeSettings.labelDownload;
             <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
             || project.memberRole === 'contributor'; %>
 
-            <main class="pure-u-1 pure-u-md-3-5">
-                    <h2>Data: <%= locals.t('Observations', project) %> for <%= locals.t('Survey', project) %> Record #<%= surveyId %></h2>
+            <main class="pure-u-1 pure-u-md-5-6">
+                    <h3 class="content-subhead">
+                        <a href='/project/<%= project.slug %>/cycles'><%= locals.t('Cycles', project) %></a> &raquo;
+                        <a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/surveys'><%= cycle.title %></a>  &raquo;
+                        <a href='/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= surveyId %>'><%= locals.t('Survey', project) %> #<%= surveyId %></a> &raquo;
+                        <%= locals.t('Observations', project) %>
+                    </h3>
+
                     <% if(isContrib) { %>
                         <a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= surveyId %>/observation/new">Add <%= locals.t('observation', project) %></a><br>
                     <% } %>
-                    <a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= surveyId %>">Return to <%= locals.t('survey', project) %> #<%= surveyId %></a>
-            <table class="pure-table pure-table-horizontal">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <% if(isAdmin && !noReviews) { %><th>Review</th><% } %>
-                            <% if(labelDownload) { %>
-                                <th>Download Label</th>
-                            <% } %>
-                            <th><%= locals.t('Incident', project) %></th>
-                            <th>Species</th>
-                            <% if (!noPhotos) { %>
-                            <th>Photos</th>
-                            <% } %>
-                        </tr>
-                    </thead>
-                    <tbody>
-                <%
-                    observations.forEach(observation => {
-                        const data = JSON.parse(observation.data);
-                        const photosUrl = `/project/${project.slug}/cycle/${cycle.id}/survey/${surveyId}/observation/${observation.id}/files`;
-                %>
 
-                    <tr>
-                        <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>">View data</a></td>
-                        <% if(isAdmin && !observation.get('reviewCount') && !noReviews) { %>
-                            <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>/review">
-                                Review data
-                            </a></td>
-                        <% } else if (isAdmin && !noReviews) { %>
-                            <td><a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= observation.surveyId %>/observation/<%= observation.id %>/reviews">
-                                Reviews: <%= observation.get('reviewCount') %>
-                            </a></td>
-                        <% } %>
-                        <% if(labelDownload) { %>
-                        <td>
-                            <a href="/project/<%= project.slug %>/cycle/<%= cycle.id %>/survey/<%= surveyId %>/observation/<%= observation.get('id') %>/audacity-labels">Download Audacity Label File</a>
-                        </td>
-                        <% } %>
-                        <td><%= data.incident_line || moment(data.time).format("YYYY-MM-DD HH:mm:ss.SSS") %></td>
-                        <td><%= data.name_of_species || data.labelText %></td> <!-- todo: get this dynamically -->
-                        <% if (!noPhotos) { %>
-                        <td>
-                            <% if (observation.get('fileCount')) { %>
-                                <a href="<%= photosUrl %>"><%= observation.get('fileCount') %> photos</a>
-                            <% } %>
-                        </td>
-                        <% } %>
-                    </tr>
-                <%
-                    });
-                %>
-              </tbody>
+                    <% include datatable %>
+
             </table>
             </main>
         </div>

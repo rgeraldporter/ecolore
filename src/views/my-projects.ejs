@@ -7,14 +7,19 @@
         <% include menu %>
         <div class="content-wrapper">
             <div class="header">
-                <h2>My Projects</h2>
+                
             </div>
-            <div class="content">
+            <div class="content pure-g">
+                    <% include general-sidebar %>
+                    <main class="pure-u-1 pure-u-md-5-6">
+                            <h2>My Projects</h2>
             <aside>
                 <a href='/project/create'>Start a new Project</a><br>
             </aside>
+            <aside>
+                    <a href='/projects'>List Public Projects</a><br>
+                </aside>
             <table class="pure-table pure-table-horizontal">
-                    <caption>My Projects</caption>
                 <thead>
                     <tr><th>Project Title</th><th>Role</th><th>Type</th><th>Location</th>
                     <th>Status</th><th>Privacy</th></tr>
@@ -46,6 +51,7 @@
                 <% }); %>
               </tbody>
             </table>
+            </main>
         </div>
         <% include footer %>
     </div>

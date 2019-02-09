@@ -27,12 +27,13 @@ const projectLocation = () =>
 const projectTypeLink = `<a href="/project-types/${project.model}">${projectTypes[project.model]}</a>`;
 %>
 
-<nav class="pure-u-1 pure-u-md-1-5 project-sidebar">
+<nav class="pure-u-1 pure-u-md-1-6 project-sidebar">
 
     <h3><%= project.title %></h3>
 
     <div><%= project.public ? '🌐 Public project' : '🔒 Private project' %></div>
-    <div>ℹ️ <u><%- projectTypeLink %></u> in <u><%- projectLocation() %></u></div>
+    <div>ℹ️ <u><%- projectTypeLink %></u></div>
+    <div>🗺 <u><%- projectLocation() %></u></div>
     <% if(project.memberRole !== 'none') { %>
     <div>👩🏽‍💻 Your role: <%= project.memberRole %></div>
     <% } %>

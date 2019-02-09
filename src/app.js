@@ -20,6 +20,7 @@ const moment = require('moment');
 const app = express();
 const passport = require('passport');
 const isUrl = require('is-url');
+const {DataTable} = require('datatable-monad');
 const md = require('markdown-it')({
     linkify: true
 });
@@ -41,6 +42,7 @@ app.locals.text = (key, project) =>
     R.pathOr(key, ['config', 'language', key], project);
 app.locals.t = app.locals.text;
 app.locals.projectSettings = require('./helpers/project-settings.js').settings;
+app.locals.DataTable = DataTable;
 
 app.use(passport.initialize());
 
