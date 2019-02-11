@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../../head %>
+
+    <body>
+        <% include ../../menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <h2>CBC CSV Simplifier</h2>
+                    <p>Simplify a CBC CSV file to only show year & species.</p>
+                    <% if(error) { %>
+                        <p style="color:red">An error occurred. Please ensure you had the right kind of file.</p>
+                    <% } %>
+                </div>
+                <div class="content">
+
+                    <h2>How to use</h2>
+
+                    <ol>
+                        <li>Go to the Audubon portal for <a href="http://netapp.audubon.org/CBCObservation/Historical/ResultsByCount.aspx#">CBC Historical Results-by-Count Site ↗️</a></li>
+                        <li>Download the selected data in CSV format</li>
+                        <li>Select that CSV file in the form below</li>
+                        <li>When you submit it, it will download immediately</li>
+                        <li>You may then import the new CSV to Excel, Google Sheets, etc.</li>
+                    </ol>
+
+                    <p><strong>Special note:</strong> This site adhere's to the terms and conditions of the Audubon CBC data, and does not store any data submitted for conversion.</p>
+
+                    <form action="/tools/cbc-csv" method="POST" enctype="multipart/form-data" class="pure-form pure-form-aligned">
+                        <fieldset>
+                            <legend>Audubon CSV file</legend>
+                            <div class="pure-control-group">
+                                <label for="form-cbccsv">Select CBC CSV file</label>
+                                <input id="form-cbccsv" type="file" name="cbccsv" required>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Options</legend>
+                            <div class="pure-control-group">
+                                <label for="form-reverse"></label>
+                                <input id="form-reverse" type="checkbox" name="reverse"> Reverse order of years
+                            </div>
+                            <div class="pure-control-group">
+                                <label for="form-perhour"></label>
+                                <input id="form-perhour" type="checkbox" name="perhour"> Birds-per-hour instead of species count
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button id="form-submit" type="submit" class="pure-button pure-button-primary">Convert CSV</button>
+                            </div>
+                        </fieldset>
+
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>

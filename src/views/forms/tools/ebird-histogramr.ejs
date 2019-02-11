@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../../head %>
+
+    <body>
+        <% include ../../menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <h2>eBird Histogram to CSV</h2>
+                    <p>Convert an eBird histogram to a CSV file.</p>
+                </div>
+                <div class="content">
+
+                    <h2>How to use</h2>
+
+                    <ol>
+                        <li>Download an eBird histogram file (file name should end in <strong>_barchart.txt</strong>)</li>
+                        <li>Select that file here</li>
+                        <li>CSV file will download</li>
+                        <li>You may import the CSV to Excel, Google Sheets, etc.</li>
+                    </ol>
+
+                    <form action="/tools/ebird-histogramr" method="POST" enctype="multipart/form-data" class="pure-form pure-form-aligned">
+                        <fieldset>
+                            <legend>Histogram file</legend>
+                            <div class="pure-control-group">
+                                <label for="form-add-photo">Select file</label>
+                                <input type="file" name="histogram" required accept="text/plain">
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button id="form-submit" type="submit" class="pure-button pure-button-primary">Convert to CSV</button>
+                            </div>
+                        </fieldset>
+
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>

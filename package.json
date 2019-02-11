@@ -1,6 +1,6 @@
 {
     "name": "ecolore",
-    "version": "0.10.0",
+    "version": "0.11.0",
     "description": "EcoLore",
     "main": "src/app.js",
     "scripts": {
@@ -12,6 +12,8 @@
     "license": "MIT",
     "dependencies": {
         "audacity-labels": "0.2.0",
+        "audubon-cbc-csv": "1.0.0",
+        "audubon-cbc-csv-parser": "1.0.0",
         "bluebird": "3.5.1",
         "body-parser": "^1.18.2",
         "connect-session-sequelize": "5.2.1",
@@ -19,6 +21,7 @@
         "csv-express": "1.2.2",
         "datatable-monad": "0.2.0",
         "dotenv": "5.0.1",
+        "ebird-histogramr": "1.1.0",
         "ejs": "^2.5.7",
         "express": "^4.16.2",
         "express-csv": "0.6.0",
