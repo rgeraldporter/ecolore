@@ -782,20 +782,7 @@ module.exports = {
                     }
                 })
             ),
-    down: (queryInterface, Sequelize) =>
-        queryInterface
-            .dropTable('users')
-            .then(() => queryInterface.dropTable('Projects'))
-            .then(() => queryInterface.dropTable('Cycles'))
-            .then(() => queryInterface.dropTable('Memberships'))
-            .then(() => queryInterface.dropTable('Invites'))
-            .then(() => queryInterface.dropTable('Profiles'))
-            .then(() => queryInterface.dropTable('Reports'))
-            .then(() => queryInterface.dropTable('Files'))
-            .then(() => queryInterface.dropTable('Maps'))
-            .then(() => queryInterface.dropTable('Zones'))
-            .then(() => queryInterface.dropTable('Pages'))
-            .then(() => queryInterface.dropTable('Surveys'))
-            .then(() => queryInterface.dropTable('Observations'))
-            .then(() => queryInterface.dropTable('Reviews'))
+    down: (queryInterface, Sequelize) => {
+        console.log('No going back now')
+    }
 };

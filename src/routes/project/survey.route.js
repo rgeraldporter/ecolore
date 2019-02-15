@@ -87,6 +87,12 @@ const findSurveyByCycleAndIdWithUser = ([cycleId, id, userId]) =>
                         '(SELECT COUNT(*) FROM Reviews WHERE Reviews.surveyId = Survey.id)'
                     ),
                     'reviewCount'
+                ],
+                [
+                    db.Sequelize.literal(
+                        '(SELECT COUNT(*) FROM Assignments WHERE Assignments.surveyId = Survey.id)'
+                    ),
+                    'assignmentCount'
                 ]
             ]
         },
@@ -110,7 +116,8 @@ const findSurveyByCycleAndIdWithUser = ([cycleId, id, userId]) =>
             },
             db.Observation,
             db.Review,
-            db.Zone
+            db.Zone,
+            db.Assignment
         ]
     });
 
@@ -161,6 +168,13 @@ const surveyEndpoint = (req, res) =>
                     true
                 ])
             )
+        )
+        // verify it is part of the correct project
+        .chain(([survey, membership]) =>
+            R.pathOr(Symbol('nonce'), ['Cycle', 'Project', 'slug'], survey) !==
+            req.params.slug
+                ? Future.reject('Survey not part of this project')
+                : Future.of([survey, membership])
         )
         .chain(([survey, membership]) =>
             membership

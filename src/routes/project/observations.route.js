@@ -109,6 +109,13 @@ const observationsEndpoint = (req, res) =>
                 ])
             ])
         )
+        // verify it is part of the correct project
+        .chain(([project, cycle, observations]) =>
+            R.pathOr(Symbol('nonce'), ['Project', 'id'], cycle) !==
+            project.get('id')
+                ? Future.reject('Observations are not part of this project')
+                : Future.of([project, cycle, observations])
+        )
         .chain(([project, cycle, observations]) =>
             isMemberOfProject(project)
                 ? Future.of([project, cycle, observations])

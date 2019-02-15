@@ -17,7 +17,7 @@ const toUrl = text => (isUrl(text) ? md.render(`[${text}](${text})`) : text);
 const toMd = text => (hasLineBreaks(text) ? md.render(text) : toUrl(text));
 const noData = () => '[no data]';
 const detectField = ({ key, data, survey }) =>
-key === 'zone' ? survey.Zone.name : data[key];
+    key === 'zone' ? survey.Zone.name : data[key];
 
 const detectType = (key, data, survey) => {
     const condTable = ([key, data]) => [
@@ -52,6 +52,14 @@ const surveyDataTable = ({ survey, projectSlug, project, req, review }) => {
         projectTypeSettings
     );
 
+    const rowExclusions = R.pathOr(
+        [],
+        [project.model, 'surveys', 'excludeRows'],
+        projectTypeSettings
+    );
+
+    const excludeAssignments = rowExclusions.includes('assignments');
+
     const dtHeader = ['Key', 'Value', 'Correct?'];
 
     const data = JSON.parse(survey.data);
@@ -59,7 +67,11 @@ const surveyDataTable = ({ survey, projectSlug, project, req, review }) => {
     const dtSource = Object.keys(data).reduce(
         (acc, key) => {
             return acc.concat([
-                [key, detectType(key, data, survey), `<input type="checkbox" required>`]
+                [
+                    key,
+                    detectType(key, data, survey),
+                    `<input type="checkbox" required>`
+                ]
             ]);
         },
         [dtHeader]
@@ -80,7 +92,22 @@ const surveyDataTable = ({ survey, projectSlug, project, req, review }) => {
             : `<input type="checkbox" required></input>`
     ];
 
-    const fullTable = DataTable.of(dtSource).append(observationsRow);
+    const assignmentsRow = excludeAssignments
+        ? []
+        : [
+              t('assignments', project),
+              `<a href="/project/${project.slug}/cycle/${
+                  survey.Cycle.id
+              }/survey/${
+                  survey.id
+              }/assignments" class="pure-button button-table-action button-small small-caps" style="width: 11em;">${survey.get(
+                  'assignmentCount'
+              )} ${t('assigned', project)}</a>`
+          ];
+
+    const fullTable = DataTable.of(dtSource)
+        .append(observationsRow)
+        .append(assignmentsRow);
 
     const dt = fullTable.filterCols(str => {
         const exclude = review && !noLineBasedReviews ? [] : ['Correct?'];

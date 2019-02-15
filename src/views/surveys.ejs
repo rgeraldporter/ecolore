@@ -8,6 +8,7 @@
 const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'surveys'], locals);
 const noReviews = projectTypeSettings.noReviews;
 const countUnreviewed = () => surveys.filter(survey => !survey.get('reviewCount')).length;
+const noAssignments = projectTypeSettings.excludeColumns.includes('Assignments');
 
 %>
 
@@ -41,6 +42,9 @@ const countUnreviewed = () => surveys.filter(survey => !survey.get('reviewCount'
                                     <% if(isContrib && !noReviews) { %>
                                         <% if ( !filter ) { %>
                                             (<a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys?filter=needs_review'>Show only unreviewed <%= locals.t('surveys', project) %></a>)
+                                            <% if ( !noAssignments ) { %>
+                                            (<a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys?filter=needs_assignment'>Show only unassigned <%= locals.t('surveys', project) %></a>)
+                                            <% } %>
                                         <% } %>
                                         <% if ( filter ) { %>
                                             (<a href='/project/<%= projectSlug %>/cycle/<%= cycle.id %>/surveys'>Show all <%= locals.t('surveys', project) %></a>)

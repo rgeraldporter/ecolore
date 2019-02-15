@@ -17,6 +17,7 @@ const surveysDataTable = ({ surveys, projectSlug, cycle, project, req, filter })
         'Location',
         'View',
         t('Observations', project),
+        'Assignments',
         'Submitted by',
         'Submission date'
     ];
@@ -27,6 +28,11 @@ const surveysDataTable = ({ surveys, projectSlug, cycle, project, req, filter })
             if ( filter ) {
                 if ( filter === 'needs_review' ) {
                     if ( survey.get('reviewCount') ) {
+                        return acc;
+                    }
+                }
+                if ( filter === 'needs_assignment' ) {
+                    if ( survey.get('assignmentCount') ) {
                         return acc;
                     }
                 }
@@ -52,6 +58,13 @@ const surveysDataTable = ({ surveys, projectSlug, cycle, project, req, filter })
                     }/observations" class="pure-button button-table-action button-small small-caps" style="width: 11em;">${survey.get(
                         'observationCount'
                     )} ${t('records', project)}</a>`,
+                    `<a href="/project/${projectSlug}/cycle/${
+                        cycle.id
+                    }/survey/${
+                        survey.id
+                    }/assignments" class="pure-button button-table-action button-small small-caps" style="width: 11em;">${survey.get(
+                        'assignmentCount'
+                    )} ${t('assigned', project)}</a>`,
                     survey.author.firstName + ' ' + survey.author.lastName,
                     moment(survey.createdAt).format('MMM Do YYYY, h:mm a')
                 ]

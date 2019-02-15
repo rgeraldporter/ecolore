@@ -73,6 +73,12 @@ const findSurveysByCycle = cycle =>
                         '(SELECT COUNT(*) FROM Reviews WHERE Reviews.surveyId = Survey.id)'
                     ),
                     'reviewCount'
+                ],
+                [
+                    db.Sequelize.literal(
+                        '(SELECT COUNT(*) FROM Assignments WHERE Assignments.surveyId = Survey.id)'
+                    ),
+                    'assignmentCount'
                 ]
             ]
         },
@@ -80,6 +86,7 @@ const findSurveysByCycle = cycle =>
             db.Observation,
             db.Review,
             db.Zone,
+            db.Assignment,
             {
                 model: db.User,
                 as: 'author'
@@ -117,6 +124,13 @@ const surveysEndpoint = (req, res) =>
                 findCycleByIdF(req.params.id),
                 findSurveysByCycle(req.params.id)
             ])
+        )
+        // verify it is part of the correct project
+        .chain(([project, cycle, surveys]) =>
+            R.pathOr(Symbol('nonce'), ['Project', 'slug'], cycle) !==
+            req.params.slug
+                ? Future.reject('Surveys are not part of this project')
+                : Future.of([project, cycle, surveys])
         );
 
 module.exports = function(router) {

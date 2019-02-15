@@ -26,8 +26,7 @@ const sequelize = new Sequelize(
     dbConfig.options
 );
 
-fs
-    .readdirSync(__dirname)
+fs.readdirSync(__dirname)
     .filter(file => {
         return (
             file.indexOf('.') !== 0 &&
@@ -56,7 +55,9 @@ const {
     Review,
     Invite,
     Google_Drive_OAuth2_Token,
-    Google_Drive_Project_State
+    Google_Drive_Project_State,
+    Assignment,
+    Status
 } = db;
 
 // relations
@@ -100,6 +101,11 @@ Review.belongsTo(Survey);
 Review.belongsTo(Observation);
 Observation.hasMany(Review);
 Survey.hasMany(Review);
+Survey.hasMany(Assignment);
+Survey.hasMany(Status);
+Status.belongsTo(Survey);
+Assignment.belongsTo(Survey);
+Assignment.belongsTo(User);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
