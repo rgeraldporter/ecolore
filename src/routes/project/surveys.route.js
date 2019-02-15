@@ -8,6 +8,7 @@ const xml = require('xml');
 const t = require('../../helpers/text').text;
 const { DataTable } = require('datatable-monad');
 const csv = require('csv-express');
+const { csvHeader } = require('../../helpers/csv-helper');
 const isViewFile = path => fs.existsSync(__dirname + '/../views/' + path);
 const {
     parseProject,
@@ -240,12 +241,13 @@ module.exports = function(router) {
                         req,
                         filter: req.query.filter || false
                     }).chain(table => {
-                        res.csv(table, true, {
-                            'Content-disposition': `attachment; filename=${
-                                req.params.slug
-                            }_${t('surveys', project)}.csv`,
-                            'Content-Type': 'text/csv'
-                        });
+                        res.csv(
+                            table,
+                            true,
+                            csvHeader(
+                                `${req.params.slug}_${t('surveys', project)}`
+                            )
+                        );
                     })
             )
     );

@@ -80,7 +80,8 @@ const assignmentsEndpoint = (req, res) =>
         // verify it is part of the correct project
         .chain(([project, assignments]) =>
             !project.Cycles.find(
-                cycle => Number(cycle.dataValues.id) === Number(req.params.cycleId)
+                cycle =>
+                    Number(cycle.dataValues.id) === Number(req.params.cycleId)
             )
                 ? Future.reject('Survey not part of this project')
                 : Future.of([project, assignments])

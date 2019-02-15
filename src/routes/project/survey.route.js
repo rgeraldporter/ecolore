@@ -7,6 +7,7 @@ const convert = require('xml-js');
 const xml = require('xml');
 const t = require('../../helpers/text').text;
 const csv = require('csv-express');
+const { csvHeader } = require('../../helpers/csv-helper');
 const isViewFile = path => fs.existsSync(__dirname + '/../views/' + path);
 const {
     parseProject,
@@ -224,12 +225,16 @@ const getSurveyCsv = (req, res, review) =>
                 req,
                 review
             }).chain(table => {
-                res.csv(table, true, {
-                    'Content-disposition': `attachment; filename=${
-                        req.params.slug
-                    }_${t('survey', survey.Cycle.Project)}-${survey.id}.csv`,
-                    'Content-Type': 'text/csv'
-                });
+                res.csv(
+                    table,
+                    true,
+                    csvHeader(
+                        `${req.params.slug}_${t(
+                            'survey',
+                            survey.Cycle.Project
+                        )}-${survey.id}`
+                    )
+                );
             })
     );
 

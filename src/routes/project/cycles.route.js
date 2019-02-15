@@ -13,6 +13,8 @@ const {
     parseMembership
 } = require('../../helpers/project-helper');
 
+const { csvHeader } = require('../../helpers/csv-helper');
+
 const findOneProject = Future.encaseP(a => db.Project.findOne(a));
 const findAllCycle = Future.encaseP(a => db.Cycle.findAll(a));
 const findOneUser = Future.encaseP(a => db.User.findOne(a));
@@ -118,13 +120,13 @@ module.exports = function(router) {
                         project: parseProject(project),
                         req
                     }).chain(table => {
-                        res.csv(table, true, {
-                            'Content-disposition': `attachment; filename=${req.params.slug}_${t(
-                                'cycles',
-                                project
-                            )}.csv`,
-                            'Content-Type': 'text/csv'
-                        });
+                        res.csv(
+                            table,
+                            true,
+                            csvHeader(
+                                `${req.params.slug}_${t('cycles', project)}`
+                            )
+                        );
                     })
             )
     );

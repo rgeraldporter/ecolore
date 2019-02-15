@@ -61,4 +61,9 @@ const findAllColumns = ({ project, observations }) => {
     return { emptyObj, observations };
 };
 
-module.exports = { assembleCsv, findAllColumns };
+const csvHeader = filename => ({
+    'Content-disposition': `attachment; filename=${filename}.csv`,
+    'Content-Type': 'text/csv'
+});
+
+module.exports = { assembleCsv, findAllColumns, csvHeader };

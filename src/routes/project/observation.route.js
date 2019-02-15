@@ -10,6 +10,7 @@ const {
     parseMembership
 } = require('../../helpers/project-helper');
 
+const { csvHeader } = require('../../helpers/csv-helper');
 const { observationDataTable } = require('../../datatables/observation.dt');
 
 const renderProjectTemplate = project =>
@@ -273,12 +274,15 @@ const getObservationCsv = (req, res, review) =>
                 req,
                 review
             }).chain(table => {
-                res.csv(table, true, {
-                    'Content-disposition': `attachment; filename=${
-                        req.params.slug
-                    }_${t('observation', project)}-${observation.id}.csv`,
-                    'Content-Type': 'text/csv'
-                });
+                res.csv(
+                    table,
+                    true,
+                    csvHeader(
+                        `${req.params.slug}_${t('observation', project)}-${
+                            observation.id
+                        }`
+                    )
+                );
             })
     );
 
