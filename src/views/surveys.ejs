@@ -8,7 +8,8 @@
 const projectTypeSettings = locals.R.pathOr({}, ['projectSettings', project.model, 'surveys'], locals);
 const noReviews = projectTypeSettings.noReviews;
 const countUnreviewed = () => surveys.filter(survey => !survey.get('reviewCount')).length;
-const noAssignments = projectTypeSettings.excludeColumns.includes('Assignments');
+const excludeColumns = locals.R.propOr([], 'excludeColumns', projectTypeSettings);
+const noAssignments = excludeColumns.includes('Assignments');
 
 %>
 
