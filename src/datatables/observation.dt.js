@@ -13,10 +13,12 @@ const buttonClass = `class="pure-button button-table-action button-small small-c
 const toUrl = text => (isUrl(text) ? md.render(`[${text}](${text})`) : text);
 const toMd = text => (hasLineBreaks(text) ? md.render(text) : toUrl(text));
 const noData = () => '[no data]';
+const identity = (x) => x;
 
 const detectType = (key, data, survey) => {
     const condTable = ([key, data]) => [
-        [typeof data[key] === 'string', toMd, data[key]],
+        [typeof data[key] === 'string' && data[key], toMd, data[key]],
+        [typeof data[key] === 'number' && data[key], identity, data[key]],
         [true, noData, null]
     ];
 

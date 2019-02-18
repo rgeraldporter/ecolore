@@ -21,8 +21,8 @@ const detectField = ({ key, data, survey }) =>
 
 const detectType = (key, data, survey) => {
     const condTable = ([key, data]) => [
-        [!isNaN(data[key]), detectField, { key, data, survey }],
-        [typeof data[key] === 'string', toMd, data[key]],
+        [data[key] && !isNaN(data[key]), detectField, { key, data, survey }],
+        [data[key] && typeof data[key] === 'string', toMd, data[key]],
         [true, noData, null]
     ];
 
