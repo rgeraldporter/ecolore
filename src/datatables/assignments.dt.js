@@ -26,7 +26,7 @@ const assignmentsDataTable = ({
 
     const dtSource = assignments.reduce(
         (acc, assignment) => {
-            const data = JSON.parse(assignment.data);
+            const data = assignment.data;
 
             return acc.concat([
                 [

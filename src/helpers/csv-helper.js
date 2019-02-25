@@ -11,8 +11,8 @@ const assembleCsv = ({ emptyObj, observations }) => {
             'Survey ID': observation.surveyId,
             'Observation ID': observation.id
         };
-        const observationData = JSON.parse(observation.data);
-        const surveyData = JSON.parse(observation.Survey.data);
+        const observationData = observation.data;
+        const surveyData = observation.Survey.data;
 
         const assembleRow = metaCols => obsCols => surveyCols =>
             Object.assign(metaCols, obsCols, surveyCols);
@@ -31,8 +31,8 @@ const assembleCsv = ({ emptyObj, observations }) => {
 const findAllColumns = ({ project, observations }) => {
     // go through them all to find all columns possible
     let dataCols = observations.reduce((acc, observation) => {
-        const observationData = JSON.parse(observation.data);
-        const surveyData = JSON.parse(observation.Survey.data);
+        const observationData = observation.data;
+        const surveyData = observation.Survey.data;
         const allData = Object.assign(surveyData, observationData);
         return acc.concat(Object.keys(allData));
     }, []);

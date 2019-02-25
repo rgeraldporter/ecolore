@@ -63,8 +63,8 @@ const observationDataTable = ({
 
     const dtHeader = ['Key', 'Value', 'Correct?'];
 
-    const data = JSON.parse(observation.data);
-    const surveyData = JSON.parse(observation.Survey.data);
+    const data = observation.data;
+    const surveyData = observation.Survey.data;
 
     const buttonClass = `class="pure-button button-table-action button-small small-caps"`;
 

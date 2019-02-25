@@ -15,7 +15,7 @@ const dbConfig = {
     options: {
         host: process.env.DB_HOST,
         operatorsAliases: Op,
-        dialect: 'mysql'
+        dialect: 'mariadb'
     }
 };
 
@@ -57,7 +57,10 @@ const {
     Google_Drive_OAuth2_Token,
     Google_Drive_Project_State,
     Assignment,
-    Status
+    Status,
+    Log,
+    DerivedFile,
+    AcousticFile
 } = db;
 
 // relations
@@ -100,12 +103,16 @@ Review.belongsTo(User, { as: 'reviewer' });
 Review.belongsTo(Survey);
 Review.belongsTo(Observation);
 Observation.hasMany(Review);
+Observation.hasMany(DerivedFile);
 Survey.hasMany(Review);
 Survey.hasMany(Assignment);
 Survey.hasMany(Status);
+Survey.hasMany(AcousticFile);
 Status.belongsTo(Survey);
 Assignment.belongsTo(Survey);
 Assignment.belongsTo(User);
+DerivedFile.belongsTo(Observation);
+AcousticFile.belongsTo(Survey);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

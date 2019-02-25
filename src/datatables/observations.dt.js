@@ -61,7 +61,7 @@ Reviews: ${observation.get('reviewCount')}</a>`
 
     const dtSource = observations.reduce(
         (acc, observation) => {
-            const data = JSON.parse(observation.data);
+            const data = observation.data;
             const photosUrl = `/project/${project.slug}/cycle/${
                 cycle.id
             }/survey/${observation.surveyId}/observation/${

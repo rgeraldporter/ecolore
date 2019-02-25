@@ -18,7 +18,7 @@ const parseProjectAndMemberships = project => ({
     initialYear: project.get('initialYear'),
     status: project.get('status'),
     public: project.get('public'),
-    config: JSON.parse(project.get('config')),
+    config: project.get('config'),
     memberSince: R.propOr('none', 'since', parseMembership(project)),
     memberRole: R.propOr('none', 'role', parseMembership(project))
 });
@@ -34,7 +34,7 @@ const parseProject = project => ({
     initialYear: project.get('initialYear'),
     status: project.get('status'),
     public: project.get('public'),
-    config: JSON.parse(project.get('config')),
+    config: project.get('config'),
     memberSince: R.pathOr(null, ['membership', 'since'], project),
     memberRole: R.pathOr('none', ['membership', 'role'], project),
     Cycles: project.get('Cycles')

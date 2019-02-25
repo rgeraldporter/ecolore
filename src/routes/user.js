@@ -52,7 +52,7 @@ passport.use(
             process.nextTick(() => {
                 const state = request.query.state;
 
-                db.Google_Drive_Project_State.find({ token: state })
+                db.Google_Drive_Project_State.findOne({ token: state })
                     .then(state =>
                         db.Google_Drive_OAuth2_Token.create({
                             projectId: state.get('projectId'),
@@ -81,7 +81,7 @@ module.exports = router => {
         passwordless.restricted({failureRedirect: '/login' }),
         (req, res, next) => {
             const state = req.params.state;
-            db.Google_Drive_Project_State.find({ token: state })
+            db.Google_Drive_Project_State.findOne({ token: state })
                 .then(state =>
                     findProjectByIdAndOwner([
                         state.projectId,
@@ -128,13 +128,13 @@ module.exports = router => {
             console.log('errors', errors.mapped());
             // @todo: handle errors better
             if (!errors.isEmpty()) {
-                db.User.findById(req.user.id).then(user =>
+                db.User.findByPk(req.user.id).then(user =>
                     renderUserPage(res, 'registration', { user })
                 );
             } else {
                 const userUpdate = matchedData(req);
                 db.User.update(userUpdate, { where: { id: req.params.id } })
-                    .then(() => db.User.findById(req.params.id))
+                    .then(() => db.User.findByPk(req.params.id))
                     .then(user => res.redirect('/profile'))
                     .catch(err => console.error(err));
             }

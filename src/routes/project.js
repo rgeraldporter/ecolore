@@ -220,7 +220,7 @@ const findOneProject = Future.encaseP(a => db.Project.findOne(a));
 const findAllMaps = Future.encaseP(a => db.Map.findAll(a));
 const findAllCycle = Future.encaseP(a => db.Cycle.findAll(a));
 const findAllZone = Future.encaseP(a => db.Zone.findAll(a));
-const findZone = Future.encaseP(a => db.Zone.find(a));
+const findZone = Future.encaseP(a => db.Zone.findOne(a));
 const findAllSurvey = Future.encaseP(a => db.Survey.findAll(a));
 const findOneSurvey = Future.encaseP(a => db.Survey.findOne(a));
 const findAllObservation = Future.encaseP(a => db.Observation.findAll(a));
@@ -765,8 +765,6 @@ module.exports = function(router) {
         - new user clicks link, is added to project and redirected to profile page?
     */
 
-
-
     router.get(
         '/project/:slug/zones',
         passwordless.restricted({ failureRedirect: '/login' }),
@@ -936,17 +934,16 @@ module.exports = function(router) {
                             }
                         );
 
-                        const jsonData = JSON.parse(selectedObservation.data);
+                        const jsonData = selectedObservation.data;
 
                         const observationsByFile = observations.filter(
                             observation =>
-                                JSON.parse(observation.data).filename ===
-                                jsonData.filename
+                                observation.data.filename === jsonData.filename
                         );
 
                         const observationLabels = observationsByFile.map(
                             label => {
-                                const labelData = JSON.parse(label.data);
+                                const labelData = label.data;
                                 return Object.assign(labelData, {
                                     labelText: `${labelData.labelText} :[${
                                         labelData.submitterName
@@ -1266,7 +1263,7 @@ module.exports = function(router) {
                                 id: project.get('id'),
                                 title: project.get('title'),
                                 slug: project.get('slug'),
-                                config: JSON.parse(project.get('config'))
+                                config: project.get('config')
                             }
                         }
                     })
@@ -2215,19 +2212,16 @@ module.exports = function(router) {
                                 ),
                                 {
                                     invalid: true,
-                                    data: Object.assign(
-                                        JSON.parse(survey.get('data')),
-                                        {
-                                            __metadata: {
-                                                original_id: surveyId,
-                                                original_cycle_id: survey.get(
-                                                    'cycleId'
-                                                ),
-                                                invalidated_by_user:
-                                                    res.locals.user.id
-                                            }
+                                    data: Object.assign(survey.get('data'), {
+                                        __metadata: {
+                                            original_id: surveyId,
+                                            original_cycle_id: survey.get(
+                                                'cycleId'
+                                            ),
+                                            invalidated_by_user:
+                                                res.locals.user.id
                                         }
-                                    )
+                                    })
                                 }
                             )
                         )
@@ -2300,7 +2294,7 @@ module.exports = function(router) {
                                 {
                                     invalid: true,
                                     data: Object.assign(
-                                        JSON.parse(observation.get('data')),
+                                        observation.get('data'),
                                         {
                                             __metadata: {
                                                 original_id: observationId,
@@ -2322,11 +2316,7 @@ module.exports = function(router) {
                                               observation.dataValues,
                                               {
                                                   data: R.mergeDeepRight(
-                                                      JSON.parse(
-                                                          observation.get(
-                                                              'data'
-                                                          )
-                                                      ),
+                                                      observation.get('data'),
                                                       {
                                                           labelText:
                                                               data.newData,

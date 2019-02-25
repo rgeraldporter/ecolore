@@ -62,7 +62,7 @@ const surveyDataTable = ({ survey, projectSlug, project, req, review }) => {
 
     const dtHeader = ['Key', 'Value', 'Correct?'];
 
-    const data = JSON.parse(survey.data);
+    const data = survey.data;
 
     const dtSource = Object.keys(data).reduce(
         (acc, key) => {
