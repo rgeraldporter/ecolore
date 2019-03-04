@@ -8,7 +8,7 @@ const xml = require('xml');
 const t = require('../../helpers/text').text;
 const csv = require('csv-express');
 const { csvHeader } = require('../../helpers/csv-helper');
-const isViewFile = path => fs.existsSync(__dirname + '/../views/' + path);
+const isViewFile = path => fs.existsSync(__dirname + '/../../views/' + path);
 const {
     parseProject,
     parseMembership,
@@ -27,11 +27,13 @@ const findAllZone = Future.encaseP(a => db.Zone.findAll(a));
 const renderProjectTemplate = project =>
     project ? { project: parseProject(project) } : { project: {} };
 
+// @todo test for template path!
 const getStandardSurveyForm = project =>
     isViewFile(`forms/custom/${project.get('slug')}-survey.ejs`)
         ? `forms/custom/${project.get('slug')}-survey.ejs`
         : `forms/project-model/${project.get('model')}-survey.ejs`;
 
+// @todo test for template path!
 const getSurveyFormByName = ([project, formName]) =>
     isViewFile(`forms/custom/${project.get('slug')}-survey-${formName}.ejs`)
         ? `forms/custom/${project.get('slug')}-survey-${formName}.ejs`

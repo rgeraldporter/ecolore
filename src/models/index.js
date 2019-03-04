@@ -60,7 +60,9 @@ const {
     Status,
     Log,
     DerivedFile,
-    AcousticFile
+    AcousticFile,
+    Identifier,
+    Identification
 } = db;
 
 // relations
@@ -96,6 +98,7 @@ Survey.belongsTo(Zone);
 Cycle.hasMany(Survey);
 Observation.belongsTo(Survey);
 Observation.hasMany(File);
+Observation.hasMany(Identification);
 Survey.hasMany(Observation);
 Google_Drive_OAuth2_Token.belongsTo(Project);
 Google_Drive_Project_State.belongsTo(Project);
@@ -113,6 +116,8 @@ Assignment.belongsTo(Survey);
 Assignment.belongsTo(User);
 DerivedFile.belongsTo(Observation);
 AcousticFile.belongsTo(Survey);
+Identification.belongsTo(Identifier);
+Identification.belongsTo(Observation);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

@@ -23,7 +23,8 @@ const settings = {
             noPhotos: true,
             archiveAudioLink: true,
             allowNewData: true,
-            labelDownload: true
+            labelDownload: true,
+            hasIdentifications: true
         },
         menu: {
             hideSubmitData: true

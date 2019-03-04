@@ -2,7 +2,7 @@ const { clipAudioFile, getAcousticFiles } = require('./clipper.wrk');
 const { Test } = require('falsifire');
 
 describe('The clipper worker', () => {
-    it('should accept a file URL, observation entry', done => {
+    xit('should accept a file URL, observation entry', done => {
         const observation = {
             data: {
                 startTime: 1553.88,
@@ -22,7 +22,7 @@ describe('The clipper worker', () => {
         });
     }, 1500000);
 
-    it('should download a clip if not present', done => {
+    xit('should download a clip if not present', done => {
         const observation = {
             data: {
                 startTime: 576.6,
@@ -42,7 +42,7 @@ describe('The clipper worker', () => {
         });
     }, 1500000);
 
-    it('should handle failed downloads gracefully', done => {
+    xit('should handle failed downloads gracefully', done => {
         const observation = {
             data: {
                 startTime: 123,

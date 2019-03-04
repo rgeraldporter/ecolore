@@ -3,7 +3,7 @@ const R = require('ramda');
 const db = require('../../models/index');
 const Future = require('fluture');
 const fs = require('fs-extra');
-const isViewFile = path => fs.existsSync(__dirname + '/../views/' + path);
+const isViewFile = path => fs.existsSync(__dirname + '/../../views/' + path);
 const t = require('../../helpers/text').text;
 const {
     parseProject,
@@ -16,6 +16,7 @@ const { observationDataTable } = require('../../datatables/observation.dt');
 const renderProjectTemplate = project =>
     project ? { project: parseProject(project) } : { project: {} };
 
+// @todo test for template path!
 const getObservationTemplatePath = project =>
     isViewFile(`forms/custom/${project.get('slug')}-observation.ejs`)
         ? `forms/custom/${project.get('slug')}-observation.ejs`
@@ -160,6 +161,12 @@ const findObservationBySurveyAndIdWithFiles = ([surveyId, id]) =>
                         include: [db.Project]
                     }
                 ]
+            },
+            {
+                model: db.Identification,
+                include: [{
+                    model: db.Identifier
+                }]
             },
             db.File,
             db.Review

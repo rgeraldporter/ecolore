@@ -9,9 +9,15 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const request = require('request');
 const db = require('../models/index');
+const Op = db.Sequelize.Op;
 const moment = require('moment');
 const flatten = require('array-flatten');
+const {
+    uploadToArchiveOrg,
+    buildBucketName
+} = require('../helpers/archive-org-helper');
 
+const deriveAudioFileLimit = 48; // 36 = one day
 const minFrequencyBandwidth = 4000;
 const durationPadding = 2;
 const cuePadding = 1;
@@ -26,6 +32,8 @@ const updateAcousticFile = Future.encaseP(([a, b]) =>
     db.AcousticFile.update(a, b)
 );
 const createLog = Future.encaseP(a => db.Log.create(a));
+const createDerivedFiles = Future.encaseP(a => db.DerivedFile.bulkCreate(a));
+const deleteDerivedFiles = Future.encaseP(a => db.DerivedFile.destroy(a));
 
 const trimmedString = ({ string, length }) =>
     string.length > length ? string.substring(0, length - 3) + '...' : string;
@@ -53,6 +61,27 @@ const download = ({ url, dest, cb }) => {
     });
 };
 
+const buildObservationTable = (
+    observation,
+    data,
+    locationShortname,
+    archiveUrlContext,
+    ids
+) =>
+    `<table>` +
+    `<tr><th>Identification(s)</th><td>${ids || 'Unidentified'}</td></tr>` +
+    `<tr><th>Label</th><td>${data.labelText}</td></tr>` +
+    `<tr><th>Frequency Range</th><td>${data.frequencyFloor} - ${
+        data.frequencyCeiling
+    }</td></tr>` +
+    `<tr><th>Local time</th><td>${data.time}</td></tr>` +
+    `<tr><th>Location</th><td>${locationShortname}</td></tr>` +
+    `<tr><th>Identified by</th><td>${data.submitterName}</td></tr>` +
+    `<tr><th>Derived from</th>` +
+    `<td><a href="${archiveUrlContext}">HNCSW1_20190216_072003.wav</a></td>` +
+    `</tr>` +
+    `</table>`;
+
 const getTempPath = () => `${__dirname}/../../temp`;
 
 const getFilePath = filename => `${getTempPath()}/${filename}`;
@@ -66,7 +95,8 @@ const clipFile = ({
     frequencyFloor,
     frequencyCeiling,
     id,
-    labelText
+    labelText,
+    projectName
 }) => {
     sox(
         {
@@ -91,7 +121,7 @@ const clipFile = ({
                         })} "${trimmedString({
                             string: labelText,
                             length: 36
-                        })}" (Hamilton Bioacoustic Research Project, Observation #${id})`,
+                        })}" (${projectName}, Observation #${id})`,
                         '-w',
                         'kaiser',
                         '-c',
@@ -125,17 +155,18 @@ const clipAudioFile = ({ fileUrl, observation }, callback) =>
     Maybe.of(checkIfFileExists(getFilenameFromObservation(observation))).fork(
         _ => console.error('Error occurred!'),
         fileExists => {
-            console.log('taking on', observation);
+            const project = observation.project;
+            const projectSlug = project.get('slug');
+            const projectName = project.get('title');
             return fileExists
                 ? clipFile({
                       filename: getFilenameFromObservation(observation),
+                      projectName,
                       id: observation.id,
                       labelText: observation.data.labelText,
                       start: Math.floor(observation.data.startTime),
                       duration: Math.ceil(observation.data.duration),
-                      clipName: `hamont-bioacoustic-observation-${
-                          observation.id
-                      }`,
+                      clipName: `${projectSlug}-observation-${observation.id}`,
                       frequencyCeiling: Math.ceil(
                           observation.data.frequencyCeiling
                       ),
@@ -158,7 +189,7 @@ const clipAudioFile = ({ fileUrl, observation }, callback) =>
                               labelText: observation.data.labelText,
                               start: Math.floor(observation.data.startTime),
                               duration: Math.ceil(observation.data.duration),
-                              clipName: `hamont-bioacoustic-observation-${
+                              clipName: `${projectSlug}-observation-${
                                   observation.id
                               }`,
                               frequencyCeiling: Math.ceil(
@@ -173,12 +204,6 @@ const clipAudioFile = ({ fileUrl, observation }, callback) =>
         }
     );
 
-/*
- 1. get list of files without derive data log
- 2. start at top, find observations with that file
- 3. clip the audios
-*/
-
 const getObservationsFromFile = file =>
     findAllObservations({
         where: {
@@ -186,7 +211,19 @@ const getObservationsFromFile = file =>
                 filename: file
             }
         },
-        include: [db.Survey]
+        include: [
+            {
+                model: db.Survey,
+                include: [
+                    db.Zone,
+                    {
+                        model: db.Cycle,
+                        include: [db.Project]
+                    }
+                ]
+            },
+            { model: db.Identification, include: [db.Identifier] }
+        ]
     });
 
 const clipAudioFileF = Future.encaseN(clipAudioFile);
@@ -207,8 +244,9 @@ const flagAcousticFile = (file, callback) => {
 const getAcousticFiles = callback =>
     findAllAcousticFiles({
         where: db.Sequelize.literal(
-            "json_unquote(json_extract(`AcousticFile`.`data`,'$.derived.clip')) IS NULL"
-        )
+            "json_unquote(json_extract(`AcousticFile`.`data`,'$.derived.clips')) IS NULL"
+        ),
+        limit: deriveAudioFileLimit
     })
         .chain(files => {
             const collectObservations = () =>
@@ -236,6 +274,7 @@ const getAcousticFiles = callback =>
                                 observation: {
                                     data: observation.data,
                                     id: observation.id,
+                                    project: observation.Survey.Cycle.Project,
                                     surveyUrl:
                                         JSON.parse(
                                             observation.Survey.get('data')
@@ -266,15 +305,226 @@ const getAcousticFiles = callback =>
                                                 ) + '/'
                                         }
                                     }
-                                }).fork(console.error, resolve);
+                                })
+                                    .chain(() => {
+                                        const getIds = observation =>
+                                            Maybe.of(
+                                                observation.Identifications
+                                            )
+                                                .map(a =>
+                                                    a.map(id =>
+                                                        id.Identifier
+                                                            ? id.Identifier.get(
+                                                                  'text'
+                                                              )
+                                                            : ''
+                                                    )
+                                                )
+                                                .fork(
+                                                    _ => 'None',
+                                                    a => a.join(', ')
+                                                );
+
+                                        const data = observation.get('data');
+                                        const surveyData = JSON.parse(
+                                            observation.Survey.get('data')
+                                        );
+                                        const project =
+                                            observation.Survey.Cycle.Project;
+                                        const projectConfig = JSON.parse(
+                                            project.get('config')
+                                        );
+                                        const projectSlug = project.get('slug');
+                                        const projectName = project.get(
+                                            'title'
+                                        );
+                                        const observationId = observation.get(
+                                            'id'
+                                        );
+
+                                        const locationName = observation.Survey
+                                            .Zone
+                                            ? observation.Survey.Zone.get(
+                                                  'name'
+                                              )
+                                            : 'Unspecified';
+
+                                        const locationShortname = locationName
+                                            .split('--')
+                                            .shift();
+
+                                        const locationCode = observation.Survey
+                                            .Zone
+                                            ? observation.Survey.Zone.get(
+                                                  'code'
+                                              )
+                                            : 'Unspecified';
+
+                                        const archiveUrl =
+                                            surveyData.archive_org_url ||
+                                            'Unspecified';
+                                        const archiveUrlContext =
+                                            archiveUrl +
+                                            '/' +
+                                            data.filename +
+                                            `?start=${Math.floor(
+                                                data.startTime
+                                            )}`;
+
+                                        const ids =
+                                            getIds(observation) ||
+                                            'Unidentified';
+
+                                        const description = buildObservationTable(
+                                            observation,
+                                            data,
+                                            locationShortname,
+                                            archiveUrlContext,
+                                            ids
+                                        );
+
+                                        const fileData = {
+                                            data: {
+                                                collection: 'test_collection',
+                                                creator:
+                                                    projectConfig.archiveOrgName ||
+                                                    `Hamilton Naturalists' Club`,
+                                                date: data.fileDate.substring(
+                                                    0,
+                                                    10
+                                                ),
+                                                description: description,
+                                                licenseurl:
+                                                    'https://creativecommons.org/licenses/by/4.0/',
+                                                mediatype: 'audio',
+                                                subject: `bioacoustics; ${projectName}, ${getIds(
+                                                    observation
+                                                )}`,
+                                                title: `${
+                                                    projectConfig.obsCode
+                                                } #${observationId}: ${ids} @ ${locationShortname}, ${
+                                                    data.time
+                                                }`,
+                                                observationId: observationId,
+                                                projectName: projectName,
+                                                projectSlug: projectSlug,
+                                                datetime: data.fileDate,
+                                                locationCode: locationCode,
+                                                location: locationName,
+                                                deviceId: data.deviceId,
+                                                filename: data.filename,
+                                                archiveUrl: archiveUrl,
+                                                archiveUrlContext: archiveUrlContext,
+                                                labelText: data.labelText,
+                                                identification: ids,
+                                                submitterName:
+                                                    data.submitterName ||
+                                                    'Unspecified',
+                                                frequencyFloor:
+                                                    data.frequencyFloor || 0,
+                                                frequencyCeiling:
+                                                    data.frequencyCeiling ||
+                                                    Infinity,
+                                                duration: data.duration,
+                                                clipFilename: `${projectSlug}-observation-${observationId}.flac`
+                                            },
+                                            filePath: `${getTempPath()}/${projectSlug}-observation-${observationId}.flac`
+                                        };
+
+                                        const uploadToArchiveOrgF = Future.encaseP(
+                                            a => uploadToArchiveOrg(a)
+                                        );
+
+                                        const derivedFiles = [
+                                            {
+                                                file: `${projectSlug}-observation-${observationId}.flac`,
+                                                type: 'clip:audio'
+                                            },
+                                            {
+                                                file: `${projectSlug}-observation-${observationId}-focused-spectrogram.png`,
+                                                type: 'clip:focused-spectrogram'
+                                            },
+                                            {
+                                                file: `${projectSlug}-observation-${observationId}-spectrogram.png`,
+                                                type: 'clip:spectrogram'
+                                            }
+                                        ];
+
+                                        return uploadToArchiveOrgF(fileData)
+                                            .map(() =>
+                                                fs.unlinkSync(
+                                                    `${getTempPath()}/${projectSlug}-observation-${observationId}.flac`
+                                                )
+                                            )
+                                            .chain(() =>
+                                                uploadToArchiveOrgF(
+                                                    R.mergeDeepRight(fileData, {
+                                                        data: {
+                                                            clipFilename: `${projectSlug}-observation-${observationId}-focused-spectrogram.png`
+                                                        },
+                                                        filePath: `${getTempPath()}/${projectSlug}-observation-${observationId}-focused-spectrogram.png`
+                                                    })
+                                                ).map(() =>
+                                                    fs.unlinkSync(
+                                                        `${getTempPath()}/${projectSlug}-observation-${observationId}-focused-spectrogram.png`
+                                                    )
+                                                )
+                                            )
+                                            .chain(() =>
+                                                uploadToArchiveOrgF(
+                                                    R.mergeDeepRight(fileData, {
+                                                        data: {
+                                                            clipFilename: `${projectSlug}-observation-${observationId}-spectrogram.png`
+                                                        },
+                                                        filePath: `${getTempPath()}/${projectSlug}-observation-${observationId}-spectrogram.png`
+                                                    })
+                                                ).map(() =>
+                                                    fs.unlinkSync(
+                                                        `${getTempPath()}/${projectSlug}-observation-${observationId}-spectrogram.png`
+                                                    )
+                                                )
+                                            )
+                                            .chain(() =>
+                                                deleteDerivedFiles({
+                                                    where: {
+                                                        observationId,
+                                                        fileType: {
+                                                            [Op.like]: 'clip:%'
+                                                        }
+                                                    }
+                                                })
+                                            )
+                                            .chain(() =>
+                                                createDerivedFiles(
+                                                    derivedFiles.map(file => ({
+                                                        observationId,
+                                                        fileType: file.type,
+                                                        url: `https://archive.org/download/${buildBucketName(
+                                                            {
+                                                                projectSlug,
+                                                                observationId
+                                                            }
+                                                        )}/${file.file}`
+                                                    }))
+                                                )
+                                            );
+                                    })
+                                    .fork(console.error, resolve);
                             }
                         );
                     });
                 });
             return Future.parallel(1, deriveClips());
         })
-        .fork(console.error, res => {
-            console.log('res', res);
+        .chain(res =>
+            createLog({
+                level: 0,
+                text: 'Uploaded files to archive.org',
+                data: res
+            })
+        )
+        // need to delete all remaining files (e.g. original FLACs)
+        .fork(console.error, () => {
             callback();
         });
 

@@ -49,9 +49,7 @@ const observationsDataTable = ({
         observation.get('reviewCount')
             ? `<a href="/project/${projectSlug}/cycle/${cycle.id}/survey/${
                   observation.surveyId
-              }/observation/${
-                  observation.id
-              }/review" ${buttonClass}>
+              }/observation/${observation.id}/review" ${buttonClass}>
 Reviews: ${observation.get('reviewCount')}</a>`
             : `<a href="/project/${projectSlug}/cycle/${cycle.id}/survey/${
                   observation.surveyId
@@ -67,6 +65,8 @@ Reviews: ${observation.get('reviewCount')}</a>`
             }/survey/${observation.surveyId}/observation/${
                 observation.id
             }/files`;
+
+            const fileCount = observation.get('fileCount');
 
             return acc.concat([
                 [
@@ -85,9 +85,9 @@ Reviews: ${observation.get('reviewCount')}</a>`
                         moment(data.time).format('YYYY-MM-DD HH:mm:ss.SSS'),
                     data.name_of_species || data.labelText,
                     observation.get('fileCount')
-                        ? `<a href="${photosUrl}">${observation.get(
-                              'fileCount'
-                          )}photos</a>`
+                        ? `<a href="${photosUrl}">${fileCount} photo${
+                              fileCount > 1 ? 's' : ''
+                          }</a>`
                         : ''
                 ]
             ]);

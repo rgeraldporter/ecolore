@@ -1873,7 +1873,9 @@ module.exports = function(router) {
         isTransformationFile(`${project.get('model')}.js`)
             ? require(`${transformationPath}${project.get('model')}.js`)
                   .observation
-            : () => {};
+            : (req, res, next) => {
+                  next();
+              };
 
     const transformObservationData = (req, res, next) =>
         findProjectBySlugF(req.params.slug)
@@ -1937,7 +1939,6 @@ module.exports = function(router) {
                 data: R.omit(['survey', 'cycle'], data),
                 surveyId: Number(survey)
             };
-
             const moreObservations = () => R.prop('more_observations', data);
             const bulkObservations = () => R.prop('observations', data);
             const resubmit = () => R.prop('resubmit', data);
@@ -2281,6 +2282,43 @@ module.exports = function(router) {
             check('submitComment').optional()
         ],
         (req, res) => {
+            const invalidateIdentifications = observation => response =>
+                !observation.get('data').filename
+                    ? response
+                    : db.AcousticFile.findOne({
+                          where: {
+                              surveyId: observation.get('surveyId'),
+                              name: observation.get('data').filename || 'none'
+                          }
+                      })
+                          .then(result => {
+                              if (!result) {
+                                  return false;
+                              }
+                              const derived = result.get('data').derived;
+                              const newDerived = R.omit(
+                                  ['identification'],
+                                  derived
+                              );
+                              const data = result.get('data');
+                              data.derived = newDerived;
+                              return {
+                                  data
+                              };
+                          })
+                          .then(updated =>
+                              updated
+                                  ? db.AcousticFile.update(updated, {
+                                        where: {
+                                            surveyId: observation.surveyId,
+                                            name: observation.get('data')
+                                                .filename
+                                        }
+                                    })
+                                  : false
+                          )
+                          .then(() => response);
+
             const invalidateObservation = (observationId, data) =>
                 db.Observation.findOne({
                     where: {
@@ -2348,6 +2386,7 @@ module.exports = function(router) {
                                         : null
                                 })
                             )
+                            .then(invalidateIdentifications(observation))
                     )
                     .then(_ =>
                         data.newData

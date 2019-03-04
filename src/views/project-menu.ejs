@@ -49,14 +49,13 @@ const projectTypeLink = `<a href="/project-types/${project.model}">${projectType
     <div><a href="/project/<%= project.slug %>/zones"><%= locals.t('Zones', project) %></a></div>
     <div>&nbsp;</div>
     <!-- div><a href="/project/<%= project.slug %>/maps">Maps</a></div -->
-    <div>Go to observation</div>
+    <div>Go to <%= locals.t('observation', project) %></div>
     <form method="POST" action="/project/browse-observation" class="pure-form pure-form-stacked">
         <fieldset>
-            <input type="text" name="observation" placeholder="Observation #" autocomplete="off">
+            <input type="text" name="observation" placeholder="<%= locals.t('Observation', project) %> #" autocomplete="off">
             <input type="hidden" value="<%= project.slug %>" name="project_slug">
             <button class="pure-button" id="form-submit" type="submit" name="submit">Go</button>
         </fieldset>
-
     </form>
 
     <% } %>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<% include ../head %>
+
+    <body>
+        <% include ../menu %>
+            <div class="content-wrapper">
+                    <div class="header">
+                            <h2>Release notes: 0.12.0 (March 2019)</h2>
+                        </div>
+                    <div class="content">
+                        <ul>
+                            <li>Upgrade Sequelize ORM to 5.x to better support MariaDB</li>
+                            <li>Add new workers folder for scripts to be run independant of the web server</li>
+                            <li>Add new clip worker to take acoustic files and make clips and spectrograms of them</li>
+                            <li>Add new catalog worker to catalog filenames used in each acoustic trackset</li>
+                            <li>New database tables to support deriving acoustic files</li>
+                            <li>New upload script to transport derived files to archive.org</li>
+                            <li>New identifications worker to interpolate acoustic labels to species names, abundance, and notable flags</li>
+                            <li>Added birdpop.org's 2018 Alpha Codes to identifier database</li>
+                        </ul>
+                    </div>
+
+                <% include ../footer %>
+            </div>
+    </body>
+</html>
