@@ -6,6 +6,7 @@ const { Maybe } = require('simple-maybe');
 const request = require('request');
 const requestF = Future.encaseN(request);
 
+const createLog = Future.encaseP(a => db.Log.create(a));
 const findAllProjects = Future.encaseP(a => db.Project.findAll(a));
 const findAllSurveys = Future.encaseP(a => db.Survey.findAll(a));
 const createAcousticFiles = Future.encaseP(a => db.AcousticFile.create(a));
@@ -47,7 +48,7 @@ const retrieveAndSaveFiles = ({ surveyId, url }) =>
                               name: cur.name.slice(0, -4),
                               surveyId,
                               data: {
-                                  derived: []
+                                  derived: {}
                               }
                           }
                       ])
@@ -76,18 +77,19 @@ const catalogAudioFiles = callback => {
                 .filter(survey => survey.url.length > 0)
         )
         .chain(surveyUrls => {
-            const urlFutures = surveyUrls.map(survey =>
-                Future.of(
+            const urlFutures = () =>
+                surveyUrls.map(survey =>
                     retrieveAndSaveFiles({
                         url: getMetadataUrl(survey.url),
                         surveyId: survey.id
                     })
-                )
-            );
-            return Future.parallel(1, urlFutures);
+                );
+            return Future.parallel(1, urlFutures());
         })
-        .fork(console.error, results => {
-            results.forEach(reqF => reqF.fork(console.error, callback));
+        .fork(err => {
+            callback ? callback(err) : null;
+        }, () => {
+            callback ? callback() : null;
         });
 };
 

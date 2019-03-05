@@ -1,5 +1,7 @@
-const { clipAudioFile, getAcousticFiles } = require('./clipper.wrk');
+const { clipAudioFile, clipAcousticFiles } = require('./clipper.wrk');
 const { Test } = require('falsifire');
+
+// xits are async and require DB connection; will move to integration test later!
 
 describe('The clipper worker', () => {
     xit('should accept a file URL, observation entry', done => {
@@ -62,8 +64,9 @@ describe('The clipper worker', () => {
         });
     }, 1500000);
 
-    it('should be able to list off ', done => {
-        getAcousticFiles(() => {
+    // full run
+    xit('should be able to list off ', done => {
+        clipAcousticFiles(() => {
             expect(true).toBe(true);
             done();
         });

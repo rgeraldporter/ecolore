@@ -20,7 +20,14 @@ const moment = require('moment');
 const app = express();
 const passport = require('passport');
 const isUrl = require('is-url');
-const {DataTable} = require('datatable-monad');
+const { DataTable } = require('datatable-monad');
+const { CronJob } = require('cron');
+
+// workers
+const { catalogAudioFiles } = require('./workers/cataloger.wrk');
+const { getAcousticFiles } = require('./workers/identifier.wrk');
+const { clipAcousticFiles } = require('./workers/clipper.wrk');
+
 const md = require('markdown-it')({
     linkify: true
 });
@@ -171,3 +178,46 @@ app.set('port', process.env.PORT || 3000);
 const server = app.listen(app.get('port'), function() {
     console.log('Express server listening on port ' + server.address().port);
 });
+
+// cron stuff
+const dbLogger = (text, level = 0, data) =>
+    db.Log.create({
+        level,
+        text
+    });
+
+const catalogWorker = new CronJob(
+    '25,35,45,55 * * * *', // every 10 minutes at minute 5
+    () => {
+        dbLogger('CRON: Starting catalog.');
+        catalogAudioFiles(err => {
+            err
+                ? dbLogger('CRON: Finished catalog with errors.', 1, err)
+                : dbLogger('CRON: Finished catalog.');
+        });
+    }
+);
+
+catalogWorker.start();
+
+const identifierWorker = new CronJob('20,30,40,50 * * * *', () => {
+    dbLogger('CRON: Starting identifier.');
+    getAcousticFiles(err => {
+        err
+            ? dbLogger('CRON: Finished idenitifer with errors.', 1, err)
+            : dbLogger('CRON: Finished idenitifer.');
+    });
+});
+
+identifierWorker.start();
+
+const clipperWorker = new CronJob('0 * * * *', () => {
+    dbLogger('CRON: Starting clipper.');
+    clipAcousticFiles(err => {
+        err
+            ? dbLogger('CRON: Finished clipper with errors.', 1, err)
+            : dbLogger('CRON: Finished clipper.');
+    });
+});
+
+clipperWorker.start();

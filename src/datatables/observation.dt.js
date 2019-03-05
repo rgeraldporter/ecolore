@@ -33,6 +33,7 @@ const observationDataTable = ({
     project,
     req,
     cycleId,
+    derivedFiles,
     review
 }) => {
     const isContrib =
@@ -103,14 +104,14 @@ const observationDataTable = ({
         'link',
         `<a target="_blank" href="${
             surveyData.archive_org_url
-        }/${filename}?start=${startTime}">Listen</a>`,
+        }/${filename}?start=${startTime}">Listen at archive.org</a>`,
         `<input type="checkbox" required></input>`
     ];
 
     const expandIdentifiers = identifications =>
         Maybe.of(identifications)
             .map(a =>
-                identifications.map(
+                a.map(
                     (id, idx) =>
                         id.Identifier &&
                         `<details><summary>[${idx + 1}] ${id.Identifier.get(
@@ -127,12 +128,47 @@ const observationDataTable = ({
                         </details>`
                 )
             )
-            .map(a => a.join(', '))
+            .map(a => a.join('<br>'))
             .fork(_ => '', a => a);
+
+    const getThumb = file => file.get('url').replace('.png', '_thumb.jpg');
+
+    const makeAudioFigure = file =>
+        `<figure>
+            <figcaption>Audio Clip</figcaption>
+            <audio
+                controls
+                src="${file.get('url')}">
+                    Your browser does not support the
+                    <code>audio</code> element.
+            </audio>
+        </figure>`;
+
+    const makeImage = file =>{
+        console.log('make IMage', file);
+        return `<details>
+        <summary><img src="${getThumb(file)}"><br>Click to expand.</summary>
+        <img src="${file.get('url')}">
+        </details>`;
+    }
+
+
+    const buildDerivedDetails = (file, index) =>
+        file.get('fileType') === 'clip:audio'
+            ? makeAudioFigure(file)
+            : makeImage(file);
+
+    const expandDerivedFiles = derivedFiles => {
+        console.log('lajlkajs', derivedFiles);
+        return Maybe.of(derivedFiles)
+            .map(a => a.map(buildDerivedDetails))
+            .map(a => a.join('<br>'))
+            .fork(_ => '', a => a);
+    }
 
     const expandFlags = identifications =>
         Maybe.of(identifications)
-            .map(a => identifications.map(id => JSON.parse(id.get('data'))))
+            .map(a => a.map(id => JSON.parse(id.get('data'))))
             .map(a =>
                 a.reduce(
                     (acc, cur, i) =>
@@ -159,10 +195,17 @@ const observationDataTable = ({
         `<input type="checkbox" required></input>`
     ];
 
+    const derivedFilesRow = [
+        'derived_files',
+        expandDerivedFiles(derivedFiles),
+        `<input type="checkbox" required></input>`
+    ];
+
     const fullTable = DataTable.of(dtSource)
         .map(x => (archiveAudioLink ? x.concat([audioLinkRow]) : x))
         .map(x => (hasIdentifications ? x.concat([identificationsRow]) : x))
         .map(x => (hasIdentifications ? x.concat([flagsRow]) : x))
+        .map(x => (hasIdentifications ? x.concat([derivedFilesRow]) : x))
         .map(x => (!noPhotos ? x.concat([photosRow]) : x));
 
     const dt = fullTable.filterCols(str => {

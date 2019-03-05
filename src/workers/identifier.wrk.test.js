@@ -6,60 +6,62 @@ const {
 const { Test } = require('falsifire');
 const Future = require('fluture');
 
-describe('meow', () => {
-    it('shou', done => {
-        getAcousticFiles((a) => {
-            console.log('done!!!');
-            done();
-        });
-    }, 150000);
-});
+const projectIdentifiers = [];
+const Survey = {
+    Cycle: {
+        get: () => 1
+    }
+};
 
 describe('identification', () => {
     it('should handle a banding code', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'AMCR'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id[0]).toEqual({ bandingCode: 'AMCR' });
     });
 
     it('should handle a banding code with abundance', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'AMCR 12'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id[0]).toEqual({ bandingCode: 'AMCR', abundance: 12 });
     });
 
     it('should handle a banding code with abundance and notes', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'AMCR 12 pretty loud'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id[0]).toEqual({ bandingCode: 'AMCR', abundance: 12 });
     });
 
     it('should handle a banding code with abundance and high quality', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'AMCR 12 pretty loud *'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id[0]).toEqual({
             bandingCode: 'AMCR',
@@ -69,13 +71,14 @@ describe('identification', () => {
     });
 
     it('should handle a banding code with abundance and high quality and importance', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'AMCR 12 pretty loud! *'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id[0]).toEqual({
             bandingCode: 'AMCR',
@@ -86,13 +89,14 @@ describe('identification', () => {
     });
 
     it('should handle a scientific banding code with abundance and high quality', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'CARCAR 2*'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id[0]).toEqual({
             bandingCode: 'CARCAR',
@@ -102,25 +106,27 @@ describe('identification', () => {
     });
 
     it('should handle a unknown items', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'unkn *'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id[0]).toEqual({ unknown: true, highQuality: true });
     });
 
     it('should handle multiple identifications', () => {
-        const obs = {
+        const observation = {
             get: () => ({
                 labelText: 'NOCA 2, BCCH, BRCR'
-            })
+            }),
+            Survey: Survey
         };
 
-        const id = parseIdentifiers(obs);
+        const id = parseIdentifiers({ observation, projectIdentifiers });
 
         expect(id).toEqual([
             { bandingCode: 'NOCA', abundance: 2 },

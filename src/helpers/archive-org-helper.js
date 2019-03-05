@@ -27,7 +27,7 @@ const createMetaHeader = ({ key, value }) => ({
 });
 
 const buildBucketName = data =>
-    `${ARCHIVE_ORG_META_PREFIX}-${data.projectSlug}-o-${data.observationId}`;
+    `${ARCHIVE_ORG_META_PREFIX}-${data.projectSlug}-observation-${data.observationId}`;
 
 const makeRequest = (file, data) => headers => {
     const bucketReq = s3.createBucket({

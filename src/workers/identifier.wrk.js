@@ -15,6 +15,8 @@ const {
 
 const { Truth } = require('booltable');
 
+const deriveIdentificationsLimit = 200;
+
 const findAllAcousticFiles = Future.encaseP(a => db.AcousticFile.findAll(a));
 const findAllObservations = Future.encaseP(a => db.Observation.findAll(a));
 const findAllIdentifiers = Future.encaseP(a => db.Identifier.findAll(a));
@@ -105,8 +107,12 @@ const hasProjectMatches = ({ projectId, projectIdentifiers }) =>
         x =>
             Maybe.of(x)
                 .map(a =>
-                    projectIdentifiers.find(id => a.startsWith(id.get('match')))
-                ) // @todo actually check projectId
+                    projectIdentifiers.find(
+                        id =>
+                            a.toLowerCase().startsWith(id.get('match').toLowerCase()) &&
+                            Number(projectId) === Number(id.get('projectId'))
+                    )
+                )
                 .fork(Fail, a =>
                     a ? Pass({ projectMatch: a }) : Fail('not found')
                 )
@@ -196,12 +202,11 @@ const deriveIdentifications = projectIdentifiers => observation =>
             )
         );
 
-// flag as scanned; later, individual observations might be triggered by changes though
 const flagAcousticFile = (file, callback) =>
     updateAcousticFile([
         {
-            data: Object.assign(file.get('data'), {
-                derived: { identification: true }
+            data: R.mergeDeepRight(file.get('data'), {
+                derived: { identifications: true }
             })
         },
         {
@@ -231,8 +236,9 @@ const getObservationsFromFile = file =>
 const getAcousticFiles = callback =>
     findAllAcousticFiles({
         where: db.Sequelize.literal(
-            "json_unquote(json_extract(`AcousticFile`.`data`,'$.derived.identification')) IS NULL"
-        )
+            "json_unquote(json_extract(`AcousticFile`.`data`,'$.derived.identifications')) IS NULL"
+        ),
+        limit: deriveIdentificationsLimit
     })
         .chain(files => {
             const collectObservations = () =>
@@ -264,15 +270,14 @@ const getAcousticFiles = callback =>
                 observations.map(deriveIdentifications(projectIdentifiers))
             );
         })
-        .fork(err => {
-            console.error(err);
-            callback();
-        }, callback);
-
-/*
- 5. add viewer for Identifications to Observations view
- 6. add means to request new identification
-*/
+        .fork(
+            err => {
+                callback ? callback(err) : null;
+            },
+            () => {
+                callback ? callback() : null;
+            }
+        );
 
 module.exports = {
     parseIdentifiers,

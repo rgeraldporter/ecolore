@@ -35,6 +35,7 @@ const findOneProject = Future.encaseP(a => db.Project.findOne(a));
 const findOneUser = Future.encaseP(a => db.User.findOne(a));
 const findOneSurvey = Future.encaseP(a => db.Survey.findOne(a));
 const findOneObservation = Future.encaseP(a => db.Observation.findOne(a));
+const findAllDerivedFiles = Future.encaseP(a => db.DerivedFile.findAll(a));
 
 const findSurveyByCycleAndId = ([cycleId, id]) =>
     findOneSurvey({
@@ -164,9 +165,11 @@ const findObservationBySurveyAndIdWithFiles = ([surveyId, id]) =>
             },
             {
                 model: db.Identification,
-                include: [{
-                    model: db.Identifier
-                }]
+                include: [
+                    {
+                        model: db.Identifier
+                    }
+                ]
             },
             db.File,
             db.Review
@@ -226,12 +229,18 @@ const observationEndpoint = (req, res) =>
             isMemberOfProject(project)
                 ? Future.of([project, observation])
                 : Future.reject('Not a member of this project')
+        )
+        .chain(([project, observation]) =>
+            findAllDerivedFiles({
+                where: { observationId: observation.get('id') }
+            }).chain(derivedFiles =>
+                Future.of([derivedFiles, project, observation])
+            )
         );
-
 const getObservation = (req, res, review) =>
     observationEndpoint(req, res).fork(
         _ => res.redirect(`/project/${req.params.slug}`),
-        ([project, observation]) =>
+        ([derivedFiles, project, observation]) =>
             renderProjectPage(
                 res,
                 'observation',
@@ -247,7 +256,8 @@ const getObservation = (req, res, review) =>
                             projectSlug: req.params.slug,
                             project,
                             req,
-                            review
+                            review,
+                            derivedFiles
                         })
                     },
                     renderProjectTemplate(project)

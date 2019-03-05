@@ -1,4 +1,5 @@
 const fs = require('fs-extra');
+const rimraf = require('rimraf');
 const R = require('ramda');
 const sox = require('sox.js');
 const ffmpeg = require('ffmpeg-static');
@@ -26,6 +27,8 @@ const getFrequencyCeiling = ({ frequencyCeiling, frequencyFloor }) =>
         ? frequencyFloor + minFrequencyBandwidth
         : frequencyCeiling;
 
+const getCollection = () => process.env.TEST_COLLECTION ? 'test_collection' : 'opensource_audio';
+
 const findAllAcousticFiles = Future.encaseP(a => db.AcousticFile.findAll(a));
 const findAllObservations = Future.encaseP(a => db.Observation.findAll(a));
 const updateAcousticFile = Future.encaseP(([a, b]) =>
@@ -52,9 +55,6 @@ const fileNameToDateTime = ({ filename, seconds }) => {
 
 const download = ({ url, dest, cb }) => {
     request.head(url, (err, res, body) => {
-        console.log('content-type:', res.headers['content-type']);
-        console.log('content-length:', res.headers['content-length']);
-
         request(url)
             .pipe(fs.createWriteStream(dest))
             .on('close', cb);
@@ -83,7 +83,6 @@ const buildObservationTable = (
     `</table>`;
 
 const getTempPath = () => `${__dirname}/../../temp`;
-
 const getFilePath = filename => `${getTempPath()}/${filename}`;
 
 const clipFile = ({
@@ -108,6 +107,7 @@ const clipFile = ({
             sox(
                 {
                     inputFile: `${getTempPath()}/${clipName}.flac`,
+                    outputFile: `-n`,
                     effects: [
                         'rate',
                         '22k',
@@ -158,6 +158,7 @@ const clipAudioFile = ({ fileUrl, observation }, callback) =>
             const project = observation.project;
             const projectSlug = project.get('slug');
             const projectName = project.get('title');
+            fs.ensureDirSync(getTempPath());
             return fileExists
                 ? clipFile({
                       filename: getFilenameFromObservation(observation),
@@ -186,6 +187,7 @@ const clipAudioFile = ({ fileUrl, observation }, callback) =>
                           clipFile({
                               filename: getFilenameFromObservation(observation),
                               id: observation.id,
+                              projectName,
                               labelText: observation.data.labelText,
                               start: Math.floor(observation.data.startTime),
                               duration: Math.ceil(observation.data.duration),
@@ -222,7 +224,11 @@ const getObservationsFromFile = file =>
                     }
                 ]
             },
-            { model: db.Identification, include: [db.Identifier] }
+            {
+                model: db.Identification,
+                include: [db.Identifier],
+                where: { invalid: null }
+            }
         ]
     });
 
@@ -231,7 +237,9 @@ const clipAudioFileF = Future.encaseN(clipAudioFile);
 const flagAcousticFile = (file, callback) => {
     return updateAcousticFile([
         {
-            data: Object.assign(file.get('data'), { derived: { clips: true } })
+            data: R.mergeDeepRight(file.get('data'), {
+                derived: { clips: true }
+            })
         },
         {
             where: {
@@ -241,10 +249,11 @@ const flagAcousticFile = (file, callback) => {
     ]);
 };
 
-const getAcousticFiles = callback =>
+const clipAcousticFiles = callback =>
     findAllAcousticFiles({
         where: db.Sequelize.literal(
-            "json_unquote(json_extract(`AcousticFile`.`data`,'$.derived.clips')) IS NULL"
+            "json_unquote(json_extract(`AcousticFile`.`data`,'$.derived.clips')) IS NULL " +
+                "AND json_unquote(json_extract(`AcousticFile`.`data`,'$.derived.identifications')) IS NOT NULL"
         ),
         limit: deriveAudioFileLimit
     })
@@ -385,7 +394,7 @@ const getAcousticFiles = callback =>
 
                                         const fileData = {
                                             data: {
-                                                collection: 'test_collection',
+                                                collection: getCollection(),
                                                 creator:
                                                     projectConfig.archiveOrgName ||
                                                     `Hamilton Naturalists' Club`,
@@ -400,9 +409,8 @@ const getAcousticFiles = callback =>
                                                 subject: `bioacoustics; ${projectName}, ${getIds(
                                                     observation
                                                 )}`,
-                                                title: `${
-                                                    projectConfig.obsCode
-                                                } #${observationId}: ${ids} @ ${locationShortname}, ${
+                                                title: `${projectConfig.obsCode ||
+                                                    'Observation'} #${observationId}: ${ids} @ ${locationShortname}, ${
                                                     data.time
                                                 }`,
                                                 observationId: observationId,
@@ -523,12 +531,16 @@ const getAcousticFiles = callback =>
                 data: res
             })
         )
-        // need to delete all remaining files (e.g. original FLACs)
-        .fork(console.error, () => {
-            callback();
-        });
+        .fork(
+            err => {
+                rimraf(getTempPath(), () => {
+                    callback(err);
+                });
+            },
+            () => rimraf(getTempPath(), () => callback())
+        );
 
 module.exports = {
     clipAudioFile,
-    getAcousticFiles
+    clipAcousticFiles
 };

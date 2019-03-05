@@ -522,10 +522,6 @@ module.exports = function(router) {
                         include: [db.Survey]
                     })
                 )
-                .map(test => {
-                    console.log('TEST', test);
-                    return test;
-                })
                 .fork(
                     _ => res.redirect('/project/' + data.project_slug),
                     observation =>
@@ -2297,7 +2293,7 @@ module.exports = function(router) {
                               }
                               const derived = result.get('data').derived;
                               const newDerived = R.omit(
-                                  ['identification'],
+                                  ['identifications', 'clips'],
                                   derived
                               );
                               const data = result.get('data');
