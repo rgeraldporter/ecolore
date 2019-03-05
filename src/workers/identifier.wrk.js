@@ -2,6 +2,7 @@ const R = require('ramda');
 const Future = require('fluture');
 const { Maybe, Nothing } = require('simple-maybe');
 const db = require('../models/index');
+const Op = db.Sequelize.Op;
 const flatten = require('array-flatten');
 
 const {
@@ -98,10 +99,23 @@ const isHighQuality = Question.of([
             .fork(Fail, a => Pass({ highQuality: true }))
 ]);
 
+const hasProjectMatches = ({ projectId, projectIdentifiers }) =>
+    Question.of([
+        'does it match project identifier strings?',
+        x =>
+            Maybe.of(x)
+                .map(a =>
+                    projectIdentifiers.find(id => a.startsWith(id.get('match')))
+                ) // @todo actually check projectId
+                .fork(Fail, a =>
+                    a ? Pass({ projectMatch: a }) : Fail('not found')
+                )
+    ]);
+
 /*
  @todo list: slashes (MALL/ABDU, etc)
 */
-const inquireIdentifiers = label =>
+const inquireIdentifiers = ({ projectId, projectIdentifiers }) => label =>
     Inquiry.subject(label)
         .inquire(hasBandingCodes)
         .inquire(isUncertain)
@@ -109,30 +123,47 @@ const inquireIdentifiers = label =>
         .inquire(isUnknown)
         .inquire(isImportant)
         .inquire(isHighQuality)
+        .inquire(hasProjectMatches({ projectId, projectIdentifiers }))
         .join();
 
-const parseIdentifiers = observation => {
+const parseIdentifiers = ({ observation, projectIdentifiers }) => {
     const labelText = observation.get('data').labelText;
     const labels = labelText.split(',').map(a => a.trim());
-    return labels.map(inquireIdentifiers).map(a => {
-        return a.pass.join().reduce((acc, cur) => Object.assign(acc, cur), {});
-    });
+    const projectId = observation.Survey.Cycle.get('projectId');
+    return labels
+        .map(inquireIdentifiers({ projectId, projectIdentifiers }))
+        .map(a => {
+            return a.pass
+                .join()
+                .reduce((acc, cur) => Object.assign(acc, cur), {});
+        });
 };
+
+const findProjectIdentifiers = identifiers => idqs =>
+    R.prop('projectMatch', identifiers) && idqs.length === 0
+        ? Future.both(
+              Future.of(R.omit(['projectMatch'], identifiers)),
+              Future.of([identifiers.projectMatch])
+          )
+        : Future.both(Future.of(identifiers), Future.of(idqs));
 
 const findIdentifiersByBandingCode = identifiers =>
     identifiers.bandingCode
         ? findAllIdentifiers({
               where: {
-                  match: identifiers.bandingCode
+                  match: identifiers.bandingCode,
+                  type: 'birdpop-alpha-2018'
               }
-          }).chain(idqs => Future.both(Future.of(identifiers), Future.of(idqs)))
-        : Future.both(Future.of(identifiers), Future.of([]));
+          }).chain(findProjectIdentifiers(identifiers))
+        : findProjectIdentifiers(identifiers)([]);
 
-const checkDbIdentifiers = observation =>
-    parseIdentifiers(observation).map(findIdentifiersByBandingCode);
+const checkDbIdentifiers = ({ observation, projectIdentifiers }) =>
+    parseIdentifiers({ observation, projectIdentifiers }).map(
+        findIdentifiersByBandingCode
+    );
 
-const deriveIdentifications = observation =>
-    Future.parallel(1, checkDbIdentifiers(observation))
+const deriveIdentifications = projectIdentifiers => observation =>
+    Future.parallel(1, checkDbIdentifiers({ observation, projectIdentifiers }))
         .chain(results =>
             Future.both(
                 Future.of(results),
@@ -153,8 +184,9 @@ const deriveIdentifications = observation =>
             Future.parallel(
                 1,
                 results.map(([identifiers, idqs]) => {
-                    const idqPrimaryId = idqs.length ? idqs[0].get('id') : null;
-                    const idqMultiple = idqs.length > 1;
+                    const idqPrimaryId =
+                        idqs && idqs.length ? idqs[0].get('id') : null;
+                    const idqMultiple = idqs && idqs.length > 1;
                     return createIdentification({
                         observationId: observation.get('id'),
                         identifierId: idqPrimaryId,
@@ -165,8 +197,8 @@ const deriveIdentifications = observation =>
         );
 
 // flag as scanned; later, individual observations might be triggered by changes though
-const flagAcousticFile = (file, callback) => {
-    return updateAcousticFile([
+const flagAcousticFile = (file, callback) =>
+    updateAcousticFile([
         {
             data: Object.assign(file.get('data'), {
                 derived: { identification: true }
@@ -178,16 +210,21 @@ const flagAcousticFile = (file, callback) => {
             }
         }
     ]);
-};
 
 const getObservationsFromFile = file =>
     findAllObservations({
         where: {
             data: {
                 filename: file
-            }
+            },
+            invalid: null
         },
-        include: [db.Survey]
+        include: [
+            {
+                model: db.Survey,
+                include: [db.Cycle]
+            }
+        ]
     });
 
 // main thing
@@ -201,21 +238,36 @@ const getAcousticFiles = callback =>
             const collectObservations = () =>
                 files.map(file =>
                     getObservationsFromFile(file.get('name')).chain(
-                        observations => {
-                            return flagAcousticFile(file).map(
-                                () => observations
-                            );
-                        }
+                        observations =>
+                            flagAcousticFile(file).map(() => observations)
                     )
                 );
-            return Future.parallel(1, collectObservations());
+            return files.length
+                ? Future.parallel(1, collectObservations())
+                : Future.reject([]);
         })
-        .chain(observationsCollection => {
+        .chain(observationsCollection =>
+            Future.both(
+                Future.of(observationsCollection),
+                findAllIdentifiers({
+                    where: {
+                        type: 'project-identifier'
+                    }
+                })
+            )
+        )
+        .chain(([observationsCollection, projectIdentifiers]) => {
             // we have all the observations of all files, but not in a flat array yet.
             const observations = flatten(observationsCollection);
-            return Future.parallel(1, observations.map(deriveIdentifications));
+            return Future.parallel(
+                1,
+                observations.map(deriveIdentifications(projectIdentifiers))
+            );
         })
-        .fork(console.error, console.log);
+        .fork(err => {
+            console.error(err);
+            callback();
+        }, callback);
 
 /*
  5. add viewer for Identifications to Observations view

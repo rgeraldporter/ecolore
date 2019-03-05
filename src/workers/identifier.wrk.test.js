@@ -8,8 +8,8 @@ const Future = require('fluture');
 
 describe('meow', () => {
     it('shou', done => {
-        getAcousticFiles(() => {
-            console.log('!!!');
+        getAcousticFiles((a) => {
+            console.log('done!!!');
             done();
         });
     }, 150000);
