@@ -187,7 +187,7 @@ const dbLogger = (text, level = 0, data) =>
     });
 
 const catalogWorker = new CronJob(
-    '25,35,45,55 * * * *', // every 10 minutes at minute 5
+    '35,45,55 * * * *', // every 10 minutes at minute 5
     () => {
         dbLogger('CRON: Starting catalog.');
         catalogAudioFiles(err => {
@@ -200,7 +200,7 @@ const catalogWorker = new CronJob(
 
 catalogWorker.start();
 
-const identifierWorker = new CronJob('20,30,40,50 * * * *', () => {
+const identifierWorker = new CronJob('30,40,50 * * * *', () => {
     dbLogger('CRON: Starting identifier.');
     getAcousticFiles(err => {
         err
@@ -211,7 +211,7 @@ const identifierWorker = new CronJob('20,30,40,50 * * * *', () => {
 
 identifierWorker.start();
 
-const clipperWorker = new CronJob('0 * * * *', () => {
+const clipperWorker = new CronJob('10 * * * *', () => {
     dbLogger('CRON: Starting clipper.');
     clipAcousticFiles(err => {
         err
