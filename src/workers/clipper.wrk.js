@@ -27,6 +27,8 @@ const getFrequencyCeiling = ({ frequencyCeiling, frequencyFloor }) =>
         ? frequencyFloor + minFrequencyBandwidth
         : frequencyCeiling;
 
+const getFrequencyFloor = (frequencyFloor) => frequencyFloor > 0 ? frequencyFloor : 0;
+
 const getCollection = () => process.env.TEST_COLLECTION ? 'test_collection' : 'opensource_audio';
 
 const findAllAcousticFiles = Future.encaseP(a => db.AcousticFile.findAll(a));
@@ -135,7 +137,7 @@ const clipFile = ({
                 () => {
                     const ffmpegPath = ffmpeg.path;
                     exec(
-                        `${ffmpegPath} -i ${getTempPath()}/${clipName}.flac -y -lavfi showspectrumpic=start=${frequencyFloor}:stop=${getFrequencyCeiling(
+                        `${ffmpegPath} -i ${getTempPath()}/${clipName}.flac -y -lavfi showspectrumpic=start=${getFrequencyFloor(frequencyFloor)}:stop=${getFrequencyCeiling(
                             { frequencyCeiling, frequencyFloor }
                         ) *
                             1.5}:s=800x600:color=6:gain=0.25 ${getTempPath()}/${clipName}-focused-spectrogram.png`
