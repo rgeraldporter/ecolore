@@ -18,7 +18,7 @@ const {
     buildBucketName
 } = require('../helpers/archive-org-helper');
 
-const deriveAudioFileLimit = 18; // 36 = one day
+const deriveAudioFileLimit = 12; // 36 = one day
 const minFrequencyBandwidth = 4000;
 const durationPadding = 2;
 const cuePadding = 1;
