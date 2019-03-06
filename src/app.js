@@ -211,9 +211,17 @@ const identifierWorker = new CronJob('10,20,50 * * * *', () => {
 
 identifierWorker.start();
 
+let clipperStatus = 0;
+
 const clipperWorker = new CronJob('30 * * * *', () => {
     dbLogger('CRON: Starting clipper.');
+    if (clipperStatus) {
+        dbLogger('CRON: Clipper already in progress; not starting another process.');
+        return;
+    }
+    clipperStatus = 1;
     clipAcousticFiles(err => {
+        clipperStatus = 0;
         err
             ? dbLogger('CRON: Finished clipper with errors.', 1, err)
             : dbLogger('CRON: Finished clipper.');
