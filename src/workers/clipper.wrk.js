@@ -333,7 +333,7 @@ const clipAcousticFiles = callback =>
                                                 )
                                                 .fork(
                                                     _ => 'None',
-                                                    a => a.join(', ')
+                                                    a => a.join('; ')
                                                 );
 
                                         const data = observation.get('data');
@@ -408,7 +408,7 @@ const clipAcousticFiles = callback =>
                                                 licenseurl:
                                                     'https://creativecommons.org/licenses/by/4.0/',
                                                 mediatype: 'audio',
-                                                subject: `bioacoustics; ${projectName}, ${getIds(
+                                                subject: `bioacoustics; ${projectName}; ${getIds(
                                                     observation
                                                 )}`,
                                                 title: `${projectConfig.obsCode ||
