@@ -80,7 +80,7 @@ const buildObservationTable = (
     `<tr><th>Location</th><td>${locationShortname}</td></tr>` +
     `<tr><th>Identified by</th><td>${data.submitterName}</td></tr>` +
     `<tr><th>Derived from</th>` +
-    `<td><a href="${archiveUrlContext}">HNCSW1_20190216_072003.wav</a></td>` +
+    `<td><a href="${archiveUrlContext}">${data.filename}.wav</a></td>` +
     `</tr>` +
     `</table>`;
 
@@ -378,7 +378,7 @@ const clipAcousticFiles = callback =>
                                             archiveUrl +
                                             '/' +
                                             data.filename +
-                                            `?start=${Math.floor(
+                                            `.wav?start=${Math.floor(
                                                 data.startTime
                                             )}`;
 
