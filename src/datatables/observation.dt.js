@@ -72,7 +72,7 @@ const observationDataTable = ({
     const dtHeader = ['Key', 'Value', 'Correct?'];
 
     const data = observation.data;
-    const surveyData = observation.Survey.data;
+    const surveyData = observation.Survey.get('data');
 
     const buttonClass = `class="pure-button button-table-action button-small small-caps"`;
 
