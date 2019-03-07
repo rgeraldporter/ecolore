@@ -7,8 +7,17 @@ const trunc = (str, len) =>
 
 const projectTypeSettings = require('../helpers/project-settings').settings;
 
-const surveysDataTable = ({ surveys, projectSlug, cycle, project, req, filter }) => {
+const surveysDataTable = ({
+    surveys,
+    projectSlug,
+    cycle,
+    project,
+    req,
+    filter
+}) => {
     const { locals } = req.app;
+
+    const isMoreAssigned = count => (count > 1 ? ` + ${count - 1}` : ``);
 
     const dtHeader = [
         '#',
@@ -24,15 +33,14 @@ const surveysDataTable = ({ surveys, projectSlug, cycle, project, req, filter })
 
     const dtSource = surveys.reduce(
         (acc, survey) => {
-
-            if ( filter ) {
-                if ( filter === 'needs_review' ) {
-                    if ( survey.get('reviewCount') ) {
+            if (filter) {
+                if (filter === 'needs_review') {
+                    if (survey.get('reviewCount')) {
                         return acc;
                     }
                 }
-                if ( filter === 'needs_assignment' ) {
-                    if ( survey.get('assignmentCount') ) {
+                if (filter === 'needs_assignment') {
+                    if (survey.get('assignmentCount')) {
                         return acc;
                     }
                 }
@@ -62,9 +70,14 @@ const surveysDataTable = ({ surveys, projectSlug, cycle, project, req, filter })
                         cycle.id
                     }/survey/${
                         survey.id
-                    }/assignments" class="pure-button button-table-action button-small small-caps" style="width: 11em;">${survey.get(
-                        'assignmentCount'
-                    )} ${t('assigned', project)}</a>`,
+                    }/assignments" class="pure-button button-table-action button-small small-caps" style="width: 11em;">${
+                        survey.Assignments[0]
+                            ? survey.Assignments[0].User.get('firstName') +
+                              ' ' +
+                              survey.Assignments[0].User.get('lastName') +
+                              isMoreAssigned(survey.get('assignmentCount'))
+                            : 'Not ' + t('assigned', project)
+                    }</a>`,
                     survey.author.firstName + ' ' + survey.author.lastName,
                     moment(survey.createdAt).format('MMM Do YYYY, h:mm a')
                 ]

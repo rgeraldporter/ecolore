@@ -101,10 +101,10 @@ const observationDataTable = ({
     const startTime = data.startTime;
 
     const audioLinkRow = [
-        'link',
+        'context_link',
         `<a target="_blank" href="${
             surveyData.archive_org_url
-        }/${filename}?start=${startTime}">Listen at archive.org</a>`,
+        }/${filename}?start=${startTime}">Listen within context [archive.org link]</a>`,
         `<input type="checkbox" required></input>`
     ];
 
@@ -133,6 +133,9 @@ const observationDataTable = ({
 
     const getThumb = file => file.get('url').replace('.png', '_thumb.jpg');
 
+    const parseClipPageUrl = file =>
+        `https://archive.org/details/${file.get('url').split('/')[4]}`;
+
     const makeAudioFigure = file =>
         `<figure>
             <figcaption>Audio Clip</figcaption>
@@ -144,27 +147,28 @@ const observationDataTable = ({
             </audio>
         </figure>`;
 
-    const makeImage = file =>{
-        console.log('make IMage', file);
-        return `<details>
+    const makeClipArchiveOrgLink = file =>
+        file
+            ? `<a target="_blank" href="${parseClipPageUrl(
+                  file
+              )}">Clip on Archive.org</a>`
+            : ``;
+
+    const makeImage = file => `<details>
         <summary><img src="${getThumb(file)}"><br>Click to expand.</summary>
         <img src="${file.get('url')}">
         </details>`;
-    }
-
 
     const buildDerivedDetails = (file, index) =>
         file.get('fileType') === 'clip:audio'
             ? makeAudioFigure(file)
             : makeImage(file);
 
-    const expandDerivedFiles = derivedFiles => {
-        console.log('lajlkajs', derivedFiles);
-        return Maybe.of(derivedFiles)
+    const expandDerivedFiles = derivedFiles =>
+        Maybe.of(derivedFiles)
             .map(a => a.map(buildDerivedDetails))
             .map(a => a.join('<br>'))
             .fork(_ => '', a => a);
-    }
 
     const expandFlags = identifications =>
         Maybe.of(identifications)
@@ -201,11 +205,18 @@ const observationDataTable = ({
         `<input type="checkbox" required></input>`
     ];
 
+    const archiveOrgClipLinkRow = [
+        'archive_org_clip',
+        makeClipArchiveOrgLink(derivedFiles[0] || false),
+        `<input type="checkbox" required></input>`
+    ];
+
     const fullTable = DataTable.of(dtSource)
         .map(x => (archiveAudioLink ? x.concat([audioLinkRow]) : x))
         .map(x => (hasIdentifications ? x.concat([identificationsRow]) : x))
         .map(x => (hasIdentifications ? x.concat([flagsRow]) : x))
         .map(x => (hasIdentifications ? x.concat([derivedFilesRow]) : x))
+        .map(x => (hasIdentifications ? x.concat([archiveOrgClipLinkRow]) : x))
         .map(x => (!noPhotos ? x.concat([photosRow]) : x));
 
     const dt = fullTable.filterCols(str => {

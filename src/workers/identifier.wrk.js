@@ -250,7 +250,7 @@ const getAcousticFiles = callback =>
                 );
             return files.length
                 ? Future.parallel(1, collectObservations())
-                : Future.reject([]);
+                : Future.reject({reason: 'No files to derive'});
         })
         .chain(observationsCollection =>
             Future.both(
@@ -271,8 +271,8 @@ const getAcousticFiles = callback =>
             );
         })
         .fork(
-            err => {
-                callback ? callback(err) : null;
+            reason => {
+                callback ? callback(reason) : null;
             },
             () => {
                 callback ? callback() : null;

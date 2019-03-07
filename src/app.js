@@ -204,7 +204,7 @@ const identifierWorker = new CronJob('10,20,50 * * * *', () => {
     dbLogger('CRON: Starting identifier.');
     getAcousticFiles(err => {
         err
-            ? dbLogger('CRON: Finished idenitifer with errors.', 1, err)
+            ? dbLogger('CRON: Finished idenitifer without changes.', 0, err)
             : dbLogger('CRON: Finished idenitifer.');
     });
 });

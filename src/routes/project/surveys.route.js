@@ -63,9 +63,8 @@ const findSurveysByCycle = cycle =>
         attributes: {
             include: [
                 [
-                    db.Sequelize.fn(
-                        'COUNT',
-                        db.Sequelize.col('Observations.id')
+                    db.Sequelize.literal(
+                        '(SELECT COUNT(*) FROM Observations WHERE Observations.surveyId = Survey.id)'
                     ),
                     'observationCount'
                 ],
@@ -87,7 +86,10 @@ const findSurveysByCycle = cycle =>
             db.Observation,
             db.Review,
             db.Zone,
-            db.Assignment,
+            {
+                model: db.Assignment,
+                include: [db.User]
+            },
             {
                 model: db.User,
                 as: 'author'
