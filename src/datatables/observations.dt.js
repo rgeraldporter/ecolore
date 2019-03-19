@@ -11,8 +11,7 @@ const observationsDataTable = ({
     observations,
     projectSlug,
     project,
-    req,
-    cycle
+    req
 }) => {
     const isContrib =
         project.memberRole === 'administrator' ||
@@ -34,6 +33,8 @@ const observationsDataTable = ({
         projectTypeSettings
     );
 
+    const getCycleId = observation => observation.Survey.get('cycleId');
+
     const dtHeader = [
         'View data',
         'Review',
@@ -47,11 +48,11 @@ const observationsDataTable = ({
 
     const reviewsRow = observation =>
         observation.get('reviewCount')
-            ? `<a href="/project/${projectSlug}/cycle/${cycle.id}/survey/${
+            ? `<a href="/project/${projectSlug}/cycle/${getCycleId(observation)}/survey/${
                   observation.surveyId
               }/observation/${observation.id}/review" ${buttonClass}>
 Reviews: ${observation.get('reviewCount')}</a>`
-            : `<a href="/project/${projectSlug}/cycle/${cycle.id}/survey/${
+            : `<a href="/project/${projectSlug}/cycle/${getCycleId(observation)}/survey/${
                   observation.surveyId
               }/observation/${
                   observation.id
@@ -61,7 +62,7 @@ Reviews: ${observation.get('reviewCount')}</a>`
         (acc, observation) => {
             const data = observation.data;
             const photosUrl = `/project/${project.slug}/cycle/${
-                cycle.id
+                getCycleId(observation)
             }/survey/${observation.surveyId}/observation/${
                 observation.id
             }/files`;
@@ -71,13 +72,13 @@ Reviews: ${observation.get('reviewCount')}</a>`
             return acc.concat([
                 [
                     `<a href="/project/${projectSlug}/cycle/${
-                        cycle.id
+                        getCycleId(observation)
                     }/survey/${observation.surveyId}/observation/${
                         observation.id
                     }" ${buttonClass}>View</a>`,
                     reviewsRow(observation),
                     `<a href="/project/${projectSlug}/cycle/${
-                        cycle.id
+                        getCycleId(observation)
                     }/survey/${observation.surveyId}/observation/${
                         observation.id
                     }/audacity-labels" ${buttonClass}>Audacity label file</a>`,

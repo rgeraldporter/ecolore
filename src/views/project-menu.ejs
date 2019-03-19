@@ -47,6 +47,9 @@ const projectTypeLink = `<a href="/project-types/${project.model}">${projectType
         <% } %>
     <div><a href="/project/<%= project.slug %>/cycles"><%= locals.t('Cycles', project) %></a></div>
     <div><a href="/project/<%= project.slug %>/zones"><%= locals.t('Zones', project) %></a></div>
+        <% if ( project.model === 'acoustic-survey' ) { %>
+    <div><a href="/project/<%= project.slug %>/identifications"><%= locals.t('Identifications', project) %></a></div>
+        <% } %>
     <div>&nbsp;</div>
     <!-- div><a href="/project/<%= project.slug %>/maps">Maps</a></div -->
     <div>Go to <%= locals.t('observation', project) %></div>

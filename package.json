@@ -1,6 +1,6 @@
 {
     "name": "ecolore",
-    "version": "0.12.3",
+    "version": "0.13.0",
     "description": "EcoLore",
     "main": "src/app.js",
     "scripts": {

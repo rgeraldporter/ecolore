@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include head %>
+
+<body>
+    <% include menu %>
+    <div class="content-wrapper">
+        <div class="header">
+        </div>
+        <div class="content pure-g">
+
+        <% include project-menu %>
+        <% const isAdmin = project.memberRole === 'administrator' || project.memberRole === 'owner'; %>
+        <% const isContrib = project.memberRole === 'administrator' || project.memberRole === 'owner'
+            || project.memberRole === 'contributor'; %>
+
+        <main class="pure-u-1 pure-u-md-5-6">
+                <h3 class="content-subhead">
+                    <a href='/project/<%= project.slug %>'>Project</a> &raquo;
+                    <%= locals.t('Identifications', project) %>
+                </h3>
+
+            <% include datatable %>
+
+        </main>
+    </div>
+    <% include footer %>
+</body>
+
+</html>

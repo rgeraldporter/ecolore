@@ -150,7 +150,12 @@ function recursiveRoutes(folderName) {
         if (stat.isDirectory()) {
             recursiveRoutes(fullName);
         } else if (file.toLowerCase().indexOf('.js')) {
-            require(fullName)(app);
+            try {
+                require(fullName)(app);
+            }
+            catch(e) {
+                console.error('Bad router file!');
+            }
         }
     });
 }
@@ -211,7 +216,8 @@ const identifierWorker = new CronJob('10,20,50 * * * *', () => {
 
 identifierWorker.start();
 
-let clipperStatus = 0;
+// disable in development
+let clipperStatus = process.env.TEST_COLLECTION ? 1 : 0;
 
 const clipperWorker = new CronJob('30 * * * *', () => {
     dbLogger('CRON: Starting clipper.');

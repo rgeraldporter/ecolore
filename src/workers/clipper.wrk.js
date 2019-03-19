@@ -29,7 +29,7 @@ const getFrequencyCeiling = ({ frequencyCeiling, frequencyFloor }) =>
 
 const getFrequencyFloor = (frequencyFloor) => frequencyFloor > 0 ? frequencyFloor : 0;
 
-const getCollection = () => process.env.TEST_COLLECTION ? 'test_collection' : 'opensource_audio';
+const getCollection = () => process.env.TEST_COLLECTION ? 'test_collection' : 'hambioobservations';
 
 const findAllAcousticFiles = Future.encaseP(a => db.AcousticFile.findAll(a));
 const findAllObservations = Future.encaseP(a => db.Observation.findAll(a));

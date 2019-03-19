@@ -32,7 +32,6 @@ const observationDataTable = ({
     projectSlug,
     project,
     req,
-    cycleId,
     derivedFiles,
     review
 }) => {

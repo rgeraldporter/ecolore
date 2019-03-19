@@ -98,6 +98,57 @@ const findObservationsBySurveyCycle = ([surveyId, cycleId]) =>
         group: ['Observation.id']
     });
 
+const findObservationsByIdentifier = ([identifierId, projectId, options]) =>
+    findAllObservation({
+        where: { invalid: null },
+        attributes: {
+            include: [
+                [
+                    db.Sequelize.fn('COUNT', db.Sequelize.col('Reviews.id')),
+                    'reviewCount'
+                ]
+            ]
+        },
+        include: [
+            {
+                model: db.Identification,
+                where: { identifierId, data: options },
+                required: true
+            },
+            {
+                model: db.Survey,
+                include: [
+                    {
+                        model: db.Cycle,
+                        where: {
+                            projectId
+                        }
+                    }
+                ]
+            },
+            db.Review
+        ],
+        group: ['Observation.id']
+    });
+
+const observationsByIdentifier = (req, res, options = {}) =>
+    findMemberBySlugF([req.params.slug, req.user])
+        .chain(project =>
+            Future.parallel(2, [
+                Future.of(project),
+                findObservationsByIdentifier([
+                    req.params.identifierId,
+                    project.get('id'),
+                    options
+                ])
+            ])
+        )
+        .chain(([project, observations]) =>
+            isMemberOfProject(project)
+                ? Future.of([project, observations])
+                : Future.reject('Not a member of this project')
+        );
+
 const observationsEndpoint = (req, res) =>
     findMemberBySlugF([req.params.slug, req.user])
         .chain(project =>
@@ -124,6 +175,62 @@ const observationsEndpoint = (req, res) =>
         );
 
 module.exports = function(router) {
+    router.get(
+        '/project/:slug/identifications/:identifierId/:identifierOption',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            observationsByIdentifier(req, res, {
+                [req.params.identifierOption]: true
+            }).fork(
+                _ => res.redirect(`/project/${req.params.slug}`),
+                ([project, observations]) =>
+                    renderProjectPage(
+                        res,
+                        'observations-identifier',
+                        Object.assign(
+                            {
+                                observations,
+                                urlPath: req.path,
+                                dt: observationsDataTable({
+                                    observations,
+                                    projectSlug: req.params.slug,
+                                    project: parseProject(project),
+                                    req
+                                })
+                            },
+                            renderProjectTemplate(project)
+                        )
+                    )
+            )
+    );
+
+    router.get(
+        '/project/:slug/identifications/:identifierId',
+        passwordless.restricted({ failureRedirect: '/login' }),
+        (req, res) =>
+            observationsByIdentifier(req, res).fork(
+                _ => res.redirect(`/project/${req.params.slug}`),
+                ([project, observations]) =>
+                    renderProjectPage(
+                        res,
+                        'observations-identifier',
+                        Object.assign(
+                            {
+                                observations,
+                                urlPath: req.path,
+                                dt: observationsDataTable({
+                                    observations,
+                                    projectSlug: req.params.slug,
+                                    project: parseProject(project),
+                                    req
+                                })
+                            },
+                            renderProjectTemplate(project)
+                        )
+                    )
+            )
+    );
+
     router.get(
         '/project/:slug/cycle/:cycleId/survey/:surveyId/observations',
         passwordless.restricted({ failureRedirect: '/login' }),
