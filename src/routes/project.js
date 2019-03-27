@@ -1962,13 +1962,29 @@ module.exports = function(router) {
                         '/observations'
                 );
 
+            // on acoustic surveys for now
             const createBulkObservations = () => {
                 data.observations.forEach(observationList =>
                     observationList.forEach(observation =>
                         db.Observation.create({
                             surveyId: survey,
                             data: observation
-                        })
+                        }).then(() =>
+                            observation.filename
+                                // make sure these files do new clips & ids
+                                ? db.AcousticFile.update(
+                                      {
+                                          data: null,
+                                          reviewed: 1
+                                      },
+                                      {
+                                          where: {
+                                              name: observation.filename
+                                          }
+                                      }
+                                  )
+                                : Promise.resolve()
+                        )
                     )
                 );
                 // take us right to the imported observations

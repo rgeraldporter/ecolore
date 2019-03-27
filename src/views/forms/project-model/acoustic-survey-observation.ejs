@@ -13,6 +13,9 @@ const surveyData = survey.data;
         <% include ../../menu %>
             <div class="content-wrapper">
                 <div class="header">
+                    <% if (locals.invalid) { %>
+                        <div id="invalid-data" style="color: red;">These file(s) were invalid: <%= locals.invalid %>. Nothing was submitted, please submit the correct files.</div>
+                    <% } %>
                     <h2>Acoustic Observations Form</h2>
                     <p>For date <strong><%= moment(survey.start).format('MMMM DD, YYYY') %></strong> at <strong><%= survey.Zone ? survey.Zone.name : 'unknown location' %></strong>.</p>
                 </div>
@@ -37,9 +40,22 @@ const surveyData = survey.data;
                             <legend>Label file(s)</legend>
                             <div class="pure-control-group">
                                 <label for="form-add-photo">Select label file(s)</label>
-                                <input type="file" name="labelfiles" required multiple accept="text/plain">
+                                <input type="file" name="labelfiles" multiple accept="text/plain">
                             </div>
                         </fieldset>
+
+                        <fieldset>
+                                <legend>Options</legend>
+
+                                <div class="pure-controls">
+                                    <input type="checkbox" name="nullify_remaining" value="true" id="form-null-remaining">
+                                    <label for="form-null-remaining">Trackset review is complete, flag remaining unlabelled files as empty</label>
+                                </div>
+                                <div class="pure-controls">
+                                    <input type="checkbox" name="nullify_priority_remaining" value="true" id="form-null-priority-remaining">
+                                    <label for="form-null-priority-remaining">Priority track reviews are complete, flag remaining priority files as empty</label>
+                                </div>
+                            </fieldset>
 
                         <% if (locals.resubmit) { %>
                         <input type="hidden" name="resubmit" value="<%= resubmit.id %>">

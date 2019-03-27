@@ -1,7 +1,7 @@
 const settings = {
     'turtle-watch': {
         surveys: {
-            excludeColumns: ['Location', 'Assignments'],
+            excludeColumns: ['Location', 'Assignments', 'Review Coverage'],
             excludeRows: ['assignments']
         }
     },

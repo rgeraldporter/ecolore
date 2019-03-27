@@ -27,6 +27,7 @@ const { CronJob } = require('cron');
 const { catalogAudioFiles } = require('./workers/cataloger.wrk');
 const { getAcousticFiles } = require('./workers/identifier.wrk');
 const { clipAcousticFiles } = require('./workers/clipper.wrk');
+const { flagReviewedAcousticFiles } = require('./workers/reviewer.wrk');
 
 const md = require('markdown-it')({
     linkify: true
@@ -235,3 +236,14 @@ const clipperWorker = new CronJob('30 * * * *', () => {
 });
 
 clipperWorker.start();
+
+const reviewerWorker = new CronJob('25 * * * *', () => {
+    dbLogger('CRON: Starting reviewer.');
+    flagReviewedAcousticFiles(err => {
+        err
+            ? dbLogger('CRON: Finished review with errors.', 0, err)
+            : dbLogger('CRON: Finished reviewer.');
+    });
+});
+
+reviewerWorker.start();

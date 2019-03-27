@@ -15,5 +15,11 @@ module.exports = (sequelize, DataTypes) =>
         },
         data: {
             type: DataTypes.JSON
+        },
+        priority: {
+            type: DataTypes.TINYINT
+        },
+        reviewed: {
+            type: DataTypes.BOOLEAN
         }
     });

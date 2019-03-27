@@ -209,6 +209,7 @@ const newObservationRouter = (req, res, next) =>
                     survey,
                     from: req.query.from || false,
                     fromNewSurvey: req.query.fromNewSurvey || false,
+                    invalid: req.query.invalid || false,
                     section: 'project',
                     user: res.locals.user
                 })

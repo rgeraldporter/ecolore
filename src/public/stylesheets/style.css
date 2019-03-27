@@ -12,9 +12,9 @@ body {
     color: #7f8c8d;
     font-size: 13px;
     line-height: 1.6em;
-    margin:0;
-    padding:0;
-    height:100%;
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
 h1,
@@ -42,14 +42,12 @@ label {
 
 .l-box-lrg {
     padding: 2em;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .is-center {
     text-align: center;
 }
-
-
 
 /*
  * -- PURE BUTTON STYLES --
@@ -58,7 +56,7 @@ label {
 .pure-button {
     background-color: #1f8dd6;
     color: white;
-    padding: 0.5em 2em;
+    padding: 0.375em 1em;
     border-radius: 5px;
 }
 
@@ -68,7 +66,6 @@ a.pure-button-primary {
     border-radius: 5px;
     font-size: 120%;
 }
-
 
 a.button-success,
 .button-error,
@@ -129,7 +126,6 @@ a.button-table-action {
     font-variant: small-caps;
 }
 
-
 /*
  * -- MENU STYLES --
  * I want to customize how my .pure-menu looks at the top of the page
@@ -138,7 +134,7 @@ a.button-table-action {
 .home-menu {
     padding: 0.5em;
     text-align: center;
-    box-shadow: 0 1px 1px rgba(0,0,0, 0.10);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 div.home-menu.pure-menu {
     background: #408dde;
@@ -164,19 +160,18 @@ div.home-menu.pure-menu {
 }
 
 .home-menu a {
-    color: #E2ECF3;
+    color: #e2ecf3;
 }
 .home-menu li a:hover,
 .home-menu li a:focus {
     background: none;
     border: none;
-    color: #AECFE5;
+    color: #aecfe5;
 }
 
 .pure-menu-horizontal {
     white-space: normal;
 }
-
 
 /*
  * -- SPLASH STYLES --
@@ -193,10 +188,11 @@ div.home-menu.pure-menu {
     top: 0;
     left: 0;
     position: fixed !important;
-    background-image:     linear-gradient(
-        rgba(82, 83, 76, 0.45),
-        rgba(93, 91, 81, 0.45)
-      ),url('/assets/images/core.jpg');
+    background-image: linear-gradient(
+            rgba(82, 83, 76, 0.45),
+            rgba(93, 91, 81, 0.45)
+        ),
+        url('/assets/images/core.jpg');
     background-size: cover;
 }
 
@@ -206,7 +202,10 @@ div.home-menu.pure-menu {
     height: 50%;
     margin: auto;
     position: absolute;
-    top: 10px; left: 0; bottom: 0; right: 280px;
+    top: 10px;
+    left: 0;
+    bottom: 0;
+    right: 280px;
 }
 
 /* This is the main heading that appears on the blue section */
@@ -223,7 +222,8 @@ div.home-menu.pure-menu {
     color: white;
     font-size: 15pt;
     font-weight: 0;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS',
+        sans-serif;
 }
 
 /*
@@ -237,7 +237,7 @@ div.home-menu.pure-menu {
     padding-top: 3.75em;
     /*z-index: 2;*/
     background: #f3f3f3;
-    min-height:100%;
+    min-height: 100%;
 }
 
 /* We want to give the content area some more padding */
@@ -263,9 +263,9 @@ div.home-menu.pure-menu {
 .content-subhead {
     color: #1f8dd6;
 }
-    .content-subhead i {
-        margin-right: 7px;
-    }
+.content-subhead i {
+    margin-right: 7px;
+}
 
 /* This is the class used for the dark-background areas. */
 .ribbon {
@@ -279,7 +279,7 @@ footer {
     position: absolute;
     width: 100%;
     bottom: 0;
-    background-color: rgb(224, 224, 231)
+    background-color: rgb(224, 224, 231);
 }
 
 .header {
@@ -319,7 +319,6 @@ footer {
  * of the mobile styles.
  */
 @media (min-width: 48em) {
-
     /* We increase the body font size */
     body {
         font-size: 16px;
@@ -336,7 +335,7 @@ footer {
     }
 
     /* We increase the height of the splash-container */
-/*    .splash-container {
+    /*    .splash-container {
         height: 500px;
     }*/
 
@@ -351,12 +350,10 @@ footer {
         font-size: 250%;
     }
 
-
     /* We remove the border-separator assigned to .l-box-lrg */
     .l-box-lrg {
         border: none;
     }
-
 }
 
 /*
@@ -369,4 +366,175 @@ footer {
     .splash-head {
         font-size: 300%;
     }
+}
+
+.reviewed-box {
+    float: left;
+    width: 0.775em;
+    height: 0.775em;
+    margin: 0.0825em;
+}
+
+.reviewed-box:hover {
+    border: 1px solid rgba(0, 0, 0, 0.9);
+}
+
+.reviewed-box-tooltip {
+    margin-right: 0.65em;
+    margin-top: 0.65em;
+}
+
+.reviewed-tooltip-row {
+    padding: 0.125em;
+    padding-left: 1em;
+}
+
+.gray {
+    background: #acadad;
+}
+
+.green {
+    background: #26c52e;
+}
+
+.white {
+    background: #ffffff;
+}
+
+.empty {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    background: #ffffff;
+}
+
+.empty-medium {
+    border: 2px solid rgb(200, 0, 0);
+    background: #ffffff;
+}
+
+.empty-high {
+    border: 3px solid rgb(200, 0, 0);
+    background: #ffffff;
+}
+
+.empty-high:hover {
+    border: 2px solid rgb(200, 0, 0);
+    background: #ffffff;
+}
+
+.empty-low {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: #ffffff;
+}
+
+/* Tooltip container */
+.tooltip,
+.tooltip-right {
+    position: relative;
+    display: inline-block;
+    /*border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    top: -5px;
+    right: 105%;
+    visibility: hidden;
+    width: 18em;
+    font-size: 9pt;
+    background-color: black;
+    color: #fff;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+}
+
+/* Tooltip text */
+.tooltip-right .tooltiptext {
+    top: -5px;
+    left: 105%;
+    visibility: hidden;
+    width: 18em;
+    font-size: 9pt;
+    background-color: black;
+    color: #fff;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+/**
+ * Tooltip Styles
+ */
+
+/* Add this attribute to the element that needs a tooltip */
+[data-tooltip] {
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+}
+
+/* Hide the tooltip content by default */
+[data-tooltip]:before,
+[data-tooltip]:after {
+    visibility: hidden;
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
+    filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Position tooltip above the element */
+[data-tooltip]:before {
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    margin-bottom: 5px;
+    margin-left: -80px;
+    padding: 7px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    background-color: #000;
+    background-color: hsla(0, 0%, 0%, 0.9);
+    color: #fff;
+    content: attr(data-tooltip);
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+/* Triangle hack to make tooltip look like a speech bubble */
+[data-tooltip]:after {
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    margin-left: -5px;
+    width: 0;
+    border-top: 5px solid #000;
+    border-top: 5px solid hsla(0, 0%, 20%, 0.9);
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    content: ' ';
+    font-size: 0;
+    line-height: 0;
+}
+
+/* Show tooltip content on hover */
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after {
+    visibility: visible;
+    -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=100)';
+    filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=100);
+    opacity: 1;
 }

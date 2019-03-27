@@ -58,6 +58,20 @@ const findCycleByIdF = id =>
         include: [db.Project]
     });
 
+const findSurveyAcousticFilesByCycle = cycle =>
+    findAllSurvey({
+        include: [
+            {
+                model: db.AcousticFile,
+                as: 'acousticFiles'
+            }
+        ],
+        where: {
+            cycleId: cycle,
+            invalid: null
+        }
+    });
+
 const findSurveysByCycle = cycle =>
     findAllSurvey({
         attributes: {
@@ -122,18 +136,19 @@ const surveysEndpoint = (req, res) =>
                 : Future.reject('Not a member of this project')
         )
         .chain(project =>
-            Future.parallel(3, [
+            Future.parallel(4, [
                 Future.of(project),
                 findCycleByIdF(req.params.id),
-                findSurveysByCycle(req.params.id)
+                findSurveysByCycle(req.params.id),
+                findSurveyAcousticFilesByCycle(req.params.id)
             ])
         )
         // verify it is part of the correct project
-        .chain(([project, cycle, surveys]) =>
+        .chain(([project, cycle, surveys, surveysWithAcousticFiles]) =>
             R.pathOr(Symbol('nonce'), ['Project', 'slug'], cycle) !==
             req.params.slug
                 ? Future.reject('Surveys are not part of this project')
-                : Future.of([project, cycle, surveys])
+                : Future.of([project, cycle, surveys, surveysWithAcousticFiles])
         );
 
 module.exports = function(router) {
@@ -146,7 +161,7 @@ module.exports = function(router) {
                     console.error(_);
                     return res.redirect(`/project/${req.params.slug}`);
                 },
-                ([project, cycle, surveys]) =>
+                ([project, cycle, surveys, surveysWithAcousticFiles]) =>
                     renderProjectPage(
                         res,
                         'surveys',
@@ -157,6 +172,7 @@ module.exports = function(router) {
                                 filter: req.query.filter || false,
                                 dt: surveysDataTable({
                                     surveys,
+                                    surveysWithAcousticFiles,
                                     projectSlug: req.params.slug,
                                     cycle,
                                     project,
@@ -181,10 +197,11 @@ module.exports = function(router) {
                     console.error(_);
                     return res.redirect(`/project/${req.params.slug}`);
                 },
-                ([project, cycle, surveys]) =>
+                ([project, cycle, surveys, surveysWithAcousticFiles]) =>
                     res.json(
                         surveysDataTable({
                             surveys,
+                            surveysWithAcousticFiles,
                             projectSlug: req.params.slug,
                             cycle,
                             project,
@@ -204,9 +221,10 @@ module.exports = function(router) {
                     console.error(_);
                     return res.redirect(`/project/${req.params.slug}`);
                 },
-                ([project, cycle, surveys]) =>
+                ([project, cycle, surveys, surveysWithAcousticFiles]) =>
                     surveysDataTable({
                         surveys,
+                        surveysWithAcousticFiles,
                         projectSlug: req.params.slug,
                         cycle,
                         project,
@@ -234,9 +252,10 @@ module.exports = function(router) {
                     console.error(_);
                     return res.redirect(`/project/${req.params.slug}`);
                 },
-                ([project, cycle, surveys]) =>
+                ([project, cycle, surveys, surveysWithAcousticFiles]) =>
                     surveysDataTable({
                         surveys,
+                        surveysWithAcousticFiles,
                         projectSlug: req.params.slug,
                         cycle,
                         project,
