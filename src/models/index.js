@@ -110,7 +110,7 @@ Observation.hasMany(DerivedFile);
 Survey.hasMany(Review);
 Survey.hasMany(Assignment);
 Survey.hasMany(Status);
-Survey.hasMany(AcousticFile, { as: 'acousticFiles' });
+Survey.hasMany(AcousticFile);
 Status.belongsTo(Survey);
 Assignment.belongsTo(Survey);
 Assignment.belongsTo(User);

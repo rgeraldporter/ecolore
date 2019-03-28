@@ -193,7 +193,7 @@ const dbLogger = (text, level = 0, data) =>
     });
 
 const catalogWorker = new CronJob(
-    '5,15,55 * * * *', // every 10 minutes at minute 5
+    '5,15,35,45,55 * * * *', // every 10 minutes at minute 5
     () => {
         dbLogger('CRON: Starting catalog.');
         catalogAudioFiles(err => {

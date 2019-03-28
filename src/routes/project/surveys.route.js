@@ -62,8 +62,7 @@ const findSurveyAcousticFilesByCycle = cycle =>
     findAllSurvey({
         include: [
             {
-                model: db.AcousticFile,
-                as: 'acousticFiles'
+                model: db.AcousticFile
             }
         ],
         where: {

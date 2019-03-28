@@ -64,7 +64,7 @@ const surveysDataTable = ({
 
     const getAcousticFiles = surveyId =>
         Maybe.of(getSurveyFromAcousticList(surveyId))
-            .map(a => a.get('acousticFiles'))
+            .map(a => a.get('AcousticFiles'))
             .fork(_ => [], a => a);
 
     const dtSource = surveys.reduce(
