@@ -24,7 +24,7 @@ const surveysDataTable = ({
         acousticFiles
             .map(file =>
                 file.get('reviewed')
-                    ? JSON.parse(file.get('data')).nullFile
+                    ? R.propOr(false, 'nullFile', JSON.parse(file.get('data')))
                         ? `<div class="gray reviewed-box" data-tooltip="${file.get(
                               'name'
                           )}: Reviewed (null file)" data-tooltip-position="top"></div>`
