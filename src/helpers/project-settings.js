@@ -3,6 +3,9 @@ const settings = {
         surveys: {
             excludeColumns: ['Location', 'Assignments', 'Review Coverage'],
             excludeRows: ['assignments']
+        },
+        menu: {
+            hideObservationGo: true
         }
     },
     'acoustic-survey': {
@@ -27,7 +30,8 @@ const settings = {
             hasIdentifications: true
         },
         menu: {
-            hideSubmitData: true
+            hideSubmitData: true,
+            hideSurveyGo: true
         }
     }
 };

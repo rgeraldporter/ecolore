@@ -9,6 +9,10 @@ const { Maybe } = require('simple-maybe');
 
 const projectTypeSettings = require('../helpers/project-settings').settings;
 
+const md = require('markdown-it')({
+    linkify: true
+});
+
 const hasLineBreaks = text => (text.match(/\n/g) || []).length;
 const buttonClass = `class="pure-button button-table-action button-small small-caps"`;
 const toUrl = text => (isUrl(text) ? md.render(`[${text}](${text})`) : text);

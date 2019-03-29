@@ -17,8 +17,6 @@
                 </div>
                 <div class="content">
 
-                    <p>Also available: <a href="?form=2018">2018 Form</a></p>
-
                     <form action="/project/<%= project.slug %>/observation" method="POST" class="pure-form pure-form-aligned">
 
                         <fieldset>
@@ -28,14 +26,8 @@
                             </div>
 
                             <div class="pure-control-group">
-                                <label for="form-x-how-many-alive">Alive count</label>
-                                <input type="number" name="alive_count" id="form-x-how-many-alive">
-                            </div>
-
-
-                            <div class="pure-control-group">
-                                <label for="form-x-how-many-dead">Dead count</label>
-                                <input type="number" name="dead_count" id="form-x-how-many-dead">
+                                <label for="form-x-how-many">How many?</label>
+                                <input type="number" name="how_many" id="form-x-how-many" required>
                             </div>
 
                             <div class="pure-control-group">
@@ -135,17 +127,10 @@
 
                         </fieldset>
 
-                        <fieldset>
-                                <legend>GPS</legend>
-                            <div class="pure-control-group">
-                                <label for="form-x-gps-n">N 43°</label>
-                                <input type="number" name="gps_n" id="form-x-gps-n" step="0.001" placeholder="16.123"><br>
-                            </div>
-                            <div class="pure-control-group">
-                                <label for="form-x-gps-w">W 79°</label>
-                                <input type="number" name="gps_w" id="form-x-gps-w" step="0.001" placeholder="56.123">
-                            </div>
-                        </fieldset>
+                        <div class="pure-control-group">
+                            <label for="form-x-gps">GPS coordinates</label>
+                            <input type="text" name="gps" id="form-x-gps" placeholder="e.g. 43.2663 -79.9408">
+                        </div>
 
                         <div class="pure-control-group">
                             <label for="form-x-location-notes">Notes</label>

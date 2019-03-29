@@ -16,11 +16,25 @@ const { observationDataTable } = require('../../datatables/observation.dt');
 const renderProjectTemplate = project =>
     project ? { project: parseProject(project) } : { project: {} };
 
+const getObservationFormByName = ([project, formName]) =>
+    isViewFile(
+        `forms/custom/${project.get('slug')}-observation-${formName}.ejs`
+    )
+        ? `forms/custom/${project.get('slug')}-observation-${formName}.ejs`
+        : `forms/project-model/${project.get(
+              'model'
+          )}-observation-${formName}.ejs`;
+
 // @todo test for template path!
 const getObservationTemplatePath = project =>
     isViewFile(`forms/custom/${project.get('slug')}-observation.ejs`)
         ? `forms/custom/${project.get('slug')}-observation.ejs`
         : `forms/project-model/${project.get('model')}-observation.ejs`;
+
+const observationTemplate = ([project, getParams]) =>
+    R.propOr(false, 'form', getParams)
+        ? getObservationFormByName([project, getParams.form])
+        : getObservationTemplatePath(project);
 
 const isMemberOfProject = project =>
     R.path(['membership', 'role'], project) !== 'none';
@@ -202,7 +216,7 @@ const newObservationRouter = (req, res, next) =>
         .fork(
             _ => res.redirect(`/project/${req.params.slug}`),
             ({ project, survey }) =>
-                res.render(getObservationTemplatePath(project), {
+                res.render(observationTemplate([project, req.query]), {
                     project: parseProject(project),
                     cycle: { id: req.params.cycleId },
                     // might only need `survey` as the rest should be accessible under it

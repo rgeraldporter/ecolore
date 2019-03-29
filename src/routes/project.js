@@ -542,6 +542,41 @@ module.exports = function(router) {
     );
 
     router.post(
+        '/project/browse-survey',
+        [
+            check('survey').exists(),
+            check('project_slug').exists(),
+            check('submit').exists(),
+            passwordless.restricted({ failureRedirect: '/login' })
+        ],
+        (req, res) => {
+            const data = matchedData(req);
+            findMemberBySlugF([data.project_slug, req.user])
+                .chain(project =>
+                    findOneSurvey({
+                        where: {
+                            id: data.survey
+                        }
+                    })
+                )
+                .fork(
+                    _ => res.redirect('/project/' + data.project_slug),
+                    survey =>
+                        survey
+                            ? res.redirect(
+                                  '/project/' +
+                                      data.project_slug +
+                                      '/cycle/' +
+                                      survey.get('cycleId') +
+                                      '/survey/' +
+                                      survey.get('id')
+                              )
+                            : res.redirect('/project/' + data.project_slug)
+                );
+        }
+    );
+
+    router.post(
         '/project/browse-cycle',
         [
             check('cycle').exists(),

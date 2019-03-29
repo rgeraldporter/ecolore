@@ -22,6 +22,7 @@ const passport = require('passport');
 const isUrl = require('is-url');
 const { DataTable } = require('datatable-monad');
 const { CronJob } = require('cron');
+const { Maybe } = require('simple-maybe');
 
 // workers
 const { catalogAudioFiles } = require('./workers/cataloger.wrk');
@@ -46,8 +47,13 @@ app.locals.md = md;
 app.locals.isUrl = isUrl;
 app.locals.R = R;
 app.locals.$$ecoLoreVersion = require('../package.json').version;
+
 app.locals.text = (key, project) =>
-    R.pathOr(key, ['config', 'language', key], project);
+    Maybe.of(project.config)
+        .map(val => (typeof val === 'string' ? JSON.parse(val) : val))
+        .map(R.pathOr(key, ['language', key]))
+        .fork(_ => key, a => a);
+
 app.locals.t = app.locals.text;
 app.locals.projectSettings = require('./helpers/project-settings.js').settings;
 app.locals.DataTable = DataTable;
@@ -153,8 +159,7 @@ function recursiveRoutes(folderName) {
         } else if (file.toLowerCase().indexOf('.js')) {
             try {
                 require(fullName)(app);
-            }
-            catch(e) {
+            } catch (e) {
                 console.error('Bad router file!');
             }
         }
@@ -223,7 +228,9 @@ let clipperStatus = process.env.TEST_COLLECTION ? 1 : 0;
 const clipperWorker = new CronJob('30 * * * *', () => {
     dbLogger('CRON: Starting clipper.');
     if (clipperStatus) {
-        dbLogger('CRON: Clipper already in progress; not starting another process.');
+        dbLogger(
+            'CRON: Clipper already in progress; not starting another process.'
+        );
         return;
     }
     clipperStatus = 1;

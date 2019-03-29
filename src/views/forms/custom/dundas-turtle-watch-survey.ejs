@@ -31,8 +31,18 @@
                         </div>
 
                         <div class="pure-control-group">
-                            <label for="form-names">Names:</label>
-                            <input type="text" name="names" id="form-names" placeholder="Enter names here" required>
+                            <label for="form-name-1">Name 1:</label>
+                            <input type="text" name="name_1" id="form-name-1" placeholder="First person" required>
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="form-name-2">Name 2:</label>
+                            <input type="text" name="name_2" id="form-name-2" placeholder="Second person">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="form-name-3">Name 3:</label>
+                            <input type="text" name="name_3" id="form-name-3" placeholder="Third person">
                         </div>
 
                         <div class="pure-control-group">
@@ -53,26 +63,26 @@
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>Check any that may apply:</legend>
+                        <legend>Weather conditions:</legend>
 
                         <div class="pure-controls">
-                            <label class="pure-checkbox" for="form-weather-conditions-sunny">
-                                <input type="checkbox" name="weather_conditions_sunny" id="form-weather-conditions-sunny" value="true"> ☀️ Sunny</label>
+                            <label class="pure-radio" for="form-weather-conditions-sunny">
+                                <input type="radio" name="weather_conditions" id="form-weather-conditions-sunny" value="sunny" required> ☀️ Sunny</label>
 
-                            <label class="pure-checkbox" for="form-weather-conditions-part-sun">
-                                <input type="checkbox" name="weather_conditions_part_sun" id="form-weather-conditions-part-sun" value="true"> ⛅️ Part sun</label>
+                            <label class="pure-radio" for="form-weather-conditions-part-sun">
+                                <input type="radio" name="weather_conditions" id="form-weather-conditions-part-sun" value="part sun" required> ⛅️ Part sun</label>
 
-                            <label class="pure-checkbox" for="form-weather-conditions-cloudy">
-                                <input type="checkbox" name="weather_conditions_cloudy" id="form-weather-conditions-cloudy" value="true"> ☁️ Cloudy</label>
+                            <label class="pure-radio" for="form-weather-conditions-overcast">
+                                <input type="radio" name="weather_conditions" id="form-weather-conditions-overcast" value="overcast" required> ☁️ Overcast</label>
 
-                            <label class="pure-checkbox" for="form-weather-conditions-light-rain">
-                                <input type="checkbox" name="weather_conditions_light_rain" id="form-weather-conditions-light-rain" value="true"> 🌧 Light rain</label>
+                            <label class="pure-radio" for="form-weather-conditions-light-rain">
+                                <input type="radio" name="weather_conditions" id="form-weather-conditions-light-rain" value="light rain" required> 🌧 Light rain</label>
 
-                            <label class="pure-checkbox" for="form-weather-conditions-heavy-rain">
-                                <input type="checkbox" name="weather_conditions_heavy_rain" id="form-weather-conditions-heavy-rain" value="true"> 🌧🌧️️ Heavy rain</label>
+                            <label class="pure-radio" for="form-weather-conditions-heavy-rain">
+                                <input type="radio" name="weather_conditions" id="form-weather-conditions-heavy-rain" value="heavy rain" required> 🌧🌧️️ Heavy rain</label>
 
                             <label class="pure-checkbox" for="form-weather-conditions-rain-24h">
-                                <input type="checkbox" name="weather_conditions_rain_24h" id="form-weather-conditions-rain-24h" value="true"> 🌧🕞 Rain in last 24 hours</label>
+                                <input type="checkbox" name="weather_conditions_rain_24h" id="form-weather-conditions-rain-24h" value="true"> 🌧🕞 There has been rain in last 24 hours</label>
                         </div>
                     </fieldset>
 

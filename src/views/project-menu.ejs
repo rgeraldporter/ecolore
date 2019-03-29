@@ -18,6 +18,8 @@ const roleTypes = {
 };
 
 const hideSubmitData = projectTypeSettings.hideSubmitData || false;
+const hideSurveyGo = projectTypeSettings.hideSurveyGo || false;
+const hideObservationGo = projectTypeSettings.hideObservationGo || false;
 
 const projectLocation = () =>
     project.location
@@ -52,14 +54,26 @@ const projectTypeLink = `<a href="/project-types/${project.model}">${projectType
         <% } %>
     <div>&nbsp;</div>
     <!-- div><a href="/project/<%= project.slug %>/maps">Maps</a></div -->
-    <div>Go to <%= locals.t('observation', project) %></div>
+    <div></div>
+
+    <% if(!hideObservationGo) { %>
     <form method="POST" action="/project/browse-observation" class="pure-form pure-form-stacked">
         <fieldset>
-            <input type="text" name="observation" placeholder="<%= locals.t('Observation', project) %> #" autocomplete="off">
+            <input type="text" name="observation" placeholder="Go to <%= locals.t('Observation', project) %> #" autocomplete="off">
             <input type="hidden" value="<%= project.slug %>" name="project_slug">
             <button class="pure-button" id="form-submit" type="submit" name="submit">Go</button>
         </fieldset>
     </form>
+    <% } %>
+    <% if(!hideSurveyGo) { %>
+    <form method="POST" action="/project/browse-survey" class="pure-form pure-form-stacked">
+        <fieldset>
+            <input type="text" name="survey" placeholder="Go to <%= locals.t('Survey', project) %> #" autocomplete="off">
+            <input type="hidden" value="<%= project.slug %>" name="project_slug">
+            <button class="pure-button" id="form-submit" type="submit" name="submit">Go</button>
+        </fieldset>
+    </form>
+    <% } %>
 
     <% } %>
 
