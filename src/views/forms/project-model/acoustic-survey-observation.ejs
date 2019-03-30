@@ -14,7 +14,7 @@ const surveyData = survey.data;
             <div class="content-wrapper">
                 <div class="header">
                     <% if (locals.invalid) { %>
-                        <div id="invalid-data" style="color: red;">These file(s) were invalid: <%= locals.invalid %>. Nothing was submitted, please submit the correct files.</div>
+                        <div id="invalid-data" style="color: red;">These file(s) were invalid: <%= locals.invalid %>. Nothing was submitted, please submit the correct files. (This may happen if the trackset was just added; if so wait a few minutes and try again.)</div>
                     <% } %>
                     <h2>Acoustic Observations Form</h2>
                     <p>For date <strong><%= moment(survey.start).format('MMMM DD, YYYY') %></strong> at <strong><%= survey.Zone ? survey.Zone.name : 'unknown location' %></strong>.</p>
