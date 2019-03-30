@@ -20,6 +20,7 @@ const {
 
 const deriveAudioFileLimit = 36; // 36 = one day
 const minFrequencyBandwidth = 4000;
+const maxClipDuration = 1200;
 const durationPadding = 2;
 const cuePadding = 1;
 const getFrequencyCeiling = ({ frequencyCeiling, frequencyFloor }) =>
@@ -276,7 +277,8 @@ const clipAcousticFiles = callback =>
             const observations = flatten(observationsCollection);
             const deriveClips = () =>
                 observations.map(observation => {
-                    if (!observation.Survey) {
+                    // lets not make very large clips
+                    if (!observation.Survey || observation.data.duration > maxClipDuration) {
                         return Future.of(null);
                     }
                     return Future((reject, resolve) => {
