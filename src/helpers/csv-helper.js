@@ -12,7 +12,7 @@ const assembleCsv = ({ emptyObj, observations }) => {
             'Observation ID': observation.id
         };
         const observationData = observation.data;
-        const surveyData = observation.Survey.data;
+        const surveyData = JSON.parse(observation.Survey.data);
 
         const assembleRow = metaCols => obsCols => surveyCols =>
             Object.assign(metaCols, obsCols, surveyCols);
@@ -32,7 +32,7 @@ const findAllColumns = ({ project, observations }) => {
     // go through them all to find all columns possible
     let dataCols = observations.reduce((acc, observation) => {
         const observationData = observation.data;
-        const surveyData = observation.Survey.data;
+        const surveyData = JSON.parse(observation.Survey.data);
         const allData = Object.assign(surveyData, observationData);
         return acc.concat(Object.keys(allData));
     }, []);

@@ -6,7 +6,7 @@
       <% include menu %>
       <%
         const listTaxa = taxa => {
-            return locals.R.defaultTo([], JSON.parse(taxa)).reduce((acc, cur) => acc.concat(cur).concat('\r\n'), '');
+            return locals.R.defaultTo([], taxa).reduce((acc, cur) => acc.concat(cur).concat('\r\n'), '');
         }
       %>
       <div class="content-wrapper">

@@ -272,22 +272,23 @@ module.exports = function(router) {
                           )
                 )
                 .chain(project =>
-                    Future.both(
+                    Future.parallel(3, [
                         Future.of(project),
+                        findOneCycle({ where: { id: req.params.id } }),
                         findAllZone({
                             where: { projectId: project.id },
                             order: [['code', 'ASC']]
                         })
-                    )
+                    ])
                 )
                 .fork(
                     _ => res.redirect(`/project/${req.params.slug}`),
-                    ([project, zones]) =>
+                    ([project, cycle, zones]) =>
                         renderProjectPage(
                             res,
                             surveyTemplate([project, req.query]),
                             Object.assign(renderProjectTemplate(project), {
-                                cycle: { id: req.params.id },
+                                cycle,
                                 zones,
                                 from: req.query.from || false
                             })

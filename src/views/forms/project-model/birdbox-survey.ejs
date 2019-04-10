@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../../head %>
+
+<%
+const taxaList = locals.R.defaultTo([],  cycle.get('taxa'));
+%>
+
+    <body>
+        <% include ../../menu %>
+            <div class="content-wrapper">
+                <div class="header">
+                    <% if (locals.from) { %>
+                        <div id="previous-survey-id">Survey #<%= from %> submitted</div>
+                    <% } %>
+                    <h2>Birdbox Survey Form</h2>
+                </div>
+                <div class="content">
+
+                    <p>Select box type</p>
+
+                    <ul>
+                        <li><a href="?form=bluebird">Bluebird</a></li>
+                        <li><a href="">Other</a></li>
+                    </ul>
+
+                    <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
+
+                        <fieldset>
+                            <legend>Box</legend>
+
+                            <div class="pure-control-group">
+                                <label for="form-route">Box</label>
+                                <select name="zone" id="form-route" required>
+                                    <option value="">Select one...</option>
+                                    <%
+                                        zones.forEach(zone => {
+                                    %>
+                                    <option value="<%= zone.id %>"><%= zone.name %> (<%= zone.code %>)</option>
+                                    <%
+                                        });
+                                    %>
+                                </select>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Nesting attempt</legend>
+
+                            <div class="pure-controls">
+                                <label class="pure-radio" for="form-x-attempt-no">
+                                    <input type="radio" name="nesting_attempt" id="form-x-attempt-no" value="None" required> No active attempt
+                                </label>
+
+                                <label class="pure-radio" for="form-x-attempt-new">
+                                    <input type="radio" name="nesting_attempt" id="form-x-attempt-new" value="New"> New attempt
+                                </label>
+
+                                <label class="pure-radio" for="form-x-attempt-cont">
+                                    <input type="radio" name="nesting_attempt" id="form-x-attempt-cont" value="Continuing"> Continuing attempt
+                                </label>
+
+                                <label class="pure-radio" for="form-x-attempt-complete">
+                                    <input type="radio" name="nesting_attempt" id="form-x-attempt-complete" value="Completed"> Completed attempt
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Species nesting</legend>
+
+                            <div class="pure-control-group">
+                                <label for="form-species-name">Species</label>
+                                <select name="species" id="form-species-name" required>
+                                    <option value="">Select one...</option>
+                                    <%
+                                        taxaList.forEach(species => {
+                                    %>
+                                    <option value="<%= species %>"><%= species %></option>
+                                    <%
+                                        });
+                                    %>
+                                </select>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Host species</legend>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-eggs">Eggs</label>
+                                <input type="number" name="eggs" id="form-x-eggs">
+                            </div>
+
+
+                            <div class="pure-control-group">
+                                <label for="form-x-live-young">Live young</label>
+                                <input type="number" name="live_young" id="form-x-live-young">
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-dead-young">Dead young</label>
+                                <input type="number" name="dead_young" id="form-x-dead-young">
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Status</legend>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-nest-status">Nest status</label>
+                                <select name="nest_status" id="form-x-nest-status" required>
+                                    <option value="no" selected>No nest</option>
+                                    <option value="in">Incomplete nest</option>
+                                    <option value="cn">Complete nest</option>
+                                    <option value="dn">Damaged nest</option>
+                                    <option value="fn">Flattened nest w/fecal matter</option>
+                                    <option value="an">New avian nest found</option>
+                                    <option value="nn">New non-avian nest found</option>
+                                    <option value="rn">Nest was removed, remover unknown</option>
+                                </select>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-adult-status">Adult status</label>
+                                <select name="adult_status" id="form-x-adult-status" required>
+                                    <option value="no" selected>No adults seen</option>
+                                    <option value="va">In vacinity of nest</option>
+                                    <option value="ba">Builing nest or carrying material</option>
+                                    <option value="ra">Remained on nest</option>
+                                    <option value="aa">At/on, then flushed from nest</option>
+                                    <option value="fa">Feeding young at nest</option>
+                                    <option value="da">Dead adult</option>
+                                </select>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-young-status">Young status</label>
+                                <select name="young_status" id="form-x-young-status" required>
+                                    <option value="no" selected>No young</option>
+                                    <option value="hy">Hatchling young</option>
+                                    <option value="ny">Naked young</option>
+                                    <option value="py">Partially feathered</option>
+                                    <option value="fy">Fully feathered</option>
+                                    <option value="vy">Vocal young (heard only)</option>
+                                </select>
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-mgmt-activity">Management activity</label>
+                                <select name="management_activity" id="form-x-mgmt-activity" required>
+                                    <option value="no" selected>No management activity</option>
+                                    <option value="am">House Sparrow nest/eggs removed</option>
+                                    <option value="bm">Banded adults and/or young at nest</option>
+                                    <option value="em">Removed unhatched (dead) eggs</option>
+                                    <option value="nm">Nest box management</option>
+                                    <option value="pm">Pest management</option>
+                                </select>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Parasitism</legend>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-cb-eggs">Cowbird Eggs</label>
+                                <input type="number" name="cb_eggs" id="form-x-cb-eggs">
+                            </div>
+
+
+                            <div class="pure-control-group">
+                                <label for="form-x-cb-live-young">Cowbird live young</label>
+                                <input type="number" name="cb_live_young" id="form-x-cb-live-young">
+                            </div>
+
+                            <div class="pure-control-group">
+                                <label for="form-x-cb-dead-young">Cowbird dead young</label>
+                                <input type="number" name="cb_dead_young" id="form-x-cb-dead-young">
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Notes</legend>
+                            <div class="pure-control-group">
+                                <label for="form-x-other-notes"></label>
+                                <textarea cols="35" rows="5" name="other_notes" id="form-x-other-notes" placeholder="Any additional notes."></textarea>
+                            </div>
+                        </fieldset>
+
+                        <% if (locals.resubmit) { %>
+                        <input type="hidden" name="resubmit" value="<%= resubmit.id %>">
+                        <fieldset>
+                            <legend>Resubmit</legend>
+                            <div class="pure-controls">
+                                    <label></label>
+                                    <p>This is a resubmit of <b>Survey #<%= resubmit.id %></b>. Please review the data carefully so you need not re-enter again!</p>
+                            </div>
+                        </fieldset>
+                        <% } %>
+
+                        <fieldset>
+                            <input type="hidden" name="cycle" value="<%= cycle.get('id') %>">
+                            <input type="hidden" name="skip_observations" value="1">
+                            <div class="pure-control-group">
+                                <label for="form-submit"></label>
+                                <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>
+                            </div>
+                        </fieldset>
+
+                    </form>
+                </div>
+            </div>
+    </body>
+
+</html>

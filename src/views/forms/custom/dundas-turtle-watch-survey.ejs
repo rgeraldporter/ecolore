@@ -13,6 +13,9 @@
                 <h2>Dundas Turtle Watch Tally Sheet</h2>
             </div>
             <div class="content">
+
+                <p>Also available: <a href="?form=2018">2018 Survey Form</a></p>
+
                 <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
                     <fieldset>
                         <div class="pure-control-group">
@@ -139,7 +142,7 @@
                         </fieldset>
                     <% } %>
                     <fieldset>
-                        <input type="hidden" name="cycle" value="<%= cycle.id %>">
+                        <input type="hidden" name="cycle" value="<%= cycle.get('id') %>">
                         <div class="pure-control-group">
                             <label for="form-submit"></label>
                             <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>

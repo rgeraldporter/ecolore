@@ -1,4 +1,13 @@
 const settings = {
+    'birdbox': {
+        surveys: {
+            excludeColumns: ['Start', 'End', 'Observations', 'Assignments', 'Review Coverage'],
+            excludeRows: ['assignments']
+        },
+        menu: {
+            hideObservationGo: true
+        }
+    },
     'turtle-watch': {
         surveys: {
             excludeColumns: ['Location', 'Assignments', 'Review Coverage'],

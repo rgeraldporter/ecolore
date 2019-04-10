@@ -26,46 +26,46 @@ const observationsPassing = [
         Survey: {
             start: 'Thu Jan 03 2019 00:00:00 GMT+0000 (UTC)',
             end: '',
-            data: JSON.stringify({
+            data: {
                 something: 1
-            })
+            }
         },
         surveyId: 60,
         id: 10,
-        data: JSON.stringify({
+        data: {
             my_data_col_1: 1111,
             my_data_col_2: 'aaaa'
-        })
+        }
     },
     {
         Survey: {
             start: 'Thu Jan 04 2019 00:00:00 GMT+0000 (UTC)',
             end: 'Thu Jan 05 2019 00:00:00 GMT+0000 (UTC)',
-            data: JSON.stringify({
+            data: {
                 something: 1
-            })
+            }
         },
         surveyId: 61,
         id: 101,
-        data: JSON.stringify({
+        data: {
             my_data_col_1: 11112,
             my_data_col_2: 'aaaab'
-        })
+        }
     },
     {
         Survey: {
             start: 'Thu Jan 06 2019 00:00:00 GMT+0000 (UTC)',
             end: 'Thu Jan 08 2019 00:00:00 GMT+0000 (UTC)',
-            data: JSON.stringify({
+            data: {
                 something: 1
-            })
+            }
         },
         surveyId: 610,
         id: 1011,
-        data: JSON.stringify({
+        data: {
             my_data_col_1: 111212,
             my_data_col_2: 'aa2aab'
-        })
+        }
     }
 ];
 
@@ -74,16 +74,16 @@ const observationsFailing = [
         Survey: {
             start: 'Thu Jan 03 2019 00:00:00 GMT+0000 (UTC)',
             end: '',
-            data: JSON.stringify({
+            data: {
                 something: 1
-            })
+            }
         },
         surveyId: 60,
         id: 10,
-        data: JSON.stringify({
+        data: {
             my_data_col_1: 1111,
             my_data_col_2: 'aaaa'
-        })
+        }
     }
 ];
 
