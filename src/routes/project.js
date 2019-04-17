@@ -831,41 +831,6 @@ module.exports = function(router) {
     );
 
     router.get(
-        '/project/:slug/zone/:zoneId',
-        //passwordless.restricted({ failureRedirect: '/login' }), // not restricted for now; BB project
-        (req, res) =>
-            findOneProject({
-                where: { slug: req.params.slug }
-            })
-                .chain(project =>
-                    Future.parallel(3, [
-                        findOneZone({
-                            where: {
-                                id: req.params.zoneId,
-                                projectId: project.get('id')
-                            }
-                        }),
-                        findOneSurvey({
-                            where: {
-                                zoneId: req.params.zoneId
-                            },
-                            order: [['id', 'DESC']]
-                        }),
-                        Future.of(project)
-                    ])
-                )
-                .fork(
-                    _ => res.redirect(`/project/${req.params.slug}`),
-                    ([zone, survey, project]) =>
-                        renderProjectPage(res, 'zone', {
-                            zone,
-                            project,
-                            survey
-                        })
-                )
-    );
-
-    router.get(
         '/project/:slug/zone/new',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res) =>
@@ -903,6 +868,42 @@ module.exports = function(router) {
                                 }
                             )
                         )
+                )
+    );
+
+
+    router.get(
+        '/project/:slug/zone/:zoneId',
+        //passwordless.restricted({ failureRedirect: '/login' }), // not restricted for now; BB project
+        (req, res) =>
+            findOneProject({
+                where: { slug: req.params.slug }
+            })
+                .chain(project =>
+                    Future.parallel(3, [
+                        findOneZone({
+                            where: {
+                                id: req.params.zoneId,
+                                projectId: project.get('id')
+                            }
+                        }),
+                        findOneSurvey({
+                            where: {
+                                zoneId: req.params.zoneId
+                            },
+                            order: [['id', 'DESC']]
+                        }),
+                        Future.of(project)
+                    ])
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([zone, survey, project]) =>
+                        renderProjectPage(res, 'zone', {
+                            zone,
+                            project,
+                            survey
+                        })
                 )
     );
 
