@@ -18,11 +18,8 @@ const taxaList = locals.R.defaultTo([],  cycle.get('taxa'));
                 </div>
                 <div class="content">
 
-                    <p>Select box type</p>
-
                     <ul>
-                        <li><a href="">Bluebird</a></li>
-                        <li><a href="?form=">Other</a></li>
+                        <li><a href="?form=&zone=<%= selectedZone %>">Switch to generic nesting box form</a></li>
                     </ul>
 
                     <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
@@ -37,7 +34,7 @@ const taxaList = locals.R.defaultTo([],  cycle.get('taxa'));
                                     <%
                                         zones.forEach(zone => {
                                     %>
-                                    <option value="<%= zone.id %>"><%= zone.name %> (<%= zone.code %>)</option>
+                                    <option <%- selectedZone && selectedZone == zone.id ? 'selected' : '' %> value="<%= zone.id %>"><%= zone.name %> (<%= zone.code %>)</option>
                                     <%
                                         });
                                     %>

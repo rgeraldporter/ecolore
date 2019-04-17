@@ -52,6 +52,7 @@ const surveys = {
         'weather_conditions_light_rain',
         'weather_conditions_heavy_rain',
         'weather_conditions_rain_24h',
+        'weather_conditions',
         'extra_notes',
         'data_entry_notes',
         'tally_sheets',

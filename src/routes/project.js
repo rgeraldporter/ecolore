@@ -217,6 +217,7 @@ const findMemberBySlug = ([slug, userEmail]) =>
 const findOneUser = Future.encaseP(a => db.User.findOne(a));
 const findAllUser = Future.encaseP(a => db.User.findAll(a));
 const findOneProject = Future.encaseP(a => db.Project.findOne(a));
+const findOneZone = Future.encaseP(a => db.Zone.findOne(a));
 const findAllMaps = Future.encaseP(a => db.Map.findAll(a));
 const findAllCycle = Future.encaseP(a => db.Cycle.findAll(a));
 const findAllZone = Future.encaseP(a => db.Zone.findAll(a));
@@ -826,6 +827,41 @@ module.exports = function(router) {
                                 renderProjectTemplate(project)
                             )
                         )
+                )
+    );
+
+    router.get(
+        '/project/:slug/zone/:zoneId',
+        //passwordless.restricted({ failureRedirect: '/login' }), // not restricted for now; BB project
+        (req, res) =>
+            findOneProject({
+                where: { slug: req.params.slug }
+            })
+                .chain(project =>
+                    Future.parallel(3, [
+                        findOneZone({
+                            where: {
+                                id: req.params.zoneId,
+                                projectId: project.get('id')
+                            }
+                        }),
+                        findOneSurvey({
+                            where: {
+                                zoneId: req.params.zoneId
+                            },
+                            order: [['id', 'DESC']]
+                        }),
+                        Future.of(project)
+                    ])
+                )
+                .fork(
+                    _ => res.redirect(`/project/${req.params.slug}`),
+                    ([zone, survey, project]) =>
+                        renderProjectPage(res, 'zone', {
+                            zone,
+                            project,
+                            survey
+                        })
                 )
     );
 
@@ -2006,8 +2042,8 @@ module.exports = function(router) {
                             data: observation
                         }).then(() =>
                             observation.filename
-                                // make sure these files do new clips & ids
-                                ? db.AcousticFile.update(
+                                ? // make sure these files do new clips & ids
+                                  db.AcousticFile.update(
                                       {
                                           data: null,
                                           reviewed: 1

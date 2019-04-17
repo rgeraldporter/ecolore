@@ -14,16 +14,40 @@ const text = {
         <% include menu %>
         <div class="content-wrapper">
             <div class="header">
-                <h2><%= zone.name %> (<%= zone.code %>)</h2>
+                <h2><%= zone.get('name') %> (<%= zone.get('code') %>)</h2>
             </div>
             <div class="content">
-            <aside>
-                <a href='/project/<%= project.slug %>/zone/<%= zone.id %>/edit'>Edit <%= text.zone %></a><br>
-            </aside>
-            <h3>Description:</h3>
+            <!--aside>
+                <a href='/project/<%= project.get('slug') %>/zone/<%= zone.get('id') %>/edit'>Edit <%= text.zone %></a><br>
+            </aside-->
             <section>
-                <%= zone.description %>
+                <%- md.render(zone.get('description')) %>
             </section>
+            <section>
+                <h3>Last survey</h3>
+                <table class="pure-table pure-table-horizontal">
+                    <tbody>
+                    <tr>
+                        <th>Date/time</th>
+                        <td><%= survey.get('createdAt') %></td>
+                    </tr>
+                    <tr>
+                        <th>Nesting attempt status</th>
+                        <td><%= survey.get('data').nesting_attempt %></td>
+                    </tr>
+                    <tr>
+                        <th>Species</th>
+                        <td><%= survey.get('data').species %></td>
+                    </tr>
+                </tbody>
+                </table>
+            </section>
+            <% if(locals.user) { %>
+            <section>
+                <h3>New survey</h3>
+                <a href='/project/<%= project.get('slug') %>/cycle/<%= survey.get('cycleId') %>/survey/new?form=bluebird&zone=<%= zone.get('id') %>'>Enter new survey report</a>
+            </section>
+            <% } %>
         </div>
         <% include footer %>
     </div>

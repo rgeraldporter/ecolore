@@ -48,9 +48,16 @@ const surveyData = survey.data;
                                 <legend>Options</legend>
 
                                 <div class="pure-controls">
+                                    <input type="checkbox" name="cursory" value="true" id="form-cursory">
+                                    <label for="form-cursory">These are cursory reviews only</label>
+                                    <aside>By selecting this option, the next two options will label not as "empty" but as having been checked in a cursory review.</aside>
+                                </div>
+
+                                <div class="pure-controls">
                                     <input type="checkbox" name="nullify_remaining" value="true" id="form-null-remaining">
                                     <label for="form-null-remaining">Trackset review is complete, flag remaining unlabelled files as empty</label>
                                 </div>
+
                                 <div class="pure-controls">
                                     <input type="checkbox" name="nullify_priority_remaining" value="true" id="form-null-priority-remaining">
                                     <label for="form-null-priority-remaining">Priority track reviews are complete, flag remaining priority files as empty</label>

@@ -290,7 +290,8 @@ module.exports = function(router) {
                             Object.assign(renderProjectTemplate(project), {
                                 cycle,
                                 zones,
-                                from: req.query.from || false
+                                from: req.query.from || false,
+                                selectedZone: req.query.zone || null
                             })
                         )
                 )

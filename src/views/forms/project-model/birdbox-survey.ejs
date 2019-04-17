@@ -14,15 +14,12 @@ const taxaList = locals.R.defaultTo([],  cycle.get('taxa'));
                     <% if (locals.from) { %>
                         <div id="previous-survey-id">Survey #<%= from %> submitted</div>
                     <% } %>
-                    <h2>Birdbox Survey Form</h2>
+                    <h2>Generic Nesting Box Survey Form</h2>
                 </div>
                 <div class="content">
 
-                    <p>Select box type</p>
-
                     <ul>
-                        <li><a href="?form=bluebird">Bluebird</a></li>
-                        <li><a href="">Other</a></li>
+                        <li><a href="?form=bluebird&zone=<%= selectedZone %>">Switch to bluebird box form</a></li>
                     </ul>
 
                     <form action="/project/<%= project.slug %>/survey" method="POST" class="pure-form pure-form-aligned">
@@ -37,7 +34,7 @@ const taxaList = locals.R.defaultTo([],  cycle.get('taxa'));
                                     <%
                                         zones.forEach(zone => {
                                     %>
-                                    <option value="<%= zone.id %>"><%= zone.name %> (<%= zone.code %>)</option>
+                                    <option <%- selectedZone && selectedZone == zone.id ? 'selected' : '' %> value="<%= zone.id %>"><%= zone.name %> (<%= zone.code %>)</option>
                                     <%
                                         });
                                     %>

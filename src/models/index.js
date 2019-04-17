@@ -62,7 +62,8 @@ const {
     DerivedFile,
     AcousticFile,
     Identifier,
-    Identification
+    Identification,
+    QrCode
 } = db;
 
 // relations
