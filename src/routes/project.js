@@ -20,6 +20,7 @@ const transformationPath = __dirname + '/../transformations/';
 
 const multer = require('multer');
 const os = require('os');
+const url = require('url');
 
 const upload = multer({ dest: os.tmpdir() });
 
@@ -639,11 +640,15 @@ module.exports = function(router) {
         (req, res) => {
             findProjectBySlugF(req.params.slug).fork(console.error, project =>
                 res.redirect(
-                    '/project/' +
-                    req.params.slug +
-                    '/cycle/' +
-                    project.Cycles[0].id + // @todo account for project without cycles
-                        '/survey/new'
+                    url.format({
+                        pathname:
+                            '/project/' +
+                            req.params.slug +
+                            '/cycle/' +
+                            project.Cycles[0].id + // @todo account for project without cycles
+                            '/survey/new',
+                        query: req.query
+                    })
                 )
             );
         }
@@ -870,7 +875,6 @@ module.exports = function(router) {
                         )
                 )
     );
-
 
     router.get(
         '/project/:slug/zone/:zoneId',

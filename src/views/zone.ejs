@@ -24,6 +24,7 @@ const text = {
                 <%- md.render(zone.get('description')) %>
             </section>
             <section>
+                <% if (survey) { %>
                 <h3>Last survey</h3>
                 <table class="pure-table pure-table-horizontal">
                     <tbody>
@@ -41,11 +42,12 @@ const text = {
                     </tr>
                 </tbody>
                 </table>
+                <% } %>
             </section>
             <% if(locals.user) { %>
             <section>
                 <h3>New survey</h3>
-                <a href='/project/<%= project.get('slug') %>/cycle/<%= survey.get('cycleId') %>/survey/new?form=bluebird&zone=<%= zone.get('id') %>'>Enter new survey report</a>
+                <a href='/project/<%= project.get('slug') %>/submit?form=bluebird&zone=<%= zone.get('id') %>'>Enter new survey report</a>
             </section>
             <% } %>
         </div>
