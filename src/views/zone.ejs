@@ -21,9 +21,6 @@ const text = {
                 <a href='/project/<%= project.get('slug') %>/zone/<%= zone.get('id') %>/edit'>Edit <%= text.zone %></a><br>
             </aside-->
             <section>
-                <%- md.render(zone.get('description')) %>
-            </section>
-            <section>
                 <% if (survey) { %>
                 <h3>Last survey</h3>
                 <table class="pure-table pure-table-horizontal">
@@ -43,6 +40,9 @@ const text = {
                 </tbody>
                 </table>
                 <% } %>
+            </section>
+            <section>
+                <%- md.render(zone.get('description')) %>
             </section>
             <% if(locals.user) { %>
             <section>
