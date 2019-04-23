@@ -84,7 +84,8 @@ const observation = (req, res, next) =>
                                       data: {
                                           nullFile: true
                                       },
-                                      reviewed: true
+                                      reviewed: req.body.scanned ? false : true,
+                                      scanned: req.body.scanned ? true : false
                                   },
                                   {
                                       where: whereRemaining(

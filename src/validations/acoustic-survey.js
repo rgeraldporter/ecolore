@@ -1,7 +1,7 @@
 // several here on "optional" as middleware seems to sometimes go out of order and labelfiles might or might not be still there
 const observations = {
     exists: ['survey', 'cycle'],
-    optional: ['more_observations', 'labelfiles', 'observations', 'filenames']
+    optional: ['more_observations', 'labelfiles', 'observations', 'filenames', 'scanned']
 };
 
 const surveys = {

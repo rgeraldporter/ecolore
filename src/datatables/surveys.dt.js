@@ -19,6 +19,14 @@ const surveysDataTable = ({
 }) => {
     const { locals } = req.app;
 
+    const showScanned = scanned =>
+        scanned
+            ? `background-image: linear-gradient(45deg, #808080 25%, transparent 25%), linear-gradient(-45deg, #808080 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #808080 75%), linear-gradient(-45deg, transparent 75%, #808080 75%)`
+            : ``;
+
+    const scannedOrUnreviewed = scanned =>
+        scanned ? 'Scanned only' : 'Unreviewed';
+
     const isMoreAssigned = count => (count > 1 ? ` + ${count - 1}` : ``);
     const generateAcousticFileBoxes = acousticFiles =>
         acousticFiles
@@ -34,10 +42,18 @@ const surveysDataTable = ({
                     : file.get('priority') > 0
                     ? `<div class="empty-high reviewed-box" data-tooltip="${file.get(
                           'name'
-                      )}: Unreviewed (high priority)" data-tooltip-position="top"></div>`
+                      )}: ${scannedOrUnreviewed(
+                          file.get('scanned')
+                      )} (high priority)" data-tooltip-position="top" style="${showScanned(
+                          file.get('scanned')
+                      )}"></div>`
                     : `<div class="empty reviewed-box" data-tooltip="${file.get(
                           'name'
-                      )}: Unreviewed" data-tooltip-position="top"></div>`
+                      )}: ${scannedOrUnreviewed(
+                          file.get('scanned')
+                      )}" data-tooltip-position="top" style="${showScanned(
+                          file.get('scanned')
+                      )}"></div>`
             )
             .join('');
 

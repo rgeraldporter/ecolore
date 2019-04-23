@@ -21,5 +21,8 @@ module.exports = (sequelize, DataTypes) =>
         },
         reviewed: {
             type: DataTypes.BOOLEAN
+        },
+        scanned: {
+            type: DataTypes.BOOLEAN
         }
     });

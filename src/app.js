@@ -244,6 +244,8 @@ const clipperWorker = new CronJob('30 * * * *', () => {
 
 clipperWorker.start();
 
+/*
+May no longer be necessary.
 const reviewerWorker = new CronJob('25 * * * *', () => {
     dbLogger('CRON: Starting reviewer.');
     flagReviewedAcousticFiles(err => {
@@ -254,3 +256,4 @@ const reviewerWorker = new CronJob('25 * * * *', () => {
 });
 
 reviewerWorker.start();
+*/

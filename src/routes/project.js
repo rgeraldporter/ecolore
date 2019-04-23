@@ -2051,7 +2051,8 @@ module.exports = function(router) {
                                   db.AcousticFile.update(
                                       {
                                           data: null,
-                                          reviewed: 1
+                                          reviewed: data.scanned ? 0 : 1,
+                                          scanned: data.scanned ? 1 : 0
                                       },
                                       {
                                           where: {
