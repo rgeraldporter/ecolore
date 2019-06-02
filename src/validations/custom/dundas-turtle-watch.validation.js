@@ -40,7 +40,7 @@ const surveys = {
         'cycle',
         'route',
         'date',
-        'names',
+        'name_1',
         'start_time',
         'end_time',
         'temperature'
@@ -53,6 +53,8 @@ const surveys = {
         'weather_conditions_heavy_rain',
         'weather_conditions_rain_24h',
         'weather_conditions',
+        'name_2',
+        'name_3',
         'extra_notes',
         'data_entry_notes',
         'tally_sheets',
