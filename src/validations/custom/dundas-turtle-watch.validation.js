@@ -3,11 +3,12 @@ const observations = {
         'survey',
         'cycle',
         'incident_line',
-        'how_many',
         'name_of_species',
         'road'
     ],
     optional: [
+        'alive_count',
+        'dead_count',
         'adult_size',
         'immature_size',
         'direction_of_travel',
@@ -19,7 +20,8 @@ const observations = {
         'broken_eggs',
         'pole_a',
         'pole_b',
-        'gps',
+        'gps_n',
+        'gps_w',
         'location_notes',
         'location_garden_pile_one',
         'location_garden_pile_two',
