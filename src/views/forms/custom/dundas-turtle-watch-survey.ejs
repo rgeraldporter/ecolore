@@ -3,6 +3,10 @@
 
 <% include ../../head %>
 
+<%
+const cycleId = cycle.id || cycle.get('id');
+%>
+
 <body>
         <% include ../../menu %>
         <div class="content-wrapper">
@@ -142,7 +146,7 @@
                         </fieldset>
                     <% } %>
                     <fieldset>
-                        <input type="hidden" name="cycle" value="<%= cycle.get('id') %>">
+                        <input type="hidden" name="cycle" value="<%= cycleId %>">
                         <div class="pure-control-group">
                             <label for="form-submit"></label>
                             <button id="form-submit" type="submit" class="pure-button pure-button-primary">Submit form</button>
