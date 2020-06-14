@@ -645,7 +645,7 @@ module.exports = function(router) {
                             '/project/' +
                             req.params.slug +
                             '/cycle/' +
-                            project.Cycles[0].id + // @todo account for project without cycles
+                            project.Cycles.slice(-1)[0].id + // @todo account for project without cycles
                             '/survey/new',
                         query: req.query
                     })
