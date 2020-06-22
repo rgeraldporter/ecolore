@@ -81,16 +81,14 @@ module.exports = router => {
         '/user/auth/google/drive/callback',
         passwordless.restricted({failureRedirect: '/login' }),
         (req, res, next) => {
-            console.log('got this far');
             const state = req.query.state;
-            console.log('got a state', state);
             db.Google_Drive_Project_State.findOne({ token: state })
                 .then(state =>
                     findProjectByIdAndOwner([
                         state.projectId,
                         res.locals.user
                     ]).then(project => {
-                        console.log('got a project', project);
+                        console.log('got a project', state, project);
                         return passport.authenticate('google', {
                             successRedirect:
                                 '/project/' + project.slug + '/edit',
