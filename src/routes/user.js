@@ -83,7 +83,7 @@ module.exports = router => {
         (req, res, next) => {
             console.log('got this far');
             const state = req.params.state;
-            console.log('got a state', state);
+            console.log('got a state', req.params);
             db.Google_Drive_Project_State.findOne({ token: state })
                 .then(state =>
                     findProjectByIdAndOwner([
