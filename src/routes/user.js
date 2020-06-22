@@ -82,8 +82,8 @@ module.exports = router => {
         passwordless.restricted({failureRedirect: '/login' }),
         (req, res, next) => {
             console.log('got this far');
-            const state = req.params.state;
-            console.log('got a state', req);
+            const state = req.query.state;
+            console.log('got a state', state);
             db.Google_Drive_Project_State.findOne({ token: state })
                 .then(state =>
                     findProjectByIdAndOwner([
