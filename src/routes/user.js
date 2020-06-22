@@ -104,7 +104,10 @@ module.exports = (router) => {
                         })(req, res, next);
                     })
                 )
-                .catch((err) => res.render('error'));
+                .catch((err) => {
+                    console.error('ERR', err);
+                    return res.render('error');
+                });
         }
     );
 
