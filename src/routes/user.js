@@ -92,7 +92,7 @@ module.exports = (router) => {
                         state.projectId,
                         res.locals.user,
                     ]).then((project) => {
-                        console.log('got a project', state, project);
+                        console.log('got a project');
                         return passport.authenticate('google', {
                             successRedirect:
                                 '/project/' + project.slug + '/edit',
@@ -105,7 +105,7 @@ module.exports = (router) => {
                     })
                 )
                 .catch((err) => {
-                    console.error('ERR', err);
+                    console.error('ERR2', err);
                     return res.render('error');
                 });
         }
