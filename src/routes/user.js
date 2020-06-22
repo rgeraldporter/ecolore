@@ -15,7 +15,7 @@ const renderUserPage = (res, name, values = {}) =>
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const THIS_HOST = process.env.HOST ? 'https://' + process.env.HOST : 'http://ecolore-local.org:3001';
+const THIS_HOST = process.env.HOST ? process.env.HOST : 'http://ecolore-local.org:3001';
 
 const findProjectByIdAndOwner = ([id, user]) =>
     db.Project.findOne({
