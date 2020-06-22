@@ -77,6 +77,12 @@ module.exports = (router) => {
         })(req, res, next)
     );
 
+    app.use(errorHandler({ log: errorNotification }));
+
+    function errorNotification(err, str, req) {
+      console.log('ERROR111', err);
+    }
+
     router.get(
         '/user/auth/google/drive/callback',
         passwordless.restricted({ failureRedirect: '/login' }),
