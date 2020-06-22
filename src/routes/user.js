@@ -4,7 +4,7 @@ const db = require('../models/index');
 const R = require('ramda');
 const passwordless = require('passwordless');
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth2').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const Op = db.Sequelize.Op;
 
 const renderUserPage = (res, name, values = {}) =>
