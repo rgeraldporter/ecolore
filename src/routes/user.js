@@ -98,7 +98,7 @@ module.exports = (router) => {
                                 '/project/' + project.slug + '/edit',
                             failureRedirect: '/user/auth/google/drive/failure',
                             scope: [
-                                'profile',
+                                'https://www.googleapis.com/auth/userinfo.profile',
                                 'https://www.googleapis.com/auth/drive.file',
                             ],
                         })(req, res, next);
