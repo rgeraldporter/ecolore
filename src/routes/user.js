@@ -107,6 +107,7 @@ module.exports = (router) => {
                         res.locals.user,
                     ]).then((project) => {
                         console.log('got a project');
+                        console.log('stuffs', '/project/' + project.slug + '/edit');
                         return passport.authenticate('google', {
                             successRedirect:
                                 '/project/' + project.slug + '/edit',
