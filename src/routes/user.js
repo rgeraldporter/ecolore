@@ -56,14 +56,18 @@ passport.use(
                 console.error('THIS_HOST', THIS_HOST);
 
                 db.Google_Drive_Project_State.findOne({ token: state })
-                    .then((state) =>
-                        db.Google_Drive_OAuth2_Token.create({
+                    .then((state) => {
+                        console.log('OUR_STATE', state);
+                        return db.Google_Drive_OAuth2_Token.create({
                             projectId: state.get('projectId'),
                             accessToken,
                             refreshToken,
-                        })
-                    )
-                    .then(() => done(null, profile));
+                        });
+                    })
+                    .then(() => {
+                        console.log('COMPLETE');
+                        done(null, profile)
+                    });
             });
         }
     )
