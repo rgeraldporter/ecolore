@@ -52,7 +52,7 @@ passport.use(
         function (request, accessToken, refreshToken, profile, done) {
             process.nextTick(() => {
                 const state = request.query.state;
-                console.error('PROJ_ID', state.get('projectId'));
+                console.error('PROJ_ID', state);
                 console.error('THIS_HOST', THIS_HOST);
 
                 db.Google_Drive_Project_State.findOne({ token: state })
