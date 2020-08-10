@@ -55,7 +55,11 @@ passport.use(
                 console.error('PROJ_ID', state, accessToken, refreshToken);
                 console.error('THIS_HOST', THIS_HOST);
 
-                db.Google_Drive_Project_State.findOne({ token: state })
+                db.Google_Drive_Project_State.findOne({
+                    where: {
+                        token: state,
+                    },
+                })
                     .then((state) => {
                         console.log('OUR_STATE', state);
                         return db.Google_Drive_OAuth2_Token.create({
@@ -66,7 +70,7 @@ passport.use(
                     })
                     .then(() => {
                         console.log('COMPLETE');
-                        done(null, profile)
+                        done(null, profile);
                     });
             });
         }
