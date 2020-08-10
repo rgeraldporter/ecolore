@@ -81,6 +81,7 @@ module.exports = (router) => {
     router.get('/user/auth/google/drive/:state', (req, res, next) =>
         passport.authenticate('google', {
             prompt: 'consent',
+            accessType: 'offline',
             scope: [
                 'https://www.googleapis.com/auth/drive.file',
             ],
@@ -109,6 +110,7 @@ module.exports = (router) => {
                         return passport.authenticate('google', {
                             successRedirect:
                                 '/project/' + project.slug + '/edit',
+                            accessType: 'offline',
                             failureRedirect: '/user/auth/google/drive/failure',
                             scope: [
                                 'https://www.googleapis.com/auth/drive.file',
