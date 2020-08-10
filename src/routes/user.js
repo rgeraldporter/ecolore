@@ -53,7 +53,7 @@ passport.use(
             process.nextTick(() => {
                 const state = request.query.state;
                 console.error('PROJ_ID', state, accessToken, refreshToken);
-                console.error('THIS_HOST', THIS_HOST);
+                console.error('PROFILE', profile);
 
                 db.Google_Drive_Project_State.findOne({
                     where: {
@@ -94,6 +94,7 @@ module.exports = (router) => {
         '/user/auth/google/drive/callback',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res, next) => {
+            console.log('AT THE ENDPOINT');
             const state = req.query.state;
             db.Google_Drive_Project_State.findOne({
                 where: {
