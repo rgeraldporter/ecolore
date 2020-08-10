@@ -83,6 +83,7 @@ module.exports = (router) => {
             prompt: 'consent',
             accessType: 'offline',
             scope: [
+                'https://www.googleapis.com/auth/userinfo.email',
                 'https://www.googleapis.com/auth/drive.file',
             ],
             state: req.params.state,
@@ -113,6 +114,7 @@ module.exports = (router) => {
                             accessType: 'offline',
                             failureRedirect: '/user/auth/google/drive/failure',
                             scope: [
+                                'https://www.googleapis.com/auth/userinfo.email',
                                 'https://www.googleapis.com/auth/drive.file',
                             ],
                         })(req, res, next);
