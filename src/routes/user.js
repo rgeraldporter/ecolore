@@ -72,7 +72,10 @@ module.exports = (router) => {
         passport.authenticate('google', {
             prompt: 'consent',
             accessType: 'offline',
-            scope: ['profile', 'https://www.googleapis.com/auth/drive.file'],
+            scope: [
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'https://www.googleapis.com/auth/drive.file',
+            ],
             state: req.params.state,
         })(req, res, next)
     );
@@ -96,9 +99,10 @@ module.exports = (router) => {
                         return passport.authenticate('google', {
                             successRedirect:
                                 '/project/' + project.slug + '/edit',
+                            accessType: 'offline',
                             failureRedirect: '/user/auth/google/drive/failure',
                             scope: [
-                                'profile',
+                                'https://www.googleapis.com/auth/userinfo.profile',
                                 'https://www.googleapis.com/auth/drive.file',
                             ],
                         })(req, res, next);
