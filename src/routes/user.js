@@ -92,6 +92,7 @@ module.exports = (router) => {
     router.get(
         '/user/auth/google/drive/callback',
         passwordless.restricted({ failureRedirect: '/login' }),
+        passport.authenticate('google'),
         (req, res, next) => {
             console.log('AT THE ENDPOINT');
             const state = req.query.state;
@@ -110,11 +111,7 @@ module.exports = (router) => {
                             'stuffs',
                             '/project/' + project.slug + '/edit'
                         );
-                        return passport.authenticate('google', {
-                            successRedirect:
-                                '/project/' + project.slug + '/edit',
-                            failureRedirect: '/user/auth/google/drive/failure',
-                        })(req, res, next);
+                        res.redirect('/project/' + project.slug + '/edit');
                     })
                 )
                 .catch((err) => {
