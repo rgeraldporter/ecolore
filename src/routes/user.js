@@ -81,7 +81,11 @@ module.exports = (router) => {
     router.get('/user/auth/google/drive/:state', (req, res, next) =>
         passport.authenticate('google', {
             prompt: 'consent',
-            scope: ['profile', "https://www.googleapis.com/auth/drive.file", "email"]
+            scope: [
+                'profile',
+                'https://www.googleapis.com/auth/drive.file',
+                'email',
+            ],
             state: req.params.state,
         })(req, res, next)
     );
