@@ -17,7 +17,7 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const THIS_HOST = process.env.HOST
     ? process.env.HOST
-    : 'http://ecolore-local.org:3001';
+    : 'http://ecolore-local.org:3001/';
 
 const findProjectByIdAndOwner = ([id, user]) =>
     db.Project.findOne({
@@ -52,8 +52,6 @@ passport.use(
         function (request, accessToken, refreshToken, profile, done) {
             process.nextTick(() => {
                 const state = request.query.state;
-                console.error('PROJ_ID', state, accessToken, refreshToken);
-                console.error('PROFILE', profile);
 
                 db.Google_Drive_Project_State.findOne({
                     where: {
@@ -61,7 +59,6 @@ passport.use(
                     },
                 })
                     .then((state) => {
-                        console.log('OUR_STATE', state);
                         return db.Google_Drive_OAuth2_Token.create({
                             projectId: state.get('projectId'),
                             accessToken,
@@ -85,6 +82,8 @@ module.exports = (router) => {
                 'https://www.googleapis.com/auth/drive.file',
                 'email',
             ],
+            prompt: 'consent',
+            accessType: 'offline',
             state: req.params.state,
         })(req, res, next)
     );
@@ -93,7 +92,6 @@ module.exports = (router) => {
         '/user/auth/google/drive/callback',
         passwordless.restricted({ failureRedirect: '/login' }),
         (req, res, next) => {
-            console.log('AT THE ENDPOINT');
             const state = req.query.state;
             db.Google_Drive_Project_State.findOne({
                 where: {
@@ -105,20 +103,10 @@ module.exports = (router) => {
                         state.projectId,
                         res.locals.user,
                     ]).then((project) => {
-                        console.log('got a project');
-                        console.log(
-                            'stuffs',
-                            '/project/' + project.slug + '/edit'
-                        );
-                        return passport.authenticate('google', {
-                            successRedirect:
-                                '/project/' + project.slug + '/edit',
-                            failureRedirect: '/user/auth/google/drive/failure',
-                        })(req, res, next);
+                        res.redirect('/project/' + project.slug + '/edit')
                     })
                 )
                 .catch((err) => {
-                    console.error('ERR2', err);
                     return res.render('error');
                 });
         }
