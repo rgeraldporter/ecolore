@@ -69,7 +69,7 @@ passport.use(
                         });
                     })
                     .then(() => {
-                        console.log('COMPLETE');
+                        console.log('COMPLETE', done);
                         done(null, profile);
                     });
             });
