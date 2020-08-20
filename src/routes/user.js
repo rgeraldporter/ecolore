@@ -70,7 +70,15 @@ passport.use(
                     })
                     .then(() => {
                         console.log('COMPLETE', done);
-                        done(null, profile);
+                        //save data in session
+                        const user = {
+                            accesstoken: accessToken,
+                            googleID: profile.id,
+                            name: profile.displayName,
+                            pic_url: profile._json.picture,
+                            email: profile._json.email,
+                        };
+                        done(null, user);
                     });
             });
         }
