@@ -81,12 +81,7 @@ module.exports = (router) => {
     router.get('/user/auth/google/drive/:state', (req, res, next) =>
         passport.authenticate('google', {
             prompt: 'consent',
-            accessType: 'offline',
-            scope: [
-                'https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'https://www.googleapis.com/auth/drive.file',
-            ],
+            scope: ['profile', "https://www.googleapis.com/auth/drive.file", "email"]
             state: req.params.state,
         })(req, res, next)
     );
@@ -108,16 +103,18 @@ module.exports = (router) => {
                         res.locals.user,
                     ]).then((project) => {
                         console.log('got a project');
-                        console.log('stuffs', '/project/' + project.slug + '/edit');
+                        console.log(
+                            'stuffs',
+                            '/project/' + project.slug + '/edit'
+                        );
                         return passport.authenticate('google', {
                             successRedirect:
                                 '/project/' + project.slug + '/edit',
-                            accessType: 'offline',
                             failureRedirect: '/user/auth/google/drive/failure',
                             scope: [
-                                'https://www.googleapis.com/auth/userinfo.email',
-                                'https://www.googleapis.com/auth/userinfo.profile',
+                                'profile',
                                 'https://www.googleapis.com/auth/drive.file',
+                                'email',
                             ],
                         })(req, res, next);
                     })
