@@ -46,7 +46,7 @@ passport.use(
         {
             clientID: GOOGLE_CLIENT_ID,
             clientSecret: GOOGLE_CLIENT_SECRET,
-            callbackURL: THIS_HOST + '/user/auth/google/drive/callback',
+            callbackURL: '/user/auth/google/drive/callback',
             passReqToCallback: true,
         },
         function (request, accessToken, refreshToken, profile, done) {
@@ -70,15 +70,7 @@ passport.use(
                     })
                     .then(() => {
                         console.log('COMPLETE', done);
-                        //save data in session
-                        const user = {
-                            accesstoken: accessToken,
-                            googleID: profile.id,
-                            name: profile.displayName,
-                            pic_url: profile._json.picture,
-                            email: profile._json.email,
-                        };
-                        done(null, user);
+                        done(null, profile);
                     });
             });
         }
@@ -100,7 +92,6 @@ module.exports = (router) => {
     router.get(
         '/user/auth/google/drive/callback',
         passwordless.restricted({ failureRedirect: '/login' }),
-        passport.authenticate('google'),
         (req, res, next) => {
             console.log('AT THE ENDPOINT');
             const state = req.query.state;
@@ -119,7 +110,11 @@ module.exports = (router) => {
                             'stuffs',
                             '/project/' + project.slug + '/edit'
                         );
-                        res.redirect('/project/' + project.slug + '/edit');
+                        return passport.authenticate('google', {
+                            successRedirect:
+                                '/project/' + project.slug + '/edit',
+                            failureRedirect: '/user/auth/google/drive/failure',
+                        })(req, res, next);
                     })
                 )
                 .catch((err) => {
